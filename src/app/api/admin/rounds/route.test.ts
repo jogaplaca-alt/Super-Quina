@@ -16,14 +16,14 @@ vi.mock("@/lib/auth/session", () => ({
     purchase: { count: mocks.purchaseCount },
     $transaction: mocks.transaction,
   },
-  SESSION_COOKIE: "jogaplacas_session",
+  SESSION_COOKIE: "superquina_session",
 }));
 
 import { GET } from "./route";
 
 function request(token = "session-token") {
   return new NextRequest("https://example.test/api/admin/rounds", {
-    headers: token ? { cookie: "jogaplacas_session=" + token } : {},
+    headers: token ? { cookie: "superquina_session=" + token } : {},
   });
 }
 
@@ -90,7 +90,7 @@ describe("POST /api/admin/rounds", () => {
 
   function createRequest(body: unknown, origin = "https://example.test") {
     return new NextRequest("https://example.test/api/admin/rounds", {
-      method: "POST", headers: { origin, "content-type": "application/json", cookie: "jogaplacas_session=session-token" },
+      method: "POST", headers: { origin, "content-type": "application/json", cookie: "superquina_session=session-token" },
       body: JSON.stringify(body),
     });
   }
