@@ -1,19 +1,19 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-const logo = "/images/brand/iconi-geral.PNG";
+const logo = "/images/brand/super-quina-icon.png";
 
 export const metadata: Metadata = {
   title: {
-    default: "Jogo Numérico",
-    template: "%s | Jogo Numérico",
+    default: "Super Quina",
+    template: "%s | Super Quina",
   },
-  description: "Jogo numérico de cinco algarismos, com apostas, recibos e consulta de resultados.",
-  applicationName: "Jogo Numérico",
+  description: "Jogue cinco números e concorra a cinco categorias de prêmios na Super Quina.",
+  applicationName: "Super Quina",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Jogo Numérico",
+    title: "Super Quina",
   },
   icons: {
     icon: [{ url: logo, type: "image/png" }],
@@ -23,22 +23,22 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "pt_BR",
-    siteName: "Joga Placa",
-    title: "Joga Placa",
-    description: "Aposte em números de cinco algarismos e acompanhe os resultados publicados.",
-    images: [{ url: logo, alt: "Ícone do Jogo Numérico" }],
+    siteName: "Super Quina",
+    title: "Super Quina",
+    description: "Jogue cinco números e concorra a cinco categorias de prêmios.",
+    images: [{ url: logo, alt: "Logomarca Super Quina" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Joga Placa",
-    description: "Consulte recibos e acompanhe os resultados publicados.",
+    title: "Super Quina",
+    description: "Jogue cinco números e concorra a cinco categorias de prêmios.",
     images: [logo],
   },
   manifest: "/manifest.webmanifest",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#10141d",
+  themeColor: "#07358f",
   width: "device-width",
   initialScale: 1,
 };
