@@ -14,7 +14,7 @@ describe("allocateNumberStake", () => {
     });
   });
 
-  it("assigns all indivisible cents to unit, matching the legacy plate allocation rule", () => {
+  it("assigns all indivisible cents to unit, as required by the numeric game rules", () => {
     expect(allocateNumberStake(302)).toEqual({
       unitCents: 62, tensCents: 60, hundredsCents: 60, thousandsCents: 60, quinaCents: 60,
     });

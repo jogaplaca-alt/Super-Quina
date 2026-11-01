@@ -4,8 +4,6 @@ export class RoundSettlementError extends Error {
     public readonly code:
       | "ROUND_NOT_FOUND"
       | "ROUND_NOT_DRAWN"
-      | "INVALID_PLATE_RESULT"
-      | "INVALID_PLATE_BET"
       | "INVALID_RULE_SNAPSHOT"
       | "INCONSISTENT_SETTLEMENT",
   ) {

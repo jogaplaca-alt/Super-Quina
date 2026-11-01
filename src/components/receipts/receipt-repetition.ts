@@ -2,7 +2,7 @@ import type { ThermalReceiptEntry } from "./thermal-receipt-types";
 
 /**
  * Assigns a stable sequence number to each distinct round in the supplied
- * participation order. Multiple plate lines in the same round share a number.
+ * participation order. Multiple number entries in the same round share a repetition number.
  */
 export function getReceiptRepetitionNumbers(entries: ThermalReceiptEntry[]): number[] {
   const numbersByRound = new Map<string, number>();
