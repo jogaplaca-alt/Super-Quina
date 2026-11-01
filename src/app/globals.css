@@ -576,7 +576,6 @@ h1 {
 }
 
 
-/* Identidade visual da Super Quina. */
 /* Identidade visual da Super Quina. Aplicada globalmente sem alterar fluxos, permissões ou regras de negócio. */
 :root {
   color-scheme: dark;
@@ -824,9 +823,9 @@ p, .intro, .auth-description, .area-description, .feature-card p,
 }
 
 .purchase-form fieldset{
-.purchase-form fieldset
   grid-column:1/-1;
   margin:0!important;
+}
 .purchase-form legend{
   padding-top:2px;
   font-size:.95rem;
