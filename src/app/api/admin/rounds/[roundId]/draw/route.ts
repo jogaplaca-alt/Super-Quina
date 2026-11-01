@@ -53,7 +53,6 @@ export async function POST(
         id: round.id,
         code: round.code,
         status: round.status,
-        gameMode: round.gameMode,
         resultNumber: round.resultNumber,
       },
     }, 200);

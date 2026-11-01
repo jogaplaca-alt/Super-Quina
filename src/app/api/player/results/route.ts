@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   try {
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const rounds = await authPrisma.round.findMany({
-      where: { gameMode: "NUMERIC", status: "COMPLETED", resultAt: { gte: since }, resultNumber: { not: null } },
+      where: { status: "COMPLETED", resultAt: { gte: since }, resultNumber: { not: null } },
       select: { id: true, code: true, resultAt: true, resultNumber: true },
       orderBy: { resultAt: "desc" }, take: 50,
     });

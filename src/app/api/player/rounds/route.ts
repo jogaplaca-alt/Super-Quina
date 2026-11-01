@@ -16,7 +16,6 @@ export async function GET(request: NextRequest) {
   const now = new Date();
   const rounds = await authPrisma.round.findMany({
     where: {
-      gameMode: "NUMERIC",
       status: { in: ["SCHEDULED", "OPEN"] },
       cutoffAt: { gt: now },
     },

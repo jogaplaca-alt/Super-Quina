@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       authPrisma.round.findMany({
         select: {
           id: true, code: true, startsAt: true, cutoffAt: true, resultAt: true, status: true,
-          gameMode: true, resultNumber: true,
+          resultNumber: true,
           _count: { select: { participations: true } },
         },
         orderBy: [{ startsAt: "desc" }, { code: "desc" }],
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
       rounds: rounds.map((round) => ({
         id: round.id, code: round.code, startsAt: round.startsAt.toISOString(),
         cutoffAt: round.cutoffAt.toISOString(), resultAt: round.resultAt.toISOString(),
-        status: round.status, gameMode: round.gameMode, resultNumber: round.resultNumber,
+        status: round.status, resultNumber: round.resultNumber,
         participationCount: round._count.participations,
       })),
       summary: { pendingPayments, confirmedPurchases },
@@ -84,12 +84,12 @@ export async function POST(request: NextRequest) {
   try {
     const round = await authPrisma.$transaction(async (tx) => {
       const created = await tx.round.create({
-        data: { code, startsAt, cutoffAt, resultAt, status: "SCHEDULED", gameMode: "NUMERIC" },
-        select: { id: true, code: true, startsAt: true, cutoffAt: true, resultAt: true, status: true, gameMode: true },
+        data: { code, startsAt, cutoffAt, resultAt, status: "SCHEDULED" },
+        select: { id: true, code: true, startsAt: true, cutoffAt: true, resultAt: true, status: true },
       });
       await tx.auditEvent.create({ data: {
         actorId: user.id, action: "ROUND_CREATED", entityType: "Round", entityId: created.id,
-        metadata: { code, gameMode: "NUMERIC", startsAt: startsAt.toISOString(), cutoffAt: cutoffAt.toISOString(), resultAt: resultAt.toISOString(), timeZone: "UTC-03:00 (Horário de Brasília)" },
+        metadata: { code, startsAt: startsAt.toISOString(), cutoffAt: cutoffAt.toISOString(), resultAt: resultAt.toISOString(), timeZone: "UTC-03:00 (Horário de Brasília)" },
       } });
       return created;
     }, { isolationLevel: "Serializable" });
