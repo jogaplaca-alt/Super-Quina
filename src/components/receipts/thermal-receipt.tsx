@@ -37,7 +37,7 @@ export function ThermalReceipt({
 }: ThermalReceiptProps) {
   const [generatedQr, setGeneratedQr] = useState<{ receiptCode: string; url: string } | null>(null);
   useEffect(() => {
-    if (paymentStatus !== "CONFIRMED" || !/^JP-[A-Z0-9]{8,32}$/.test(receiptCode)) return;
+    if (paymentStatus !== "CONFIRMED" || !/^SQ-[A-Z0-9]{8,32}$/.test(receiptCode)) return;
     const timer = window.setTimeout(() => {
       const verificationUrl = window.location.origin + "/verificar-recibo/" + encodeURIComponent(receiptCode);
       setGeneratedQr({
@@ -48,7 +48,7 @@ export function ThermalReceipt({
     return () => window.clearTimeout(timer);
   }, [receiptCode, paymentStatus]);
 
-  if (paymentStatus !== "CONFIRMED" || !/^JP-[A-Z0-9]{8,32}$/.test(receiptCode)) return null;
+  if (paymentStatus !== "CONFIRMED" || !/^SQ-[A-Z0-9]{8,32}$/.test(receiptCode)) return null;
 
   const money = (cents: number) => new Intl.NumberFormat("pt-BR", {
     style: "currency",
