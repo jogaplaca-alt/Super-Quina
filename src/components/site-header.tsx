@@ -1,20 +1,13 @@
 "use client";
 
-/** Cabeçalho visual público com cenário fotográfico e logomarca oficial sobreposta. */
+/** Cabeçalho único da Super Quina: cenário e logomarca na mesma arte. */
 export function SiteHeader() {
   return (
-    <header className="site-header site-header-scenery" aria-label="Cabeçalho Joga Placa">
+    <header className="site-header site-header-scenery" aria-label="Cabeçalho Super Quina">
       <img
         className="site-header-scenery-image"
-        src="/images/brand/header-cenario-joga-placa.PNG"
-        alt=""
-        fetchPriority="high"
-        decoding="async"
-      />
-      <img
-        className="site-header-scenery-logo"
-        src="/images/brand/joga-placa-logo.jpg"
-        alt="Joga Placa"
+        src="/images/brand/super-quina-header.png"
+        alt="Super Quina"
         fetchPriority="high"
         decoding="async"
       />
