@@ -104,7 +104,7 @@ export async function createNumericPurchase(
         const lockedRoundRows = await tx.$queryRaw<Array<{ id: string }>>`
           SELECT "id" FROM "Round"
           WHERE "id" IN (${Prisma.join(requestedRoundIds)})
-             OR ("gameMode" = 'NUMERIC' AND "status" IN ('OPEN', 'SCHEDULED') AND "cutoffAt" > clock_timestamp())
+             OR ("status" IN ('OPEN', 'SCHEDULED') AND "cutoffAt" > clock_timestamp())
           ORDER BY "id" FOR UPDATE
         `;
         const lockedRoundIds = lockedRoundRows.map((round) => round.id);
@@ -114,7 +114,6 @@ export async function createNumericPurchase(
 
         const availableRounds = await tx.round.findMany({
           where: {
-            gameMode: "NUMERIC",
             id: { in: lockedRoundIds },
             status: { in: [RoundStatus.OPEN, RoundStatus.SCHEDULED] },
             cutoffAt: { gt: decisionTime },

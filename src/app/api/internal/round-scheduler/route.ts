@@ -115,12 +115,12 @@ export async function POST(request: NextRequest) {
       if (startsAt >= cutoffAt) continue;
       await authPrisma.$transaction(async (tx) => {
         const round = await tx.round.create({
-          data: { code, startsAt, cutoffAt, resultAt, status: "SCHEDULED", gameMode: "NUMERIC" },
+          data: { code, startsAt, cutoffAt, resultAt, status: "SCHEDULED" },
           select: { id: true },
         });
         await tx.auditEvent.create({
           data: { action: "ROUND_SCHEDULED_AUTOMATICALLY", entityType: "Round", entityId: round.id,
-            metadata: { code, gameMode: "NUMERIC", startsAt: startsAt.toISOString(), cutoffAt: cutoffAt.toISOString(), resultAt: resultAt.toISOString(), timeZone: TIME_ZONE } },
+            metadata: { code, startsAt: startsAt.toISOString(), cutoffAt: cutoffAt.toISOString(), resultAt: resultAt.toISOString(), timeZone: TIME_ZONE } },
         });
       }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
       created += 1;

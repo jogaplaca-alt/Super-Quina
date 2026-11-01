@@ -17,7 +17,6 @@ export async function drawRoundResults(prisma: PrismaClient, roundId: string, ac
     if (locked.length === 0) throw new RoundDrawError("Round was not found", "ROUND_NOT_FOUND");
     const round = await tx.round.findUnique({ where: { id: roundId } });
     if (!round) throw new RoundDrawError("Round was not found", "ROUND_NOT_FOUND");
-    if (round.gameMode !== "NUMERIC") throw new RoundDrawError("Only numeric rounds can be drawn", "INCONSISTENT_DRAW");
     if (round.resultNumber !== null) {
       if (round.status !== RoundStatus.COMPLETED) throw new RoundDrawError("A numeric result exists but the round is not completed", "INCONSISTENT_DRAW");
       return round;

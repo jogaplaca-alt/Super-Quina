@@ -20,7 +20,7 @@ export async function settleNumericRoundPrizes(prisma: PrismaClient, roundId: st
 
         const round = await tx.round.findUnique({ where: { id: roundId } });
         if (!round) throw new RoundSettlementError("Round not found", "ROUND_NOT_FOUND");
-        if (round.gameMode !== "NUMERIC" || round.status !== RoundStatus.COMPLETED || !round.resultNumber) {
+        if (round.status !== RoundStatus.COMPLETED || !round.resultNumber) {
           throw new RoundSettlementError("A completed numeric result is required", "ROUND_NOT_DRAWN");
         }
 
