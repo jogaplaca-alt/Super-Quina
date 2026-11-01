@@ -45,13 +45,11 @@ describe("GET /api/player/history", () => {
         id: "participation-1", status: "CONFIRMED", totalCents: 100,
         round: {
           code: "JN-20350101-1230", status: "COMPLETED",
-          resultAt: new Date("2035-01-01T12:30:00.000Z"), gameMode: "NUMERIC",
-          resultNumber: "00123", resultLegacyPlate: null, resultMercosurPlate: null,
+          resultAt: new Date("2035-01-01T12:30:00.000Z"), resultNumber: "00123",
         },
         numericLines: [{
           id: "numeric-line-1", numberValue: "00123", prizeCents: 120, prizeCreditedAt: new Date("2035-01-01T12:31:00.000Z"),
         }],
-        lines: [],
       }],
     }]);
     const response = await GET(request());
@@ -59,12 +57,8 @@ describe("GET /api/player/history", () => {
     expect(await response.json()).toMatchObject({
       history: [{
         participations: [{
-          gameMode: "NUMERIC",
           resultNumber: "00123",
-          resultLegacyPlate: null,
-          resultMercosurPlate: null,
           lines: [{
-            gameMode: "NUMERIC",
             numberValue: "00123",
             resultStatus: "PREMIADA",
             prizeCents: 120,

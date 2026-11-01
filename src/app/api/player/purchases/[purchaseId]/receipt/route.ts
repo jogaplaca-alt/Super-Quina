@@ -41,23 +41,11 @@ export async function GET(request: NextRequest, context: RouteContext) {
           where: { status: "CONFIRMED" },
           orderBy: { round: { resultAt: "asc" } },
           select: {
-            round: { select: { code: true, resultAt: true, gameMode: true } },
+            round: { select: { code: true, resultAt: true } },
             numericLines: {
               orderBy: [{ createdAt: "asc" }, { id: "asc" }],
               select: { numberValue: true, unitCents: true, tensCents: true, hundredsCents: true, thousandsCents: true, quinaCents: true },
             },
-            lines: {
-              orderBy: [{ createdAt: "asc" }, { id: "asc" }],
-              select: {
-                plateDisplay: true,
-                plateFormat: true,
-                unitCents: true,
-                tensCents: true,
-                hundredsCents: true,
-                thousandsCents: true,
-                lettersCents: true,
-                fullPlateCents: true,
-              },
             },
           },
         },
@@ -86,23 +74,13 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "O recibo oficial estará disponível após a confirmação do pagamento." }, { status: 409, headers });
     }
 
-    const entries = purchase.participations.flatMap((participation) => [
-      ...participation.numericLines.map((line) => ({
-        gameMode: "NUMERIC" as const,
+    const entries = purchase.participations.flatMap((participation) =>
+      participation.numericLines.map((line) => ({
         numberValue: line.numberValue,
         roundCode: participation.round.code,
         resultAt: participation.round.resultAt.toISOString(),
         stakeCents: line.unitCents + line.tensCents + line.hundredsCents + line.thousandsCents + line.quinaCents,
       })),
-      ...participation.lines.map((line) => ({
-        gameMode: "PLATE" as const,
-        plateDisplay: line.plateDisplay,
-        plateFormat: line.plateFormat,
-        roundCode: participation.round.code,
-        resultAt: participation.round.resultAt.toISOString(),
-        stakeCents: line.unitCents + line.tensCents + line.hundredsCents + line.thousandsCents + line.lettersCents + line.fullPlateCents,
-      })),
-    ]);
 
     return NextResponse.json({
       receipt: {
