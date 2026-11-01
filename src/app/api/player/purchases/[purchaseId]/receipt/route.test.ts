@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({ getSessionUser: vi.fn(), purchaseFindUnique: v
 vi.mock("@/lib/auth/session", () => ({ authPrisma: { purchase: { findUnique: mocks.purchaseFindUnique } }, getSessionUser: mocks.getSessionUser, SESSION_COOKIE: "superquina_session" }));
 import { GET } from "./route";
 function request(token = "session-token") { return new NextRequest("https://example.test/api/player/purchases/purchase-12345678/receipt", { headers: token ? { cookie: "superquina_session=" + token } : {} }); }
+const context = { params: Promise.resolve({ purchaseId: "purchase-12345678" }) };
 const confirmedPurchase = () => ({
   id: "purchase-12345678", createdAt: new Date(), playerId: "player-1", cashierId: null,
   status: "CONFIRMED", paymentMethod: "PIX", totalCents: 200, currency: "BRL",
@@ -25,10 +26,10 @@ describe("GET purchase receipt", () => {
   });
   it("refuses receipt reprints after seven days", async () => {
     mocks.purchaseFindUnique.mockResolvedValue({ ...confirmedPurchase(), createdAt: new Date(Date.now() - 8 * 86400000) });
-    expect((await GET(request())).status).toBe(410);
+    expect((await GET(request(), context)).status).toBe(410);
   });
   it("returns only numeric entries for a confirmed purchase", async () => {
-    const response = await GET(request());
+    const response = await GET(request(), context);
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store, private");
     expect(await response.json()).toMatchObject({ receipt: { receiptCode: "SQ-12345678", totalCents: 200, entries: [
