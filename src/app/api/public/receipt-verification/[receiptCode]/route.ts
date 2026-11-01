@@ -8,7 +8,7 @@ type RouteContext = { params: Promise<{ receiptCode: string }> };
 export async function GET(_request: NextRequest, context: RouteContext) {
   const { receiptCode: rawCode } = await context.params;
   const receiptCode = rawCode.replace(/\s/g, "").toUpperCase();
-  if (!/^JP-[A-Z0-9]{8,32}$/.test(receiptCode)) return NextResponse.json({ valid: false, message: "Código de recibo inválido." }, { status: 400, headers });
+  if (!/^SQ-[A-Z0-9]{8,32}$/.test(receiptCode)) return NextResponse.json({ valid: false, message: "Código de recibo inválido." }, { status: 400, headers });
   try {
     const purchase = await authPrisma.purchase.findUnique({
       where: { receiptCode },
