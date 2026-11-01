@@ -5,7 +5,7 @@ import { allocateNumberStake } from "../../domain/allocate-number-stake";
 import { APPROVED_NUMERIC_PRIZE_MULTIPLIERS, createNumericPrizeRuleSnapshot, NUMERIC_PRIZE_RULE_VERSION } from "../../domain/numeric-prize-rules";
 import { normalizeNumber } from "../numbers/normalize-number";
 import { selectNextValidRounds } from "../payments/select-next-valid-rounds";
-import { PurchaseServiceError } from "./create-purchase";
+import { PurchaseServiceError } from "./purchase-service-error";
 
 export type NumericPurchaseInput = {
   idempotencyKey: string;

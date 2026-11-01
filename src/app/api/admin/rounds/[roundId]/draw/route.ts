@@ -55,8 +55,6 @@ export async function POST(
         status: round.status,
         gameMode: round.gameMode,
         resultNumber: round.resultNumber,
-        resultLegacyPlate: round.resultLegacyPlate,
-        resultMercosurPlate: round.resultMercosurPlate,
       },
     }, 200);
   } catch (error) {

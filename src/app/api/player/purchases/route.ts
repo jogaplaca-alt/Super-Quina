@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createNumericPurchase } from "@/modules/purchases/create-numeric-purchase";
-import { PurchaseServiceError } from "@/modules/purchases/create-purchase";
+import { PurchaseServiceError } from "@/modules/purchases/purchase-service-error";
 import { authPrisma, getSessionUser, SESSION_COOKIE } from "@/lib/auth/session";
 import { createPixOrder, getPixOrder } from "@/modules/payments/mercado-pago";
 

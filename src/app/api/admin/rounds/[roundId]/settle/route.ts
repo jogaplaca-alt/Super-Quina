@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getSessionUser, authPrisma, SESSION_COOKIE } from "@/lib/auth/session";
-import { RoundSettlementError, settleRoundPrizes } from "@/modules/rounds/settle-round-prizes";
+import { RoundSettlementError } from "@/modules/rounds/round-settlement-error";
 import { settleNumericRoundPrizes } from "@/modules/rounds/settle-numeric-round-prizes";
 
 export const runtime = "nodejs";
@@ -38,18 +38,12 @@ export async function POST(
   if (!parsedId.success) return response({ error: "Identificador de rodada inválido." }, 400);
 
   try {
-    const round = await authPrisma.round.findUnique({ where: { id: parsedId.data }, select: { gameMode: true } });
-    if (!round) return response({ error: "Rodada não encontrada." }, 404);
-    const result = round.gameMode === "NUMERIC"
-      ? await settleNumericRoundPrizes(authPrisma, parsedId.data, user.id)
-      : await settleRoundPrizes(authPrisma, parsedId.data, user.id);
+    const result = await settleNumericRoundPrizes(authPrisma, parsedId.data, user.id);
     return response({ settled: true, result }, 200);
   } catch (error) {
     if (error instanceof RoundSettlementError) {
       if (error.code === "ROUND_NOT_FOUND") return response({ error: "Rodada não encontrada." }, 404);
       if (error.code === "ROUND_NOT_DRAWN") return response({ error: "O resultado oficial precisa estar publicado antes da apuração." }, 409);
-      if (error.code === "INVALID_PLATE_RESULT") return response({ error: "Resultado armazenado com formato inválido; apuração bloqueada." }, 409);
-      if (error.code === "INVALID_PLATE_BET") return response({ error: "Aposta armazenada com formato inválido; apuração bloqueada para reconciliação." }, 409);
       if (error.code === "INVALID_RULE_SNAPSHOT") return response({ error: "Aposta sem multiplicadores históricos válidos; apuração bloqueada para reconciliação." }, 409);
       if (error.code === "INCONSISTENT_SETTLEMENT") return response({ error: "A apuração encontrou dados financeiros inconsistentes; é necessária reconciliação." }, 409);
     }
