@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 
 vi.mock("@/lib/auth/session", () => ({
   getSessionUser: vi.fn(),
-  SESSION_COOKIE: "jogaplacas_session",
+  SESSION_COOKIE: "superquina_session",
 }));
 
 import { GET } from "./route";
@@ -13,7 +13,7 @@ const sessionUser = vi.mocked(getSessionUser);
 
 function request(token?: string) {
   return new NextRequest("https://example.test/api/auth/me", {
-    headers: token ? { cookie: `jogaplacas_session=${token}` } : {},
+    headers: token ? { cookie: `superquina_session=${token}` } : {},
   });
 }
 
