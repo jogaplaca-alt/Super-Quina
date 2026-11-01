@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 
 vi.mock("@/lib/auth/session", () => ({
   revokeSession: vi.fn(),
-  SESSION_COOKIE: "jogaplacas_session",
+  SESSION_COOKIE: "superquina_session",
 }));
 import { POST } from "./route";
 import { revokeSession } from "@/lib/auth/session";
@@ -27,7 +27,7 @@ describe("POST /api/auth/logout", () => {
     revoke.mockResolvedValue(undefined);
     const request = new NextRequest("https://example.test/api/auth/logout", {
       method: "POST",
-      headers: { origin: "https://example.test", cookie: "jogaplacas_session=opaque-token" },
+      headers: { origin: "https://example.test", cookie: "superquina_session=opaque-token" },
     });
     const response = await POST(request);
     expect(response.status).toBe(200);
