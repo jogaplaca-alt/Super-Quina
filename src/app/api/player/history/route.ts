@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
         participations: {
           select: {
             id: true, status: true, totalCents: true,
-            round: { select: { code: true, status: true, resultAt: true, gameMode: true, resultNumber: true } },
+            round: { select: { code: true, status: true, resultAt: true, resultNumber: true } },
             numericLines: { select: { id: true, numberValue: true, prizeCents: true, prizeCreditedAt: true } },
           },
           orderBy: { round: { resultAt: "desc" } },
@@ -35,12 +35,12 @@ export async function GET(request: NextRequest) {
     const history = purchases.map((purchase) => ({
       id: purchase.id, receiptCode: purchase.status === "CONFIRMED" ? purchase.receiptCode : null,
       purchaseStatus: purchase.status, createdAt: purchase.createdAt.toISOString(), totalCents: purchase.totalCents,
-      participations: purchase.participations.filter((part) => part.round.gameMode === "NUMERIC").map((part) => ({
+      participations: purchase.participations.map((part) => ({
         id: part.id, status: part.status, totalCents: part.totalCents, roundCode: part.round.code,
         roundStatus: part.round.status, resultAt: part.round.resultAt.toISOString(),
-        gameMode: "NUMERIC" as const, resultNumber: part.round.resultNumber,
+        resultNumber: part.round.resultNumber,
         lines: part.numericLines.map((line) => ({
-          id: line.id, gameMode: "NUMERIC" as const, numberValue: line.numberValue,
+          id: line.id, numberValue: line.numberValue,
           resultStatus: lineStatus(purchase.status, part.status, part.round.status, line.prizeCents, line.prizeCreditedAt, Boolean(part.round.resultNumber)),
           prizeCents: line.prizeCreditedAt && (line.prizeCents ?? 0) > 0 ? line.prizeCents : null,
         })),

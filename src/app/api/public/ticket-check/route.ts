@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
         participations: {
           where: { status: "CONFIRMED" },
           select: {
-            round: { select: { code: true, status: true, resultAt: true, gameMode: true, resultNumber: true } },
+            round: { select: { code: true, status: true, resultAt: true, resultNumber: true } },
             numericLines: { select: { id: true, numberValue: true, prizeCents: true, prizeCreditedAt: true } },
           },
           orderBy: { round: { resultAt: "desc" } },
@@ -34,8 +34,8 @@ export async function GET(request: NextRequest) {
     });
     if (!purchase || purchase.status !== "CONFIRMED") return NextResponse.json({ found: false, results: [], message: "Não encontramos um recibo confirmado com esse código. Confira e tente novamente." }, { headers });
     if (Date.now() >= purchase.createdAt.getTime() + 7 * 86400000) return NextResponse.json({ found: false, results: [], message: "O prazo de validade de 7 dias deste recibo terminou. A consulta pública não está mais disponível." }, { headers });
-    const results = purchase.participations.filter((part) => part.round.gameMode === "NUMERIC").flatMap((part) => part.numericLines.map((line) => ({
-      id: line.id, gameMode: "NUMERIC" as const, numberValue: line.numberValue,
+    const results = purchase.participations.flatMap((part) => part.numericLines.map((line) => ({
+      id: line.id, numberValue: line.numberValue,
       roundCode: part.round.code, resultAt: part.round.resultAt.toISOString(),
       roundStatus: part.round.status, resultNumber: part.round.resultNumber,
       status: getLineStatus(line, part.round, purchase.playerId === null),
