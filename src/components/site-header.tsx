@@ -6,7 +6,7 @@ export function SiteHeader() {
     <header className="site-header site-header-scenery" aria-label="Cabeçalho Super Quina">
       <img
         className="site-header-scenery-image"
-        src="/images/brand/super-quina-header.png"
+        src="/images/brand/super-quina-header.PNG"
         alt="Super Quina"
         fetchPriority="high"
         decoding="async"
