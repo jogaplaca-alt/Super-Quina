@@ -85,7 +85,7 @@ describe("Mercado Pago order parsing", () => {
     try {
       const first = syntheticPayerEmail("player-123");
       expect(first).toBe(syntheticPayerEmail("player-123"));
-      expect(first).toMatch(/^jogador-[a-f0-9]{20}@jogaplaca\.com\.br$/);
+      expect(first).toMatch(/^jogador-[a-f0-9]{20}@superquina\.com$/);
       expect(first).not.toContain("player-123");
     } finally {
       if (originalDomain === undefined) delete process.env.MERCADOPAGO_PAYER_EMAIL_DOMAIN;
