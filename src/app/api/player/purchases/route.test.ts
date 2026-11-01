@@ -13,7 +13,7 @@ vi.mock("@/lib/auth/session", () => ({
 vi.mock("@/modules/purchases/create-numeric-purchase", () => ({
   createNumericPurchase: mocks.createNumericPurchase,
 }));
-vi.mock("@/modules/purchases/create-purchase", () => ({
+vi.mock("@/modules/purchases/purchase-service-error", () => ({
   PurchaseServiceError: class PurchaseServiceError extends Error {
     code: string;
     constructor(message: string, code: string) { super(message); this.code = code; }
