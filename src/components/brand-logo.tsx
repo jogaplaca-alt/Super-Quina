@@ -7,18 +7,18 @@ type BrandLogoProps = {
   label?: string;
 };
 
-/** Logomarca oficial compartilhada por todas as áreas e páginas públicas. */
+/** Ícone da Super Quina para pontos da interface que exigem uma marca compacta. */
 export function BrandLogo({
   className = "",
   imageClassName = "",
   imageStyle,
-  label = "Joga Placa — página inicial",
+  label = "Super Quina — página inicial",
 }: BrandLogoProps) {
   return (
     <Link href="/" className={className} aria-label={label}>
       <img
-        src="/images/brand/joga-placa-logo.jpg"
-        alt="Joga Placa"
+        src="/images/brand/super-quina-icon.PNG"
+        alt="Super Quina"
         className={imageClassName}
         style={{ display: "block", objectFit: "contain", ...imageStyle }}
       />
