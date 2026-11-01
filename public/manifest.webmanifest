@@ -1,17 +1,18 @@
 {
-  "name": "Joga Placa",
-  "short_name": "Joga Placa",
-  "description": "Plataforma Joga Placa",
+  "name": "Super Quina",
+  "short_name": "Super Quina",
+  "description": "Jogo numérico Super Quina",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#10141d",
-  "theme_color": "#10141d",
+  "background_color": "#062a78",
+  "theme_color": "#07358f",
   "icons": [
     {
-      "src": "/images/brand/iconi-geral.PNG",
+      "src": "/images/brand/super-quina-icon.png",
       "type": "image/png",
-      "purpose": "any"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ]
 }
