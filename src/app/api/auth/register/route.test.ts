@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
 vi.mock("@/lib/auth/session", () => ({
   authPrisma: { user: { findUnique: vi.fn(), create: vi.fn() } },
   createSession: vi.fn(),
-  SESSION_COOKIE: "jogaplacas_session",
+  SESSION_COOKIE: "superquina_session",
 }));
 vi.mock("@/lib/auth/password", () => ({ hashPassword: vi.fn() }));
 
