@@ -240,7 +240,7 @@ h1 {
 .player-history-draw-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px;padding-top:14px;border-top:1px dashed var(--border)}
 .player-history-draw-results>div{display:grid;align-content:start;gap:7px}
 .player-history-draw-results>div>span{font-size:.88rem;font-weight:700}
-.player-history-draw-results @media(max-width:600px){.player-history-draw-results{grid-template-columns:1fr}.player-history-purchase{padding:12px}.player-history-line{align-items:flex-start;flex-direction:column}}
+@media(max-width:600px){.player-history-draw-results{grid-template-columns:1fr}.player-history-purchase{padding:12px}.player-history-line{align-items:flex-start;flex-direction:column}}
 
 
 /* Recibo térmico — bobina nominal de 58 mm, área útil conservadora de 48 mm. */
@@ -577,7 +577,7 @@ h1 {
 
 
 /* Identidade visual da Super Quina. */
-   Aplicada globalmente sem alterar fluxos, permissões ou regras de negócio. */
+/* Identidade visual da Super Quina. Aplicada globalmente sem alterar fluxos, permissões ou regras de negócio. */
 :root {
   color-scheme: dark;
   --background: #0d111a;
@@ -739,9 +739,10 @@ p, .intro, .auth-description, .area-description, .feature-card p,
 .area-page-compact .feature-card{max-width:none;padding:16px;border-radius:16px}
 .area-page-compact .feature-card h2{font-size:1.35rem}
 .area-page-compact .purchase-form{gap:14px;margin-top:12px}
-.area-page-compact .area-page-compact .purchase-form .area-page-compact .purchase-form>label{order:4}
+.area-page-compact .purchase-form>label{order:4}
 .area-page-compact .purchase-form>p{order:6;margin:0}
 .area-page-compact .purchase-form>button[type=submit]{order:7;width:100%}
+@media(max-width:600px){
  .area-page-compact .area-header{flex-direction:row}
  .area-page-compact .area-header-branding .home-wordmark .wordmark-joga{font-size:1.55rem}
  .area-page-compact .area-header-branding .home-wordmark .wordmark-placas{font-size:.68rem}
@@ -822,11 +823,11 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   .purchase-form button.secondary-action{min-height:38px;font-size:.9rem}
 }
 
-
+.purchase-form fieldset{
 .purchase-form fieldset
   grid-column:1/-1;
   margin:0!important;
-}
+.purchase-form legend{
   padding-top:2px;
   font-size:.95rem;
   line-height:1.3;
