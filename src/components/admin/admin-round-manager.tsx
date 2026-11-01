@@ -5,8 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 type Round = {
   id: string; code: string; startsAt: string; cutoffAt: string; resultAt: string;
   status: "SCHEDULED" | "OPEN" | "CLOSED" | "COMPLETED" | "CANCELLED";
-  gameMode: "PLATE" | "NUMERIC"; resultNumber: string | null;
-  resultLegacyPlate: string | null; resultMercosurPlate: string | null; participationCount: number;
+  gameMode: "NUMERIC"; resultNumber: string | null; participationCount: number;
 };
 type Dashboard = { rounds: Round[]; summary: { pendingPayments: number; confirmedPurchases: number } };
 const formatDate = (value: string) => {
@@ -125,7 +124,7 @@ export function AdminRoundManager() {
         <p>Início: {formatDate(round.startsAt)} · Fechamento: {formatDate(round.cutoffAt)} · Resultado: {formatDate(round.resultAt)}</p>
         <p>Participações registradas: {round.participationCount}</p>
         {round.gameMode === "NUMERIC" && round.resultNumber && <div className="round-option"><small>Resultado oficial</small><strong className="numeric-round-result">{round.resultNumber}</strong></div>}
-        {round.gameMode === "PLATE" && round.resultLegacyPlate && round.resultMercosurPlate && <div className="round-option"><small>Resultado histórico de placas</small><p>{round.resultLegacyPlate} · {round.resultMercosurPlate}</p></div>}
+        
         <div className="round-options">
           {(round.status === "SCHEDULED" || round.status === "OPEN") && <button type="button" disabled={busy !== null} onClick={() => void perform(round, "close")}>{busy === round.id + "close" ? "Fechando…" : "Fechar apostas"}</button>}
           {round.status === "CLOSED" && <button type="button" disabled={busy !== null} onClick={() => void perform(round, "draw")}>{busy === round.id + "draw" ? "Sorteando…" : "Sortear número"}</button>}

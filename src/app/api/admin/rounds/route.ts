@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       authPrisma.round.findMany({
         select: {
           id: true, code: true, startsAt: true, cutoffAt: true, resultAt: true, status: true,
-          gameMode: true, resultNumber: true, resultLegacyPlate: true, resultMercosurPlate: true,
+          gameMode: true, resultNumber: true,
           _count: { select: { participations: true } },
         },
         orderBy: [{ startsAt: "desc" }, { code: "desc" }],
@@ -34,8 +34,7 @@ export async function GET(request: NextRequest) {
         id: round.id, code: round.code, startsAt: round.startsAt.toISOString(),
         cutoffAt: round.cutoffAt.toISOString(), resultAt: round.resultAt.toISOString(),
         status: round.status, gameMode: round.gameMode, resultNumber: round.resultNumber,
-        resultLegacyPlate: round.resultLegacyPlate,
-        resultMercosurPlate: round.resultMercosurPlate, participationCount: round._count.participations,
+        participationCount: round._count.participations,
       })),
       summary: { pendingPayments, confirmedPurchases },
     }, { headers: { "Cache-Control": "no-store, private" } });
