@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/auth/session", () => ({
   authPrisma: { withdrawal: { findMany: mocks.findMany }, $transaction: mocks.transaction },
-  getSessionUser: mocks.getSessionUser, SESSION_COOKIE: "jogaplacas_session",
+  getSessionUser: mocks.getSessionUser, SESSION_COOKIE: "superquina_session",
 }));
 vi.mock("@/lib/wallet/pix-key-crypto", () => ({
   decryptPixKey: vi.fn(() => "pix@example.com"), maskPixKey: vi.fn(() => "pi***@example.com"),
@@ -17,8 +17,8 @@ import { GET, POST } from "./route";
 
 function request(body?: unknown, origin = "https://example.test") {
   return new NextRequest("https://example.test/api/admin/withdrawals", {
-    ...(body === undefined ? {} : { method: "POST", headers: { origin, "content-type": "application/json", cookie: "jogaplacas_session=session-token" }, body: JSON.stringify(body) }),
-    ...(body === undefined ? { headers: { cookie: "jogaplacas_session=session-token" } } : {}),
+    ...(body === undefined ? {} : { method: "POST", headers: { origin, "content-type": "application/json", cookie: "superquina_session=session-token" }, body: JSON.stringify(body) }),
+    ...(body === undefined ? { headers: { cookie: "superquina_session=session-token" } } : {}),
   });
 }
 const withdrawal = {
