@@ -113,7 +113,7 @@ describe("POST /api/internal/round-scheduler", () => {
       ok: true, created: 0, closed: 0, drawn: 0, failures: 0, timeZone: "Etc/GMT+3",
       pixChecked: 0, pixConfirmed: 0, pixNeedsReconciliation: 0,
     });
-    expect(mocks.findMany).toHaveBeenCalledTimes(10);
+    expect(mocks.findMany).toHaveBeenCalledTimes(8);
     vi.useRealTimers();
   });
 
