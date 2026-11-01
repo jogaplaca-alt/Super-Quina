@@ -41,8 +41,7 @@ describe("POST /api/admin/rounds/[roundId]/draw", () => {
       id: "admin-1", username: "admin", role: "ADMIN", status: "ACTIVE", mustChangePassword: false,
     });
     mocks.drawRoundResults.mockResolvedValue({
-      id: "round-123456", code: "R-12:30", status: "COMPLETED", gameMode: "NUMERIC",
-      resultNumber: "01234", resultLegacyPlate: null, resultMercosurPlate: null,
+      id: "round-123456", code: "R-12:30", status: "COMPLETED", resultNumber: "01234",
     });
     mocks.auditCreate.mockResolvedValue({});
   });
@@ -95,8 +94,7 @@ describe("POST /api/admin/rounds/[roundId]/draw", () => {
     expect(await result.json()).toEqual({
       drawn: true,
       round: {
-        id: "round-123456", code: "R-12:30", status: "COMPLETED", gameMode: "NUMERIC",
-        resultNumber: "01234", resultLegacyPlate: null, resultMercosurPlate: null,
+        id: "round-123456", code: "R-12:30", status: "COMPLETED", resultNumber: "01234",
       },
     });
     expect(mocks.drawRoundResults).toHaveBeenCalledWith(expect.anything(), "round-123456", "admin-1");
