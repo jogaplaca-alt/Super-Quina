@@ -22,19 +22,12 @@ Esta seção substitui, para todas as novas vendas e rodadas, as regras históri
 ## Identidade visual — Super Quina (atualização 2026-11-01)
 
 - Marca pública: **Super Quina**.
-- Cabeçalho: `/images/brand/super-quina-header.PNG`.
-- Ícone e atalho: `/images/brand/super-quina-icon.PNG`.
-- Imagem da página inicial: `/images/brand/super-quina-inicio.PNG`.
-- Aplicar a marca em páginas públicas, áreas autenticadas, recibos e verificação por QR Code.
-
-A regra visual herdada do projeto anterior abaixo fica superada para esta branch.
-- A regra vale para todas as superfícies relevantes do produto: página inicial pública, cabeçalho e rodapé quando houver, login, cadastro, verificação pública de recibo e cabeçalhos das áreas de jogador, cambista e administrador, além de outras telas que exibam a marca.
-- Não recriar a logomarca usando texto, fontes ou combinações de spans em algumas páginas enquanto outras usam a imagem. O nome textual no título, metadados e conteúdo acessível pode permanecer, mas a marca visual deve vir do mesmo arquivo.
-- Reutilizar o componente compartilhado `src/components/brand-logo.tsx`; não duplicar o caminho da imagem em componentes/páginas. Se houver necessidade de variação, ajustar somente o tamanho e o espaço de apresentação, sem trocar a arte.
-- O logo deve ser responsivo, manter a proporção, usar `object-fit: contain` e nunca ser cortado, esticado ou substituído por uma versão improvisada. Acessibilidade: texto alternativo “Joga Placa” e link para a página inicial quando a marca funcionar como navegação.
-- Favicons, ícones de aplicativo e imagens de compartilhamento também devem apontar para a mesma arte oficial, salvo decisão documentada posterior.
-- **Critério de aceite:** verificar visualmente em celular e desktop a homepage, login, cadastro, áreas autenticadas, rodapé e verificação de recibo; confirmar que todas exibem a mesma imagem, sem deformação nem corte.
-- **Estado da implementação em 2026-10-28:** o componente compartilhado foi introduzido e aplicado à homepage (cabeçalho/rodapé), login, cadastro, cabeçalho das áreas autenticadas e verificação de recibo nesta branch. A compilação, o deploy e a validação visual em ambiente publicado ainda precisam ser confirmados.
+- Cabeçalho: /images/brand/super-quina-header.PNG.
+- Ícone e atalho: /images/brand/super-quina-icon.PNG.
+- Imagem da página inicial: /images/brand/super-quina-inicio.PNG.
+- Aplicar a marca nas páginas públicas, áreas autenticadas, recibos e verificação por QR Code.
+- O cabeçalho compartilhado usa a arte oficial de cabeçalho; o componente BrandLogo usa o ícone quadrado.
+- Validar proporção, responsividade e corte em celular e desktop antes de produção.
 
 ## Decisão vigente — venda de cambista sem cadastro de cliente (atualizada em 2026-10-28)
 
