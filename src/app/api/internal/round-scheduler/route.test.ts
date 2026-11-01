@@ -104,7 +104,7 @@ describe("POST /api/internal/round-scheduler", () => {
     const scheduledResults = mocks.createRound.mock.calls.map((call) => ({
       resultAt: (call[0] as { data: { resultAt: Date } }).data.resultAt,
     }));
-    expect(scheduledResults.length).toBeGreaterThan(0);
+    expect(scheduledResults).toHaveLength(10);
 
     mocks.findMany.mockResolvedValueOnce(scheduledResults);
     const response = await POST(request("Bearer test-secret-long-enough"));
