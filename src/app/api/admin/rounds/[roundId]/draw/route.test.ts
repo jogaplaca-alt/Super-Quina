@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/lib/auth/session", () => ({
   getSessionUser: mocks.getSessionUser,
   authPrisma: { auditEvent: { create: mocks.auditCreate } },
-  SESSION_COOKIE: "jogaplacas_session",
+  SESSION_COOKIE: "superquina_session",
 }));
 vi.mock("@/modules/rounds/draw-round-results", () => ({
   drawRoundResults: mocks.drawRoundResults,
@@ -29,7 +29,7 @@ import { RoundDrawError } from "@/modules/rounds/draw-round-results";
 function request(origin = "https://example.test", token = "session-token") {
   return new NextRequest("https://example.test/api/admin/rounds/round-123456/draw", {
     method: "POST",
-    headers: { origin, ...(token ? { cookie: `jogaplacas_session=${token}` } : {}) },
+    headers: { origin, ...(token ? { cookie: `superquina_session=${token}` } : {}) },
   });
 }
 const context = { params: Promise.resolve({ roundId: "round-123456" }) };
