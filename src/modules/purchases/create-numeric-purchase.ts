@@ -138,7 +138,7 @@ export async function createNumericPurchase(
           }
         }
 
-        const receiptCode = isConfirmed ? "JP-" + randomBytes(8).toString("hex").toUpperCase() : null;
+        const receiptCode = isConfirmed ? "SQ-" + randomBytes(8).toString("hex").toUpperCase() : null;
         const created = await tx.purchase.create({
           data: {
             playerId: input.playerId ?? null,
