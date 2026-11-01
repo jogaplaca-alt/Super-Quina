@@ -7,15 +7,15 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/auth/session", () => ({
   authPrisma: { ledgerEntry: { aggregate: mocks.aggregate }, withdrawal: { findMany: mocks.findMany }, $transaction: mocks.transaction },
-  getSessionUser: mocks.getSessionUser, SESSION_COOKIE: "jogaplacas_session",
+  getSessionUser: mocks.getSessionUser, SESSION_COOKIE: "superquina_session",
 }));
 vi.mock("@/lib/wallet/pix-key-crypto", () => ({ encryptPixKey: vi.fn(() => "encrypted-key"), isPlausiblePixKey: vi.fn(() => true), maskPixKey: vi.fn(() => "••••4000") }));
 import { GET, POST } from "./route";
 
 function request(path = "/api/player/withdrawals", body?: unknown, origin = "https://example.test") {
   return new NextRequest("https://example.test" + path, {
-    ...(body === undefined ? {} : { method: "POST", headers: { origin, "content-type": "application/json", cookie: "jogaplacas_session=session-token" }, body: JSON.stringify(body) }),
-    ...(body === undefined ? { headers: { cookie: "jogaplacas_session=session-token" } } : {}),
+    ...(body === undefined ? {} : { method: "POST", headers: { origin, "content-type": "application/json", cookie: "superquina_session=session-token" }, body: JSON.stringify(body) }),
+    ...(body === undefined ? { headers: { cookie: "superquina_session=session-token" } } : {}),
   });
 }
 function tx() {
