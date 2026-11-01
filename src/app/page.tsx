@@ -4,8 +4,8 @@ import { SiteHeader } from "@/components/site-header";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Joga Placa | Jogo numérico",
-  description: "Escolha um número de cinco algarismos e concorra a cinco categorias de premiação.",
+  title: "Super Quina | Jogo numérico",
+  description: "Escolha cinco números e concorra a cinco categorias de premiação.",
 };
 
 export default function HomePage() {
@@ -19,7 +19,7 @@ export default function HomePage() {
             <span>00000</span><span className="numeric-game-range-separator">até</span><span>99999</span>
           </div>
           <figcaption>
-            Escolha um número de cinco algarismos e concorra a cinco prêmios: unidade, dezena, centena, milhar e quina.
+            Escolha cinco números e concorra a cinco prêmios: unidade, dezena, centena, milhar e quina.
           </figcaption>
         </figure>
         <nav className="home-entry-actions" aria-label="Acesso à conta">
