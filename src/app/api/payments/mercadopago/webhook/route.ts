@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       return response({ error: "Payment mapping not found yet." }, 503);
     }
 
-    const expectedReference = "jogaplacas_purchase_" + payment.purchaseId;
+    const expectedReference = "superquina_purchase_" + payment.purchaseId;
     const { providerStatus, normalizedStatus, approved } = classifyPixOrderStatus(order);
     const methodMismatch = (order.paymentMethodId !== null && order.paymentMethodId.toLowerCase() !== "pix")
       || (order.paymentMethodType !== null && order.paymentMethodType.toLowerCase() !== "bank_transfer");
