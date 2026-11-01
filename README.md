@@ -1,1 +1,1 @@
-# Super-Quina-
+# Super-Quina
