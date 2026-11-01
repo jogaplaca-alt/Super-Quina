@@ -5,14 +5,14 @@ const mocks = vi.hoisted(() => ({ getSessionUser: vi.fn(), roundFindMany: vi.fn(
 vi.mock("@/lib/auth/session", () => ({
   authPrisma: { round: { findMany: mocks.roundFindMany } },
   getSessionUser: mocks.getSessionUser,
-  SESSION_COOKIE: "jogaplacas_session",
+  SESSION_COOKIE: "superquina_session",
 }));
 
 import { GET } from "./route";
 
 function request(token = "session-token") {
   return new NextRequest("https://example.test/api/player/results", {
-    headers: token ? { cookie: "jogaplacas_session=" + token } : {},
+    headers: token ? { cookie: "superquina_session=" + token } : {},
   });
 }
 
