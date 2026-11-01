@@ -223,11 +223,11 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
           <button type="button" className="secondary-button" disabled={Boolean(purchase)} onClick={addNumber}>Adicionar</button>
         </div>
 
-        {numbers.length > 0 && <div className="added-plates">
+        {numbers.length > 0 && <div className="added-numbers">
           <strong>Números adicionados ({numbers.length})</strong>
-          {numbers.map((value, index) => <div className="added-plate-row" key={value + "-" + index}>
+          {numbers.map((value, index) => <div className="added-number-row" key={value + "-" + index}>
             <span className="numeric-number-chip">{value}</span>
-            <button type="button" className="remove-plate-button" disabled={Boolean(purchase)} onClick={() => setNumbers((current) => current.filter((_, i) => i !== index))}>Remover</button>
+            <button type="button" className="remove-number-button" disabled={Boolean(purchase)} onClick={() => setNumbers((current) => current.filter((_, i) => i !== index))}>Remover</button>
           </div>)}
         </div>}
 
