@@ -38,11 +38,11 @@ describe("GET /api/admin/rounds", () => {
       startsAt: new Date("2035-01-01T12:00:00Z"),
       cutoffAt: new Date("2035-01-01T12:29:00Z"),
       resultAt: new Date("2035-01-01T12:30:00Z"),
-      status: "SCHEDULED", gameMode: "NUMERIC", resultNumber: null, resultLegacyPlate: null, resultMercosurPlate: null,
+      status: "SCHEDULED", resultNumber: null,
       _count: { participations: 4 },
     }]);
     mocks.purchaseCount.mockResolvedValueOnce(2).mockResolvedValueOnce(8);
-    mocks.roundCreate.mockResolvedValue({ id: "round-new-123", code: "JN-20350101-0930", startsAt: new Date("2035-01-01T12:00:00Z"), cutoffAt: new Date("2035-01-01T12:29:00Z"), resultAt: new Date("2035-01-01T12:30:00Z"), status: "SCHEDULED", gameMode: "NUMERIC" });
+    mocks.roundCreate.mockResolvedValue({ id: "round-new-123", code: "JN-20350101-0930", startsAt: new Date("2035-01-01T12:00:00Z"), cutoffAt: new Date("2035-01-01T12:29:00Z"), resultAt: new Date("2035-01-01T12:30:00Z"), status: "SCHEDULED" });
     mocks.auditCreate.mockResolvedValue({});
     mocks.transaction.mockImplementation(async (callback) => callback({ round: { create: mocks.roundCreate }, auditEvent: { create: mocks.auditCreate } }));
   });

@@ -44,7 +44,7 @@ describe("GET /api/player/results", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store, private");
     expect(mocks.roundFindMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: { gameMode: "NUMERIC", status: "COMPLETED", resultAt: { gte: expect.any(Date) }, resultNumber: { not: null } },
+      where: { status: "COMPLETED", resultAt: { gte: expect.any(Date) }, resultNumber: { not: null } },
       orderBy: { resultAt: "desc" }, take: 50,
     }));
     expect(await response.json()).toEqual({ results: [{

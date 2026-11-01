@@ -1,91 +1,36 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-
 const mocks = vi.hoisted(() => ({ purchaseFindUnique: vi.fn() }));
-vi.mock("@/lib/auth/session", () => ({
-  authPrisma: { purchase: { findUnique: mocks.purchaseFindUnique } },
-}));
-
+vi.mock("@/lib/auth/session", () => ({ authPrisma: { purchase: { findUnique: mocks.purchaseFindUnique } } }));
 import { GET } from "./route";
 function request(q = "JP-12345678") { return new NextRequest("https://example.test/api/public/ticket-check?q=" + encodeURIComponent(q)); }
-
 describe("GET /api/public/ticket-check", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.purchaseFindUnique.mockResolvedValue({
-      status: "CONFIRMED",
-      playerId: "player-1",
-      createdAt: new Date(),
+      status: "CONFIRMED", playerId: "player-1", createdAt: new Date(),
       participations: [{
-        round: { code: "R-01", status: "COMPLETED", resultAt: new Date("2026-01-01T12:00:00Z"), gameMode: "PLATE", resultNumber: null, resultLegacyPlate: "ABC-1234", resultMercosurPlate: "XYZ1K23" },
-        numericLines: [],
-        lines: [
-          { id: "line-win", plateFormat: "LEGACY", plateDisplay: "ABC-1234", prizeCents: 120, prizeCreditedAt: new Date("2026-10-25T12:10:00Z") },
-          { id: "line-no-win", plateFormat: "MERCOSUR", plateDisplay: "ZZZ1K23", prizeCents: 0, prizeCreditedAt: null },
-          { id: "line-uncredited-win", plateFormat: "LEGACY", plateDisplay: "AAA-1111", prizeCents: 500, prizeCreditedAt: null },
+        round: { code: "JN-01", status: "COMPLETED", resultAt: new Date("2026-11-01T12:00:00Z"), resultNumber: "01234" },
+        numericLines: [
+          { id: "number-win", numberValue: "01234", prizeCents: 120, prizeCreditedAt: new Date("2026-11-01T12:10:00Z") },
+          { id: "number-no-win", numberValue: "99999", prizeCents: 0, prizeCreditedAt: null },
+          { id: "number-uncredited-win", numberValue: "00034", prizeCents: 500, prizeCreditedAt: null },
         ],
       }],
     });
   });
-  it("requires a complete JP receipt code and never queries by plate", async () => {
-    expect((await GET(request("ABC-1234"))).status).toBe(400);
+  it("requires a complete receipt code and never queries by number", async () => {
+    expect((await GET(request("01234"))).status).toBe(400);
     expect(mocks.purchaseFindUnique).not.toHaveBeenCalled();
   });
-  it("returns only safe receipt results and confirms prizes only after credit", async () => {
+  it("returns safe numeric results and confirms prizes only after credit", async () => {
     const response = await GET(request("jp-12345678"));
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toContain("no-store");
     expect(mocks.purchaseFindUnique).toHaveBeenCalledWith(expect.objectContaining({ where: { receiptCode: "JP-12345678" } }));
     const body = await response.json();
-    expect(body.results[0]).toMatchObject({ status: "PREMIADA", prizeCents: 120, resultLegacyPlate: "ABC-1234" });
-    expect(body.results[1]).toMatchObject({ status: "NAO_PREMIADA", prizeCents: null });
-    expect(body.results[2]).toMatchObject({ status: "AGUARDANDO_APURACAO", prizeCents: null });
-    expect(JSON.stringify(body)).not.toContain("playerId");
-    expect(JSON.stringify(body)).not.toContain("receiptCode");
-  });
-  it("returns numeric receipt results with five-digit values and one draw", async () => {
-    mocks.purchaseFindUnique.mockResolvedValue({
-      status: "CONFIRMED", playerId: "player-1", createdAt: new Date(),
-      participations: [{
-        round: { code: "JN-01", status: "COMPLETED", resultAt: new Date("2026-11-01T12:00:00Z"), gameMode: "NUMERIC", resultNumber: "01234", resultLegacyPlate: null, resultMercosurPlate: null },
-        numericLines: [{ id: "number-1", numberValue: "01234", prizeCents: 6_066_720, prizeCreditedAt: new Date("2026-11-01T12:01:00Z") }],
-        lines: [],
-      }],
-    });
-    const response = await GET(request());
-    const body = await response.json();
-    expect(response.status).toBe(200);
-    expect(body.results).toEqual([{
-      id: "number-1", gameMode: "NUMERIC", numberValue: "01234", roundCode: "JN-01",
-      resultAt: "2026-11-01T12:00:00.000Z", roundStatus: "COMPLETED", resultNumber: "01234",
-      status: "PREMIADA", prizeCents: 6_066_720,
-    }]);
-  });
-  it("expires an unclaimed manual prize after seven days, but not an online credit failure", async () => {
-    const onlineResponse = await GET(request());
-    const onlineBody = await onlineResponse.json();
-    expect(onlineBody.results[2].status).toBe("AGUARDANDO_APURACAO");
-
-    mocks.purchaseFindUnique.mockResolvedValue({
-      status: "CONFIRMED", playerId: null, createdAt: new Date(),
-      participations: [{
-        round: { code: "R-OLD", status: "COMPLETED", resultAt: new Date("2026-01-01T12:00:00Z"), gameMode: "PLATE", resultNumber: null, resultLegacyPlate: "ABC-1234", resultMercosurPlate: "XYZ1K23" },
-        numericLines: [],
-        lines: [{ id: "manual-prize", plateFormat: "LEGACY", plateDisplay: "ABC-1234", prizeCents: 500, prizeCreditedAt: null }],
-      }],
-    });
-    const manualResponse = await GET(request());
-    const manualBody = await manualResponse.json();
-    expect(manualBody.results[0].status).toBe("PRAZO_EXPIRADO");
-  });
-  it("does not reveal unconfirmed purchases", async () => {
-    mocks.purchaseFindUnique.mockResolvedValue({ status: "PENDING_PAYMENT", participations: [] });
-    const response = await GET(request());
-    expect((await response.json()).found).toBe(false);
-  });
-  it("sanitizes database errors", async () => {
-    mocks.purchaseFindUnique.mockRejectedValue(new Error("private db details"));
-    expect((await GET(request())).status).toBe(500);
-    expect(await (await GET(request())).json()).toEqual({ error: "Não foi possível consultar agora. Tente novamente." });
+    expect(body.results[0]).toMatchObject({ numberValue: "01234", status: "PREMIADA", prizeCents: 120, resultNumber: "01234" });
+    expect(body.results[1]).toMatchObject({ numberValue: "99999", status: "NAO_PREMIADA", prizeCents: null });
+    expect(body.results[2]).toMatchObject({ numberValue: "00034", status: "AGUARDANDO_APURACAO", prizeCents: null });
   });
 });

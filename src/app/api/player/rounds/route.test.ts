@@ -50,7 +50,7 @@ describe("GET /api/player/rounds", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store, private");
     expect(mocks.roundFindMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: { gameMode: "NUMERIC", status: { in: ["SCHEDULED", "OPEN"] }, cutoffAt: { gt: expect.any(Date) } },
+      where: { status: { in: ["SCHEDULED", "OPEN"] }, cutoffAt: { gt: expect.any(Date) } },
       orderBy: [{ startsAt: "asc" }, { code: "asc" }],
       take: 100,
     }));
