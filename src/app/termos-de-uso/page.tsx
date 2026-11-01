@@ -2,7 +2,7 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 
 export const metadata = {
-  title: "Termos de uso em preparação | JogaPlacas",
+  title: "Termos de uso em preparação | Super Quina",
   description: "Os termos completos serão publicados após a conclusão e validação das regras e do funcionamento da plataforma.",
 };
 
