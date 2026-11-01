@@ -1,2 +1,3 @@
 Iniciar importação da base numérica aprovada do Super Quina.
 Executar importação.
+Tentativa final de importação.
