@@ -28,7 +28,7 @@ jobs:
       - name: Import source files
         shell: bash
         run: |
-          rsync -a --exclude='.git' _numeric_source/ ./
+          rsync -a --exclude='.git' --exclude='.github/workflows/**' _numeric_source/ ./
           rm -rf _numeric_source
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
