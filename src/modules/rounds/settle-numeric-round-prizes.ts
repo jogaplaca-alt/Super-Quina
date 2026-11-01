@@ -1,6 +1,6 @@
 import { Prisma, RoundStatus, type PrismaClient } from "../../generated/prisma/client";
 import { calculateNumberPrizeCents } from "../numbers/calculate-number-prize";
-import { RoundSettlementError } from "./settle-round-prizes";
+import { RoundSettlementError } from "./round-settlement-error";
 
 function isSerializationConflict(error: unknown): boolean {
   if (!(error instanceof Prisma.PrismaClientKnownRequestError)) return false;

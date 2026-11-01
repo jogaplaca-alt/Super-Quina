@@ -14,6 +14,7 @@ export const maxDuration = 60;
 const TIME_ZONE = "Etc/GMT+3"; // Fixed UTC-03:00, as specified by MANUAL_TECNICO.md
 const HALF_HOUR_MS = 30 * 60_000;
 const MINUTE_MS = 60_000;
+const MAX_FUTURE_ROUNDS = 10;
 
 function safeSecretMatch(actual: string | null, expected: string): boolean {
   if (!actual) return false;
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
   }
 
   const now = new Date();
-  const horizon = new Date(now.getTime() + 48 * 60 * MINUTE_MS);
+  const horizon = new Date(now.getTime() + MAX_FUTURE_ROUNDS * HALF_HOUR_MS);
   let created = 0;
   let closed = 0;
   let drawn = 0;
@@ -92,15 +93,13 @@ export async function POST(request: NextRequest) {
   let pixConfirmed = 0;
   let pixNeedsReconciliation = 0;
 
-  // Keep a rolling 48-hour schedule so every 30-minute slot, including tomorrow's
-  // matching time, is already scheduled. Each new Round stores one five-digit numeric draw.
-  const slots = resultSlots(now, horizon);
+  // Maintain a rolling queue of at most ten upcoming 30-minute numeric rounds.
+  // This endpoint still runs every minute for precise opening, cutoff, draw and Pix reconciliation.
+  const slots = resultSlots(now, horizon).slice(0, MAX_FUTURE_ROUNDS);
   const existingRounds = await authPrisma.round.findMany({
     where: { resultAt: { in: slots }, status: { not: "CANCELLED" } },
     select: { resultAt: true },
   });
-  // A legacy plate round already occupying a result slot must finish as-is.
-  // Never create a second, parallel numeric round for the same instant.
   const existingResultTimes = new Set(existingRounds.map((round) => round.resultAt.getTime()));
   for (const resultAt of slots) {
     const code = roundCode(resultAt);
