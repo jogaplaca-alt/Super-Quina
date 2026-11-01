@@ -17,7 +17,7 @@ vi.mock("@/lib/auth/session", () => ({
   authPrisma: { user: { findUnique: mocks.findUnique }, $transaction: mocks.transaction },
   getSessionUser: mocks.getSessionUser,
   hashSessionToken: mocks.hashSessionToken,
-  SESSION_COOKIE: "jogaplacas_session",
+  SESSION_COOKIE: "superquina_session",
   SESSION_TTL_MS: 43_200_000,
 }));
 vi.mock("@/lib/auth/password", () => ({
@@ -30,7 +30,7 @@ import { POST } from "./route";
 function request(body: unknown, origin = "https://example.test", token = "current-token") {
   return new NextRequest("https://example.test/api/auth/change-password", {
     method: "POST",
-    headers: { "content-type": "application/json", origin, host: "example.test", ...(token ? { cookie: `jogaplacas_session=${token}` } : {}) },
+    headers: { "content-type": "application/json", origin, host: "example.test", ...(token ? { cookie: `superquina_session=${token}` } : {}) },
     body: JSON.stringify(body),
   });
 }
