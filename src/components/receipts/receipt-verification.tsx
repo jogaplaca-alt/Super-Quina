@@ -2,26 +2,15 @@
 
 import { useEffect, useState } from "react";
 
-type VerifiedPlate = {
-  plateDisplay: string;
-  resultStatus: "AGUARDANDO" | "PREMIADA" | "NAO_PREMIADA" | "AGUARDANDO_APURACAO";
-  prizeCents: number | null;
-  prizePaid: boolean;
-};
-
 type VerifiedNumber = { numberValue: string; resultStatus: "AGUARDANDO" | "PREMIADA" | "NAO_PREMIADA" | "AGUARDANDO_APURACAO"; prizeCents: number | null; prizePaid: boolean };
 
 type VerifiedRound = {
-  gameMode: "PLATE" | "NUMERIC";
   resultNumber: string | null;
   numbers: VerifiedNumber[];
   roundCode: string;
   status: "RODADA_CANCELADA" | "RESULTADO_PUBLICADO" | "SORTEIO_AGUARDANDO" | "AGUARDANDO_RESULTADO_OFICIAL";
   startsAt: string;
   resultAt: string;
-  resultLegacyPlate: string | null;
-  resultMercosurPlate: string | null;
-  plates: VerifiedPlate[];
 };
 
 type VerifiedReceipt = {
@@ -128,20 +117,10 @@ export function ReceiptVerification({ receiptCode }: { receiptCode: string }) {
                 }}>{roundStatusLabels[round.status]}</span>
               </div>
               <p style={{ margin: "0 0 10px", color: "#374151", fontSize: 14 }}><strong>Horário:</strong> {formatDate(round.resultAt)}</p>
-              {round.status === "RESULTADO_PUBLICADO" && round.gameMode === "NUMERIC" && (
+              {round.status === "RESULTADO_PUBLICADO" && (
                 <div>
                   <strong style={{ display: "block", fontSize: 13, color: "#374151", marginBottom: 4 }}>Número sorteado</strong>
                   <div style={{ padding: "12px 8px", border: "2px solid #6b7280", borderRadius: 6, textAlign: "center", fontSize: 28, letterSpacing: "0.16em", color: "#111827", fontWeight: 900, background: "#f9fafb" }}>{round.resultNumber ?? "—"}</div>
-                </div>
-              )}
-              {round.status === "RESULTADO_PUBLICADO" && round.gameMode === "PLATE" && (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                  {[round.resultLegacyPlate, round.resultMercosurPlate].map((plate, index) => (
-                    <div key={index}>
-                      <strong style={{ display: "block", fontSize: 13, color: "#374151", marginBottom: 4 }}>Placa sorteada</strong>
-                      <div style={{ padding: "11px 5px", border: "2px solid #6b7280", borderRadius: 6, textAlign: "center", fontSize: 19, color: "#111827", fontWeight: 800, background: "#f9fafb", overflowWrap: "anywhere" }}>{plate ?? "—"}</div>
-                    </div>
-                  ))}
                 </div>
               )}
               {round.numbers.length > 0 && (
@@ -158,35 +137,6 @@ export function ReceiptVerification({ receiptCode }: { receiptCode: string }) {
                         <strong style={{ color: "#111827", fontSize: 18, letterSpacing: "0.1em" }}>{number.numberValue}</strong>
                         <span style={{ color, fontWeight: 800, fontSize: 14 }}>{status}</span>
                       </div>;
-                    })}
-                  </div>
-                </div>
-              )}
-              {round.plates.length > 0 && (
-                <div style={{ marginTop: 12 }}>
-                  <strong style={{ display: "block", color: "#111827", marginBottom: 6 }}>Suas placas</strong>
-                  <div style={{ display: "grid", gap: 6 }}>
-                    {round.plates.map((plate, index) => {
-                      const status = plate.resultStatus === "PREMIADA"
-                        ? (plate.prizePaid ? "Prêmio pago" : "Premiada")
-                        : plate.resultStatus === "NAO_PREMIADA"
-                          ? "Não premiada"
-                          : plate.resultStatus === "AGUARDANDO_APURACAO"
-                            ? "Apuração pendente"
-                            : round.status === "SORTEIO_AGUARDANDO"
-                              ? "Aguardando sorteio"
-                              : "Aguardando resultado";
-                      const statusColor = plate.resultStatus === "PREMIADA"
-                        ? "#166534"
-                        : plate.resultStatus === "NAO_PREMIADA"
-                          ? "#991b1b"
-                          : "#1d4ed8";
-                      return (
-                        <div key={`${round.roundCode}-${plate.plateDisplay}-${index}`} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, padding: "8px 10px", borderRadius: 6, background: "#f3f4f6", border: "1px solid #d1d5db" }}>
-                          <strong style={{ color: "#111827", fontSize: 16 }}>{plate.plateDisplay}</strong>
-                          <span style={{ color: statusColor, fontWeight: 800, fontSize: 14 }}>{status}</span>
-                        </div>
-                      );
                     })}
                   </div>
                 </div>

@@ -4,8 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 type PendingCredit = {
   lineId: string;
-  plate: string;
-  plateFormat: "LEGACY" | "MERCOSUR";
+  numberValue: string;
   prizeCents: number;
   roundCode: string;
   resultAt: string;
@@ -83,7 +82,7 @@ export function AdminPrizeCreditReconciliation() {
       {items.map((item) => <article className="round-option" key={item.lineId}>
         <div><strong>{item.username}</strong> · {money(item.prizeCents)}</div>
         <p>Rodada: {item.roundCode} · Resultado: {dateTime(item.resultAt)}</p>
-        <p>Compra: {dateTime(item.purchaseCreatedAt)} · Placa: {item.plate} ({item.plateFormat === "LEGACY" ? "cinza" : "Mercosul"})</p>
+        <p>Compra: {dateTime(item.purchaseCreatedAt)} · Número: {item.numberValue}</p>
         {item.ledgerEntryExists && !item.ledgerMatches
           ? <p role="alert" className="note-inline">Divergência no livro-razão. A correção está bloqueada e exige auditoria.</p>
           : item.ledgerEntryExists

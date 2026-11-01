@@ -100,7 +100,7 @@ export function ThermalReceipt({
     <div className="thermal-receipt-print-root">
       <article id={`thermal-receipt-${receiptCode}`} className="thermal-receipt" aria-label={`Recibo ${receiptCode}`}>
         <header className="thermal-receipt-header">
-          <strong className="thermal-receipt-brand">JOGA PLACA</strong>
+          <strong className="thermal-receipt-brand">SUPER QUINA</strong>
           <span>COMPROVANTE DE APOSTA</span>
           <span>{date}</span>
           <span className="thermal-receipt-payment">{paymentLabel}</span>
@@ -126,12 +126,12 @@ export function ThermalReceipt({
         <section className="thermal-receipt-items">
           <strong className="thermal-receipt-section-title">APOSTAS</strong>
           {entries.map((entry, index) => (
-            <div className="thermal-receipt-item" key={`${entry.roundCode}-${entry.gameMode === "NUMERIC" ? entry.numberValue : entry.plateDisplay}-${index}`}>
+            <div className="thermal-receipt-item" key={`${entry.roundCode}-${entry.numberValue}-${index}`}>
               <div className="thermal-receipt-item-heading">
-                <strong>{entry.gameMode === "NUMERIC" ? entry.numberValue : entry.plateDisplay}</strong>
+                <strong>{entry.numberValue}</strong>
                 <strong>{money(entry.stakeCents)}</strong>
               </div>
-              <span>Repetição {repetitionNumbers[index]} · {entry.gameMode === "NUMERIC" ? "Jogo numérico" : entry.plateFormat === "LEGACY" ? "Placa Cinza" : "Placa Mercosul"}</span>
+              <span>Repetição {repetitionNumbers[index]} · Jogo Super Quina</span>
               <strong className="thermal-receipt-draw-time">Sorteio: {drawDateTime(entry.resultAt)}</strong>
               <span>Rodada {entry.roundCode}</span>
             </div>
