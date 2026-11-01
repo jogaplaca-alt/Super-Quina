@@ -45,7 +45,7 @@ export async function reconcilePixPaymentFromProvider(
     || order.paymentMethodType?.toLowerCase() !== "bank_transfer"
   );
   if (order.orderId !== payment.providerPaymentId
-    || order.externalReference !== "jogaplacas_purchase_" + payment.purchaseId
+    || order.externalReference !== "superquina_purchase_" + payment.purchaseId
     || order.currency !== "BRL"
     || order.amountCents !== payment.amountCents
     || order.amountCents !== payment.purchase.totalCents
