@@ -1,7 +1,9 @@
 > **Índice do manual:** comece sempre pelo [MANUAL-MESTRE.md na raiz do repositório](../MANUAL-MESTRE.md), que aponta para a especificação vigente e para o manual técnico. Não use um documento isolado sem verificar a branch e a precedência definidas nesse índice.
 
-# Joga Placas — Especificação funcional vigente
+# Super Quina — Especificação funcional vigente
 
+ > Documento de especificação herdado e atualizado para o projeto Super Quina. A modalidade ativa nesta branch é exclusivamente numérica. Se alguma seção histórica abaixo mencionar placas, marca Joga Placas ou branches do repositório antigo, ela não descreve o produto ativo nem autoriza restaurar aquele fluxo.
+>
 > Fonte de verdade funcional do projeto. Decisões novas devem ser registradas aqui antes de alterar comportamentos já aprovados. Quando uma melhoria aprovada substituir uma ideia inicial, atualizar a regra principal e marcar o texto anterior como histórico/superado, em vez de manter instruções contraditórias.
 > Este documento também contém retratos e auditorias datados: eles descrevem o estado na data indicada e não devem ser lidos como fotografia atual se houver uma reconciliação posterior. Para estado de código, testes e pendências, consulte a seção final de reconciliação e `docs/TECHNICAL_ROADMAP.md`.
 > Esta especificação não substitui revisão técnica, testes nem validação jurídica/comercial antes de operar pagamentos e jogos em produção.
@@ -17,9 +19,15 @@ Esta seção substitui, para todas as novas vendas e rodadas, as regras históri
 - Novas compras e vendas devem aceitar apenas números de cinco algarismos. O fluxo de placas não pode ser oferecido novamente.
 - As seções antigas sobre placas, seis categorias e dois resultados são mantidas somente como referência histórica para recibos, apostas, pagamentos e rodadas anteriores. Não apagar nem recalcular esses registros.
 
-## Identidade visual — logomarca oficial obrigatória (2026-10-28)
+## Identidade visual — Super Quina (atualização 2026-11-01)
 
-- Usar a mesma imagem oficial já existente no cabeçalho das áreas autenticadas: `/images/brand/joga-placa-logo.jpg`.
+- Marca pública: **Super Quina**.
+- Cabeçalho: `/images/brand/super-quina-header.PNG`.
+- Ícone e atalho: `/images/brand/super-quina-icon.PNG`.
+- Imagem da página inicial: `/images/brand/super-quina-inicio.PNG`.
+- Aplicar a marca em páginas públicas, áreas autenticadas, recibos e verificação por QR Code.
+
+A regra visual herdada do projeto anterior abaixo fica superada para esta branch.
 - A regra vale para todas as superfícies relevantes do produto: página inicial pública, cabeçalho e rodapé quando houver, login, cadastro, verificação pública de recibo e cabeçalhos das áreas de jogador, cambista e administrador, além de outras telas que exibam a marca.
 - Não recriar a logomarca usando texto, fontes ou combinações de spans em algumas páginas enquanto outras usam a imagem. O nome textual no título, metadados e conteúdo acessível pode permanecer, mas a marca visual deve vir do mesmo arquivo.
 - Reutilizar o componente compartilhado `src/components/brand-logo.tsx`; não duplicar o caminho da imagem em componentes/páginas. Se houver necessidade de variação, ajustar somente o tamanho e o espaço de apresentação, sem trocar a arte.
