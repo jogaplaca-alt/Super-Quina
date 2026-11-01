@@ -40,7 +40,7 @@ describe("reconcilePixPaymentFromProvider", () => {
     vi.clearAllMocks();
     mocks.getVerifiedPixOrder.mockResolvedValue({
       orderId: "order-1",
-      externalReference: "jogaplacas_purchase_purchase-1",
+      externalReference: "superquina_purchase_purchase-1",
       currency: "BRL",
       amountCents: 200,
       status: "created",
@@ -71,7 +71,7 @@ describe("reconcilePixPaymentFromProvider", () => {
     const prisma = makePrisma();
     mocks.getVerifiedPixOrder.mockResolvedValue({
       orderId: "order-1",
-      externalReference: "jogaplacas_purchase_purchase-1",
+      externalReference: "superquina_purchase_purchase-1",
       currency: "BRL",
       amountCents: 200,
       status: "processed",
@@ -99,7 +99,7 @@ describe("reconcilePixPaymentFromProvider", () => {
     const prisma = makePrisma();
     mocks.getVerifiedPixOrder.mockResolvedValue({
       orderId: "order-1",
-      externalReference: "jogaplacas_purchase_purchase-1",
+      externalReference: "superquina_purchase_purchase-1",
       currency: "BRL",
       amountCents: 200,
       status: "processed",
