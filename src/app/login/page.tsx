@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { LoginForm } from "@/components/auth/login-form";
 import { SiteHeader } from "@/components/site-header";
 
-export const metadata: Metadata = { title: "Entrar | Joga Placas", description: "Acesse sua área segura do Joga Placas." };
+export const metadata: Metadata = { title: "Entrar | Super Quina", description: "Acesse sua área segura da Super Quina." };
 
 export default function LoginPage() {
   return (
