@@ -7,7 +7,7 @@ function request(token = "session-token") { return new NextRequest("https://exam
 const confirmedPurchase = () => ({
   id: "purchase-12345678", createdAt: new Date(), playerId: "player-1", cashierId: null,
   status: "CONFIRMED", paymentMethod: "PIX", totalCents: 200, currency: "BRL",
-  receiptCode: "JP-12345678", confirmedAt: new Date("2026-10-25T12:00:00.000Z"),
+  receiptCode: "SQ-12345678", confirmedAt: new Date("2026-10-25T12:00:00.000Z"),
   payment: { status: "CONFIRMED", confirmedAt: new Date("2026-10-25T12:00:00.000Z") },
   participations: [{
     round: { code: "JN-20261101-1230", resultAt: new Date("2026-11-01T12:30:00.000Z") },
@@ -31,7 +31,7 @@ describe("GET purchase receipt", () => {
     const response = await GET(request());
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store, private");
-    expect(await response.json()).toMatchObject({ receipt: { receiptCode: "JP-12345678", totalCents: 200, entries: [
+    expect(await response.json()).toMatchObject({ receipt: { receiptCode: "SQ-12345678", totalCents: 200, entries: [
       { numberValue: "00007", stakeCents: 100 }, { numberValue: "12345", stakeCents: 100 },
     ] } });
   });
