@@ -83,7 +83,7 @@ describe("POST /api/admin/rounds", () => {
     mocks.getSessionUser.mockResolvedValue({
       id: "admin-1", username: "admin", role: "ADMIN", status: "ACTIVE", mustChangePassword: false,
     });
-    mocks.roundCreate.mockResolvedValue({ id: "round-new-123", code: "JN-20350101-0930", startsAt: new Date("2035-01-01T12:00:00Z"), cutoffAt: new Date("2035-01-01T12:29:00Z"), resultAt: new Date("2035-01-01T12:30:00Z"), status: "SCHEDULED", gameMode: "NUMERIC" });
+    mocks.roundCreate.mockResolvedValue({ id: "round-new-123", code: "JN-20350101-0930", startsAt: new Date("2035-01-01T12:00:00Z"), cutoffAt: new Date("2035-01-01T12:29:00Z"), resultAt: new Date("2035-01-01T12:30:00Z"), status: "SCHEDULED" });
     mocks.auditCreate.mockResolvedValue({});
     mocks.transaction.mockImplementation(async (callback) => callback({ round: { create: mocks.roundCreate }, auditEvent: { create: mocks.auditCreate } }));
   });
