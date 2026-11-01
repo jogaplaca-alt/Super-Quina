@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/lib/auth/session", () => ({
   authPrisma: {},
   getSessionUser: mocks.getSessionUser,
-  SESSION_COOKIE: "jogaplacas_session",
+  SESSION_COOKIE: "superquina_session",
 }));
 vi.mock("@/modules/purchases/create-numeric-purchase", () => ({
   createNumericPurchase: mocks.createNumericPurchase,
@@ -28,7 +28,7 @@ function request(body: unknown, options: { origin?: string; token?: string } = {
     headers: {
       "content-type": "application/json",
       ...(options.origin === undefined ? { origin: "https://example.test" } : { origin: options.origin }),
-      ...(options.token === undefined ? { cookie: "jogaplacas_session=session-token" } : options.token ? { cookie: `jogaplacas_session=${options.token}` } : {}),
+      ...(options.token === undefined ? { cookie: "superquina_session=session-token" } : options.token ? { cookie: `superquina_session=${options.token}` } : {}),
     },
     body: JSON.stringify(body),
   });
