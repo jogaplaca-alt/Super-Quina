@@ -134,7 +134,7 @@ export async function getVerifiedPixOrder(orderId: string): Promise<VerifiedPixO
  */
 export function syntheticPayerEmail(playerId: string): string {
   const digest = createHash("sha256").update(playerId).digest("hex").slice(0, 20);
-  const domain = (process.env.MERCADOPAGO_PAYER_EMAIL_DOMAIN || "jogaplaca.com.br")
+  const domain = (process.env.MERCADOPAGO_PAYER_EMAIL_DOMAIN || "superquina.com")
     .trim()
     .toLowerCase();
   if (!/^[a-z0-9.-]+\.[a-z]{2,}$/.test(domain)) {
@@ -198,7 +198,7 @@ export async function createPixOrder(input: {
       type: "online",
       processing_mode: "automatic",
       total_amount: amount,
-      external_reference: `jogaplacas_purchase_${input.purchaseId}`,
+      external_reference: `superquina_purchase_${input.purchaseId}`,
       payer: { email: syntheticPayerEmail(input.playerId) },
       transactions: {
         payments: [{
