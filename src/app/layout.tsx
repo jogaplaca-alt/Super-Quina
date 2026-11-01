@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-const logo = "/images/brand/super-quina-icon.png";
+const icon = "/images/brand/super-quina-icon.PNG";
 
 export const metadata: Metadata = {
   title: {
@@ -16,9 +16,9 @@ export const metadata: Metadata = {
     title: "Super Quina",
   },
   icons: {
-    icon: [{ url: logo, type: "image/png" }],
-    apple: [{ url: logo, type: "image/png" }],
-    shortcut: [{ url: logo, type: "image/png" }],
+    icon: [{ url: icon, type: "image/png" }],
+    apple: [{ url: icon, type: "image/png" }],
+    shortcut: [{ url: icon, type: "image/png" }],
   },
   openGraph: {
     type: "website",
@@ -26,13 +26,13 @@ export const metadata: Metadata = {
     siteName: "Super Quina",
     title: "Super Quina",
     description: "Jogue cinco números e concorra a cinco categorias de prêmios.",
-    images: [{ url: logo, alt: "Logomarca Super Quina" }],
+    images: [{ url: icon, alt: "Super Quina" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Super Quina",
     description: "Jogue cinco números e concorra a cinco categorias de prêmios.",
-    images: [logo],
+    images: [icon],
   },
   manifest: "/manifest.webmanifest",
 };
