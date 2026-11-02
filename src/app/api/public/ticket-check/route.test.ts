@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 const mocks = vi.hoisted(() => ({ purchaseFindUnique: vi.fn() }));
 vi.mock("@/lib/auth/session", () => ({ authPrisma: { purchase: { findUnique: mocks.purchaseFindUnique } } }));
 import { GET } from "./route";
-function request(q = "JP-12345678") { return new NextRequest("https://example.test/api/public/ticket-check?q=" + encodeURIComponent(q)); }
+function request(q = "SQ-12345678") { return new NextRequest("https://example.test/api/public/ticket-check?q=" + encodeURIComponent(q)); }
 describe("GET /api/public/ticket-check", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -24,10 +24,10 @@ describe("GET /api/public/ticket-check", () => {
     expect(mocks.purchaseFindUnique).not.toHaveBeenCalled();
   });
   it("returns safe numeric results and confirms prizes only after credit", async () => {
-    const response = await GET(request("jp-12345678"));
+    const response = await GET(request("sq-12345678"));
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toContain("no-store");
-    expect(mocks.purchaseFindUnique).toHaveBeenCalledWith(expect.objectContaining({ where: { receiptCode: "JP-12345678" } }));
+    expect(mocks.purchaseFindUnique).toHaveBeenCalledWith(expect.objectContaining({ where: { receiptCode: "SQ-12345678" } }));
     const body = await response.json();
     expect(body.results[0]).toMatchObject({ numberValue: "01234", status: "PREMIADA", prizeCents: 120, resultNumber: "01234" });
     expect(body.results[1]).toMatchObject({ numberValue: "99999", status: "NAO_PREMIADA", prizeCents: null });
