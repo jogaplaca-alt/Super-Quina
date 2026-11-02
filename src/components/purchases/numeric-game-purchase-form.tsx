@@ -150,10 +150,9 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
   function generateRandomNumber() {
     const existing = new Set(numbers);
     let generated = "";
-    for (let attempt = 0; attempt < 100; attempt += 1) {
+    do {
       generated = String(crypto.getRandomValues(new Uint32Array(1))[0]! % 100000).padStart(5, "0");
-      if (!existing.has(generated)) break;
-    }
+    } while (existing.has(generated));
     setNumberInput(generated);
     setError("");
     setNotice("Número aleatório gerado. Confira e adicione à aposta.");
