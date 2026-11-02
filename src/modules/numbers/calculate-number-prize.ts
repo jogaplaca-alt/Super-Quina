@@ -24,7 +24,10 @@ const ALLOCATION_FIELD: Record<NumericPrizeCategory,
   quina: "quinaCents",
 };
 
-/** Calculate all matching categories using the exact five-character number and its saved rule snapshot. */
+/**
+ * Award exactly one prize per line: the highest matching category.
+ * A quina also matches quadra/terno/dezena/unidade suffixes, but only quina is paid.
+ */
 export function calculateNumberPrizeCents(line: NumericSettlementLine, drawnNumber: string): number {
   const bet = normalizeNumber(line.numberValue);
   const drawn = normalizeNumber(drawnNumber);
@@ -32,28 +35,24 @@ export function calculateNumberPrizeCents(line: NumericSettlementLine, drawnNumb
   if (!multipliers) throw new Error("Stored numeric prize rule snapshot is invalid.");
 
   const matches: Array<{ category: NumericPrizeCategory; matched: boolean }> = [
-    { category: "unit", matched: bet.slice(-1) === drawn.slice(-1) },
-    { category: "tens", matched: bet.slice(-2) === drawn.slice(-2) },
-    { category: "hundreds", matched: bet.slice(-3) === drawn.slice(-3) },
-    { category: "thousands", matched: bet.slice(-4) === drawn.slice(-4) },
     { category: "quina", matched: bet === drawn },
+    { category: "thousands", matched: bet.slice(-4) === drawn.slice(-4) },
+    { category: "hundreds", matched: bet.slice(-3) === drawn.slice(-3) },
+    { category: "tens", matched: bet.slice(-2) === drawn.slice(-2) },
+    { category: "unit", matched: bet.slice(-1) === drawn.slice(-1) },
   ];
 
-  let total = 0;
-  for (const { category, matched } of matches) {
-    const stake = line[ALLOCATION_FIELD[category]];
-    if (!Number.isSafeInteger(stake) || stake < 0) {
-      throw new Error("Stored numeric category allocation is invalid.");
-    }
-    if (!matched) continue;
-    const prize = stake * multipliers[category];
-    if (!Number.isSafeInteger(prize) || prize > 2_147_483_647) {
-      throw new Error("Numeric prize exceeds the database integer range.");
-    }
-    total += prize;
-    if (!Number.isSafeInteger(total) || total > 2_147_483_647) {
-      throw new Error("Total numeric prize exceeds the database integer range.");
-    }
+  // Most specific match wins; lower categories are not accumulated.
+  const winningCategory = matches.find(({ matched }) => matched)?.category;
+  if (!winningCategory) return 0;
+
+  const stake = line[ALLOCATION_FIELD[winningCategory]];
+  if (!Number.isSafeInteger(stake) || stake < 0) {
+    throw new Error("Stored numeric category allocation is invalid.");
   }
-  return total;
+  const prize = stake * multipliers[winningCategory];
+  if (!Number.isSafeInteger(prize) || prize > 2_147_483_647) {
+    throw new Error("Numeric prize exceeds the database integer range.");
+  }
+  return prize;
 }
