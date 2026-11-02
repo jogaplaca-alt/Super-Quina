@@ -16,7 +16,7 @@ function getLineStatus(line: { prizeCents: number | null; prizeCreditedAt: Date 
 
 export async function GET(request: NextRequest) {
   const normalizedCode = (request.nextUrl.searchParams.get("q") ?? "").replace(/\s/g, "").toUpperCase();
-  if (!/^JP-[A-Z0-9]{8,32}$/.test(normalizedCode)) return NextResponse.json({ error: "Digite o código completo do recibo iniciado por JP-." }, { status: 400, headers });
+  if (!/^SQ-[A-Z0-9]{8,32}$/.test(normalizedCode)) return NextResponse.json({ error: "Digite o código completo do recibo iniciado por SQ-." }, { status: 400, headers });
   try {
     const purchase = await authPrisma.purchase.findUnique({
       where: { receiptCode: normalizedCode },
