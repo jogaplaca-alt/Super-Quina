@@ -21,6 +21,9 @@ jpveiculos/Super-Quina é separado de jpveiculos/JogaPlacas. Não alterar o repo
 - Preservar Purchase, PurchaseParticipation, Payment, LedgerEntry, CashierCommission, Withdrawal, usuários e auditoria.
 - src/generated/prisma é saída de prisma generate.
 
+## 4. Agendador e gestão de rodadas
+- A criação de rodadas é exclusiva do endpoint interno `POST /api/internal/round-scheduler`, acionado pelo cron da hospedagem. A criação manual pelo administrador foi removida da API e da interface.
+- O painel administrativo mantém apenas consulta das rodadas existentes e ações operacionais permitidas (fechamento, sorteio e apuração); não cria rodadas.
 ## 4. Agendador
 POST /api/internal/round-scheduler, com Authorization: Bearer e ROUND_SCHEDULER_SECRET. Mantém no máximo dez rodadas futuras em intervalos de 30 minutos. Abre, fecha, sorteia e reconcilia Pix. A hospedagem deve chamar o endpoint a cada minuto; a branch não comprova que o cron externo esteja configurado.
 
