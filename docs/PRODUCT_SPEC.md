@@ -19,6 +19,18 @@ Esta seção substitui, para todas as novas vendas e rodadas, as regras históri
 - Novas compras e vendas devem aceitar apenas números de cinco algarismos. O fluxo de placas não pode ser oferecido novamente.
 - As seções antigas sobre placas, seis categorias e dois resultados são mantidas somente como referência histórica para recibos, apostas, pagamentos e rodadas anteriores. Não apagar nem recalcular esses registros.
 
+
+## Regra crítica aprovada — recibo somente após vinculação atômica às rodadas (2026-11-02)
+
+- A quantidade escolhida (1 a 10) representa somente quantas vezes o jogador deseja concorrer. Não seleciona, reserva nem vincula rodadas.
+- Antes do pagamento Pix ser confirmado, a compra armazena apenas a intenção validada (números, valor, quantidade, snapshot da regra e dados necessários à cobrança). Não pode existir `PurchaseParticipation`, `NumericParticipationLine`, vínculo com rodada, código de recibo ou QR Code de consulta do recibo.
+- Após confirmação autêntica do Mercado Pago, ou recebimento CASH/débito WALLET efetivamente confirmado, o sistema deve consultar o relógio real do banco, bloquear e selecionar as rodadas futuras válidas e criar todas as participações e linhas vinculadas aos IDs definitivos dentro da mesma transação.
+- O recibo só pode ser associado à compra depois de todas as participações e linhas estarem persistidas e validadas nessa transação. A transação inclui confirmação financeira local, participações, linhas, comissão, código do recibo e auditoria. O QR Code/recibo só pode ser disponibilizado depois do commit e da leitura de estado confirmado.
+- Qualquer falha aborta a transação inteira. Conflito de serialização/deadlock exige nova transação, novo horário do banco, novos locks e nova seleção; nunca reutilizar rodadas de uma tentativa anterior. Retry limitado e idempotente.
+- Se não houver rodadas suficientes após as tentativas, não criar participação nem recibo e não confirmar a compra localmente; manter a aprovação externa registrada e permitir reconciliação automática pelo agendador. Nunca retroagir para rodada fechada ou sorteada.
+- O QR Code Pix de cobrança do Mercado Pago é distinto do QR Code de consulta do recibo.
+- Detalhamento técnico e critérios de aceite: `docs/DECISION_PURCHASE_CONFIRMATION_ATOMICITY.md`.
+
 ## Identidade visual — Super Quina (atualização 2026-11-01)
 
 - Marca pública: **Super Quina**.

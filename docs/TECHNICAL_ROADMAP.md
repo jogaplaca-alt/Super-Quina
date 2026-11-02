@@ -69,3 +69,14 @@ O workflow `.github/workflows/quality.yml` está configurado e executa validaç�
 - Não alterar `main`, domínio, DNS, produção ou serviço antigo.
 - Não fazer merge ou deploy sem autorização explícita.
 - O código contém recibo térmico web; a integração Android nativa/Bluetooth não foi confirmada nesta branch.
+
+
+## Refatoração crítica em andamento — confirmação e recibo atômicos (2026-11-02)
+
+- Regra aprovada e registrada em `docs/DECISION_PURCHASE_CONFIRMATION_ATOMICITY.md` e `docs/PRODUCT_SPEC.md`.
+- Estado de código ainda divergente: o serviço atual cria participações provisórias vinculadas a rodadas na criação do Pix; a confirmação atual move esses vínculos em vez de criá-los após o pagamento.
+- Próxima implementação exige intenção persistente de compra com `participationCount`, números, valor unitário e snapshot; migração aditiva e conversão validada de compras Pix pendentes existentes.
+- Não liberar recibo/QR de recibo antes de commit com participações confirmadas e rodadas válidas. APIs de compra pendente não devem retornar participações nem dados de rodadas.
+- CASH/WALLET devem compartilhar o mesmo núcleo transacional de alocação/participações/recibo, com recebimento ou débito efetivo na transação.
+- Retry deve repetir a transação inteira, obter novo `clock_timestamp()`, novos locks e reavaliar rodadas. Sem slots após limite: nenhuma participação/recibo e reconciliação automática.
+- Esta etapa é somente código e migrations na branch de trabalho; não aplicar em produção, não fazer merge e não fazer deploy sem autorização.
