@@ -27,9 +27,9 @@ import { POST } from "./route";
 import { RoundClosureError } from "@/modules/rounds/close-round";
 
 function request(origin = "https://example.test", token = "session-token") {
-  return new NextRequest("https://example.test/api/admin/rounds/round-123456/close", {
+  return new NextRequest("http://internal-next/api/admin/rounds/round-123456/close", {
     method: "POST",
-    headers: { origin, ...(token ? { cookie: `superquina_session=${token}` } : {}) },
+    headers: { origin, host: "example.test", ...(token ? { cookie: `superquina_session=${token}` } : {}) },
   });
 }
 const context = { params: Promise.resolve({ roundId: "round-123456" }) };
