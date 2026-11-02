@@ -5,8 +5,8 @@ import { SiteHeader } from "@/components/site-header";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Consulta do recibo | Joga Placa",
-  description: "Consulte o resultado oficial do recibo no Joga Placa.",
+  title: "Consulta do recibo | Super Quina",
+  description: "Consulte o resultado oficial do recibo na Super Quina.",
 };
 
 type PageProps = { params: Promise<{ receiptCode: string }> };
