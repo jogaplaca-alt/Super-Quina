@@ -120,7 +120,7 @@ export async function confirmPixPayment(
         }
 
         const now = decisionTime;
-        const receiptCode = `JP-${randomBytes(8).toString("hex").toUpperCase()}`;
+        const receiptCode = `SQ-${randomBytes(8).toString("hex").toUpperCase()}`;
         await tx.payment.update({
           where: { id: paymentRow.id },
           data: {
