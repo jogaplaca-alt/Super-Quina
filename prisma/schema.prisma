@@ -164,6 +164,7 @@ model Purchase {
   cashier           User?         @relation("CashierPurchases", fields: [cashierId], references: [id], onDelete: Restrict)
   customer          Customer?     @relation(fields: [customerId], references: [id], onDelete: Restrict)
   participations    PurchaseParticipation[]
+  numericIntent     NumericPurchaseIntent?
   payment           Payment?
   ledgerEntries     LedgerEntry[]
   commission        CashierCommission?
@@ -172,6 +173,18 @@ model Purchase {
   @@index([cashierId, createdAt])
   @@index([customerId, createdAt])
   @@index([status, createdAt])
+}
+
+model NumericPurchaseIntent {
+  id           String   @id @default(cuid())
+  purchaseId   String   @unique
+  roundCount   Int
+  numbers      Json
+  allocation   Json
+  ruleVersion  String
+  ruleSnapshot Json
+  createdAt    DateTime @default(now())
+  purchase     Purchase @relation(fields: [purchaseId], references: [id], onDelete: Restrict)
 }
 
 model PurchaseParticipation {
