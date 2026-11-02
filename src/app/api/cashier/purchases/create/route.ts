@@ -18,11 +18,20 @@ const requestSchema = z.object({
 export async function POST(request: NextRequest) {
   const origin = request.headers.get("origin");
   if (origin) {
-    let host = "";
-    try { host = new URL(origin).host.toLowerCase(); } catch { /* rejected below */ }
-    const allowed = [request.nextUrl.host, request.headers.get("x-forwarded-host")?.split(",")[0]?.trim(), request.headers.get("host")]
-      .filter((value): value is string => Boolean(value)).map((value) => value.toLowerCase());
-    if (!host || !allowed.includes(host)) return NextResponse.json({ error: "Requisição inválida." }, { status: 403 });
+    let originHost = "";
+    try {
+      const parsedOrigin = new URL(origin);
+      if (parsedOrigin.protocol !== "https:" && parsedOrigin.protocol !== "http:") {
+        return NextResponse.json({ error: "Requisição inválida." }, { status: 403 });
+      }
+      originHost = parsedOrigin.host.toLowerCase();
+    } catch {
+      return NextResponse.json({ error: "Requisição inválida." }, { status: 403 });
+    }
+    const requestHost = request.headers.get("host")?.trim().toLowerCase();
+    if (!requestHost || originHost !== requestHost) {
+      return NextResponse.json({ error: "Requisição inválida." }, { status: 403 });
+    }
   }
   const user = await getSessionUser(request.cookies.get(SESSION_COOKIE)?.value);
   if (!user) return NextResponse.json({ error: "É necessário entrar na conta." }, { status: 401, headers: { "Cache-Control": "no-store" } });
