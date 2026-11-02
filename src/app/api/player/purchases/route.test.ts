@@ -87,13 +87,15 @@ describe("POST /api/player/purchases", () => {
     expect(mocks.createNumericPurchase).not.toHaveBeenCalled();
   });
 
-  it("rejects malformed numeric payloads and duplicate rounds", async () => {
+  it("rejects malformed numeric payloads and invalid round counts", async () => {
     const malformed = await POST(request({ ...validBody(), extra: true }));
     expect(malformed.status).toBe(400);
     const invalidNumber = await POST(request({ ...validBody(), numbers: ["1234A"] }));
     expect(invalidNumber.status).toBe(400);
     const invalidCount = await POST(request({ ...validBody(), roundCount: 11 }));
     expect(invalidCount.status).toBe(400);
+    const obsoleteRoundIds = await POST(request({ ...validBody(), roundIds: ["round-1"] }));
+    expect(obsoleteRoundIds.status).toBe(400);
     expect(mocks.createNumericPurchase).not.toHaveBeenCalled();
   });
 
