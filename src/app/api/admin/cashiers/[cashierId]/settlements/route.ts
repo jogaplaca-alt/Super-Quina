@@ -29,22 +29,21 @@ export async function POST(request: NextRequest, context: { params: Promise<{ ca
       if (!cashier) throw new Error("CASHIER_NOT_FOUND");
       const last = await tx.cashierSettlement.findFirst({ where: { cashierId }, orderBy: { settledAt: "desc" }, select: { settledAt: true } });
       const since = last?.settledAt ?? new Date(0);
-      const eligible = { cashierId, status: "CONFIRMED" as const, confirmedAt: { gt: since } };
-      const [settledAt] = await Promise.all([tx.$queryRaw<Array<{ now: Date }>>`SELECT clock_timestamp() AS now`]);
+      const settledAt = await tx.$queryRaw<Array<{ now: Date }>>`SELECT clock_timestamp() AS now`;
       const cutoff = settledAt[0]!.now;
       const eligible = { cashierId, status: "CONFIRMED" as const, confirmedAt: { gt: since, lte: cutoff } };
       const [cash, pix, commissions, games] = await Promise.all([
         tx.purchase.aggregate({ where: { ...eligible, paymentMethod: "CASH" }, _sum: { totalCents: true }, _count: { _all: true } }),
         tx.purchase.aggregate({ where: { ...eligible, paymentMethod: "PIX", payment: { is: { status: "CONFIRMED" } } }, _sum: { totalCents: true }, _count: { _all: true } }),
-        tx.cashierCommission.aggregate({ where: { cashierId, createdAt: { gt: since }, purchase: { is: { status: "CONFIRMED" } } }, _sum: { amountCents: true } }),
-        tx.$queryRaw<Array<{ now: Date }>>`SELECT clock_timestamp() AS now`,
+        tx.cashierCommission.aggregate({ where: { cashierId, createdAt: { gt: since, lte: cutoff }, purchase: { is: { status: "CONFIRMED" } } }, _sum: { amountCents: true } }),
+        tx.numericParticipationLine.count({ where: { participation: { is: { status: "CONFIRMED", confirmedAt: { gt: since, lte: cutoff }, purchase: { is: { cashierId, status: "CONFIRMED" } } } } } }),
       ]);
       const cashSalesCents = cash._sum.totalCents ?? 0;
       const pixSalesCents = pix._sum.totalCents ?? 0;
       const snapshot = await tx.cashierSettlement.create({ data: {
-        cashierId, adminId: admin.id, settledAt: settledAt[0]!.now,
+        cashierId, adminId: admin.id, settledAt: cutoff,
         cashSalesCents, pixSalesCents, totalSalesCents: cashSalesCents + pixSalesCents,
-        salesCount: cash._count._all + pix._count._all,
+        salesCount: cash._count._all + pix._count._all, gamesCount: games,
         commissionCents: commissions._sum.amountCents ?? 0,
       } });
       await tx.auditEvent.create({ data: {
