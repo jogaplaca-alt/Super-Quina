@@ -38,6 +38,15 @@ Arquivo: `src/app/api/internal/round-scheduler/route.ts`.
 
 O valor da aposta é distribuído igualmente entre as cinco categorias em centavos inteiros. Qualquer centavo restante vai para Unidade. O snapshot versionado salvo na compra é a fonte da apuração.
 
+## Autenticação e sessão
+
+- Sessões usam tokens aleatórios, armazenando somente SHA-256 no banco, com validade de 12 horas e revogação no logout.
+- Cookie de sessão: HttpOnly, SameSite=Lax, Path=/; Secure em HTTPS/produção.
+- Login possui bloqueio após cinco falhas em janela de 15 minutos, persistido no PostgreSQL para funcionar entre instâncias.
+- Login, troca de senha e logout comparam Origin ao Host recebido, evitando falso bloqueio atrás de proxy reverso.
+- Troca de senha revoga as sessões anteriores e emite uma nova sessão na mesma transação.
+- Ainda revisar rate limiting por IP, CSRF/origin em todas as rotas mutáveis e política de expiração/limpeza de sessões.
+
 ## Validação ainda necessária
 
 Não declarar a branch pronta para produção antes de executar e registrar:
