@@ -12,6 +12,7 @@ type ReceiptData = {
   totalCents: number;
   currency: string;
   customerLabel: string | null;
+  cashierLabel: string | null;
   entries: ThermalReceiptEntry[];
 };
 
@@ -92,6 +93,7 @@ export function PlayerPurchaseReceipt({ purchaseId, autoOpen = false, onClose }:
               totalCents={receipt.totalCents}
               entries={receipt.entries}
               customerLabel={receipt.customerLabel}
+              cashierLabel={receipt.cashierLabel}
               paymentLabel={paymentLabels[receipt.paymentMethod] ?? "Pagamento confirmado"}
               onClose={() => { setReceipt(null); onClose?.(); }}
             />
