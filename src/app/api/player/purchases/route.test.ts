@@ -36,7 +36,7 @@ function request(body: unknown, options: { origin?: string; token?: string } = {
 }
 const validBody = () => ({
   idempotencyKey: "idempotency-key-0001",
-  roundIds: ["round-1"],
+  roundCount: 1,
   numbers: ["01234"],
   stakeCents: 100,
   paymentMethod: "PIX",
@@ -45,13 +45,8 @@ const purchase = () => ({
   id: "purchase-1", receiptCode: null, status: "PENDING_PAYMENT",
   payment: { status: "PENDING", idempotencyKey: "payment-key", providerPaymentId: null },
   totalCents: 100, currency: "BRL",
-  participations: [{
-    roundId: "round-1", totalCents: 100,
-    numericLines: [{
-      numberValue: "01234", unitCents: 20, tensCents: 20, hundredsCents: 20,
-      thousandsCents: 20, quinaCents: 20,
-    }],
-  }],
+  numericIntent: { roundCount: 1, numbers: ["01234"], allocation: { unitCents: 20, tensCents: 20, hundredsCents: 20, thousandsCents: 20, quinaCents: 20 } },
+  participations: [],
 });
 
 describe("POST /api/player/purchases", () => {
@@ -97,8 +92,8 @@ describe("POST /api/player/purchases", () => {
     expect(malformed.status).toBe(400);
     const invalidNumber = await POST(request({ ...validBody(), numbers: ["1234A"] }));
     expect(invalidNumber.status).toBe(400);
-    const duplicate = await POST(request({ ...validBody(), roundIds: ["round-1", "round-1"] }));
-    expect(duplicate.status).toBe(400);
+    const invalidCount = await POST(request({ ...validBody(), roundCount: 11 }));
+    expect(invalidCount.status).toBe(400);
     expect(mocks.createNumericPurchase).not.toHaveBeenCalled();
   });
 
@@ -107,15 +102,13 @@ describe("POST /api/player/purchases", () => {
     expect(response.status).toBe(201);
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(mocks.createNumericPurchase).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      playerId: "player-1", paymentMethod: "PIX", roundIds: ["round-1"],
+      playerId: "player-1", paymentMethod: "PIX", roundCount: 1,
       numbers: ["01234"], stakeCents: 100,
     }));
     const body = await response.json();
     expect(body.purchase.totalCents).toBe(100);
-    expect(body.purchase.participations[0].lines[0]).toMatchObject({
-      numberValue: "01234",
-      allocationCents: { unit: 20, tens: 20, hundreds: 20, thousands: 20, quina: 20 },
-    });
+    expect(body.purchase.participations).toEqual([]);
+    expect(body.purchase.numericIntent).toMatchObject({ roundCount: 1, numbers: ["01234"] });
     expect(body.purchase.receiptCode).toBeNull();
     expect(body.message).toContain("Nenhum recibo foi emitido");
     expect(body.paymentActionRequired).toBe(true);

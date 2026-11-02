@@ -16,6 +16,7 @@ export async function confirmPixPayment(
   for (let attempt = 0; ; attempt += 1) {
     try {
       return await prisma.$transaction(async (tx) => {
+        await tx.$queryRaw`SELECT p."id" FROM "Purchase" p JOIN "Payment" pay ON pay."purchaseId" = p."id" WHERE pay."id" = ${input.paymentId} FOR UPDATE OF p, pay`;
         const paymentRow = await tx.payment.findUnique({
           where: { id: input.paymentId },
           select: {
