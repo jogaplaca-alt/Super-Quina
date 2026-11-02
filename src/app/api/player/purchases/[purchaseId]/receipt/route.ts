@@ -18,6 +18,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         id: true, createdAt: true, playerId: true, cashierId: true, status: true,
         paymentMethod: true, totalCents: true, currency: true, receiptCode: true, confirmedAt: true,
         customer: { select: { name: true } },
+        cashier: { select: { username: true, fullName: true } },
         payment: { select: { status: true, confirmedAt: true } },
         participations: {
           where: { status: "CONFIRMED" },
@@ -51,7 +52,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ receipt: {
       purchaseId: purchase.id, receiptCode: purchase.receiptCode, paymentStatus: "CONFIRMED",
       issuedAt: purchase.confirmedAt.toISOString(), paymentMethod: purchase.paymentMethod,
-      totalCents: purchase.totalCents, currency: purchase.currency, customerLabel: purchase.customer?.name ?? null, entries,
+      totalCents: purchase.totalCents, currency: purchase.currency, customerLabel: purchase.customer?.name ?? null,
+      cashierLabel: purchase.cashier ? (purchase.cashier.fullName?.trim() || purchase.cashier.username) : null, entries,
     } }, { headers });
   } catch {
     return NextResponse.json({ error: "Não foi possível carregar o recibo agora." }, { status: 500, headers });
