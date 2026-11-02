@@ -18,7 +18,7 @@ export default async function AdminCashierDetailPage({ params }: { params: Promi
   if (!cashier) notFound();
   const [purchases, settlements] = await Promise.all([
     authPrisma.purchase.findMany({
-      where: { cashierId }, orderBy: [{ createdAt: "desc" }], take: 200,
+      where: { cashierId }, orderBy: [{ createdAt: "desc" }],
       select: {
         id: true, receiptCode: true, status: true, paymentMethod: true, totalCents: true, createdAt: true, confirmedAt: true,
         customer: { select: { name: true, phone: true } },
@@ -28,7 +28,7 @@ export default async function AdminCashierDetailPage({ params }: { params: Promi
       },
     }),
     authPrisma.cashierSettlement.findMany({
-      where: { cashierId }, orderBy: { settledAt: "desc" }, take: 100,
+      where: { cashierId }, orderBy: { settledAt: "desc" },
       select: { id: true, settledAt: true, cashSalesCents: true, pixSalesCents: true, totalSalesCents: true, salesCount: true, commissionCents: true, admin: { select: { username: true } } },
     }),
   ]);
@@ -45,7 +45,7 @@ export default async function AdminCashierDetailPage({ params }: { params: Promi
       <CashierSettlementActions cashierId={cashier.id} />
       <section className="feature-card admin-cashier-history">
         <h2>Histórico de vendas</h2>
-        <p>Exibindo as 200 vendas mais recentes. Vendas pendentes, canceladas e estornadas aparecem no histórico, mas não entram no acerto.</p>
+        <p>Vendas pendentes, canceladas e estornadas aparecem no histórico, mas não entram no acerto.</p>
         {purchases.length === 0 ? <p>Nenhuma venda registrada.</p> : <div className="admin-cashier-table-wrap"><table className="admin-cashier-table">
           <thead><tr><th>Data</th><th>Recibo</th><th>Cliente</th><th>Pagamento</th><th>Status</th><th>Valor</th><th>Comissão</th><th>Jogos</th></tr></thead>
           <tbody>{purchases.map((sale) => <tr key={sale.id}>
