@@ -19,21 +19,23 @@ export async function POST(
   context: { params: Promise<{ roundId: string }> },
 ) {
   const origin = request.headers.get("origin");
-  if (origin) {
-    let originHost = "";
-    try {
-      const parsedOrigin = new URL(origin);
-      if (parsedOrigin.protocol !== "https:" && parsedOrigin.protocol !== "http:") {
-        return response({ error: "Requisição inválida." }, 403);
-      }
-      originHost = parsedOrigin.host.toLowerCase();
-    } catch {
+  const requestHost = request.headers.get("host")?.trim().toLowerCase();
+  if (!origin || !requestHost) {
+    return response({ error: "Requisição inválida." }, 403);
+  }
+
+  let originHost = "";
+  try {
+    const parsedOrigin = new URL(origin);
+    if (parsedOrigin.protocol !== "https:" && parsedOrigin.protocol !== "http:") {
       return response({ error: "Requisição inválida." }, 403);
     }
-    const requestHost = request.headers.get("host")?.trim().toLowerCase();
-    if (!requestHost || originHost !== requestHost) {
-      return response({ error: "Requisição inválida." }, 403);
-    }
+    originHost = parsedOrigin.host.toLowerCase();
+  } catch {
+    return response({ error: "Requisição inválida." }, 403);
+  }
+  if (originHost !== requestHost) {
+    return response({ error: "Requisição inválida." }, 403);
   }
 
   const token = request.cookies.get(SESSION_COOKIE)?.value;
