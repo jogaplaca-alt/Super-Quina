@@ -31,7 +31,10 @@ describe("createNumericPurchase pending Pix intent", () => {
     expect(purchaseCreate).toHaveBeenCalledOnce();
     const data = purchaseCreate.mock.calls[0]![0].data;
     expect(data).not.toHaveProperty("participations");
-    expect(data.numericIntent.create).toMatchObject({ roundCount: 2, numbers: ["00007"] });
+    expect(data.numericIntent.create).toMatchObject({
+      roundCount: 2, numbers: ["00007"], ruleVersion: "numeric-admin-v1",
+      ruleSnapshot: { version: "numeric-admin-v1", multipliers: { unit: 5, tens: 20, hundreds: 200, thousands: 2000, quina: 20000 } },
+    });
     expect(data.payment.create.amountCents).toBe(200);
     expect(result).toMatchObject({ status: "PENDING_PAYMENT", receiptCode: null, participations: [] });
   });
