@@ -81,7 +81,7 @@ export async function confirmPixPayment(
                 paymentId: paymentRow.id, decisionTime: decisionTime.toISOString(),
                 requiredParticipations: requiredCount, availableParticipations: targetRounds.length,
                 originalRounds: originalRounds.map((round) => ({ code: round.code, startsAt: round.startsAt.toISOString(), cutoffAt: round.cutoffAt.toISOString(), resultAt: round.resultAt.toISOString() })),
-                outcome: "manual_reconciliation_required",
+                outcome: "automatic_reconciliation_pending",
               },
             },
           });
