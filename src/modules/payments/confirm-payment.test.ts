@@ -4,7 +4,7 @@ import { confirmPixPayment } from "./confirm-payment";
 const now = new Date("2026-10-30T15:35:00.123Z");
 const oldRound = {
   id: "round-old",
-  code: "JP-20261030-1230",
+  code: "JN-20261030-1230",
   startsAt: new Date("2026-10-30T15:01:00.000Z"),
   cutoffAt: new Date("2026-10-30T15:29:00.000Z"),
   resultAt: new Date("2026-10-30T15:30:00.000Z"),
@@ -12,7 +12,7 @@ const oldRound = {
 };
 const nextRound = {
   id: "round-next",
-  code: "JP-20261030-1300",
+  code: "JN-20261030-1300",
   startsAt: new Date("2026-10-30T15:31:00.000Z"),
   cutoffAt: new Date("2026-10-30T15:59:00.000Z"),
   resultAt: new Date("2026-10-30T16:00:00.000Z"),
@@ -66,7 +66,7 @@ describe("confirmPixPayment next-valid-round allocation", () => {
       providerStatusDetail: "accredited",
     });
 
-    expect(result).toMatchObject({ outcome: "confirmed" });
+    expect(result).toMatchObject({ outcome: "confirmed", receiptCode: expect.stringMatching(/^SQ-[A-F0-9]{16}$/) });
     expect(mocks.participationUpdate).toHaveBeenCalledWith({
       where: { id: "participation-1" },
       data: { roundId: "round-next", totalCents: 200 },
