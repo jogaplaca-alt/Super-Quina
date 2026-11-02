@@ -51,7 +51,7 @@ Não declarar a branch pronta para produção antes de executar e registrar:
 7. Aplicação de todas as migrations em PostgreSQL descartável, confirmando o schema final.
 8. Testes ponta a ponta de compra, Pix, reconciliação tardia, carteira, venda em dinheiro, comissão, recibo, apuração e concorrência do agendador.
 
-A branch não possui workflow de CI configurado no momento desta atualização; os comandos acima ainda precisam ser executados em ambiente de build.
+O workflow `.github/workflows/quality.yml` está configurado e executa validação/geração Prisma, TypeScript, testes unitários e de rotas, lint, migrations em PostgreSQL limpo, integração PostgreSQL e build. A última execução integral confirmada como sucesso antes das correções de identidade de recibos foi a run 41364710869 (commit 239279a). As correções posteriores de recibo e identificação pública exigem confirmação de CI verde no HEAD atualizado.
 
 ## Infraestrutura e limites
 
