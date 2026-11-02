@@ -26,10 +26,14 @@ vi.mock("@/modules/rounds/draw-round-results", () => ({
 import { POST } from "./route";
 import { RoundDrawError } from "@/modules/rounds/draw-round-results";
 
-function request(origin = "https://example.test", token = "session-token") {
+function request(origin: string | null = "https://example.test", token = "session-token", host: string | null = "example.test") {
+  const headers: Record<string, string> = {};
+  if (origin) headers.origin = origin;
+  if (host) headers.host = host;
+  if (token) headers.cookie = `superquina_session=${token}`;
   return new NextRequest("http://internal-next/api/admin/rounds/round-123456/draw", {
     method: "POST",
-    headers: { origin, host: "example.test", ...(token ? { cookie: `superquina_session=${token}` } : {}) },
+    headers,
   });
 }
 const context = { params: Promise.resolve({ roundId: "round-123456" }) };
@@ -44,6 +48,16 @@ describe("POST /api/admin/rounds/[roundId]/draw", () => {
       id: "round-123456", code: "R-12:30", status: "COMPLETED", resultNumber: "01234",
     });
     mocks.auditCreate.mockResolvedValue({});
+  });
+
+  it.each([
+    ["missing Origin", null, "example.test"],
+    ["missing Host", "https://example.test", null],
+  ])("rejects requests with %s", async (_label, origin, host) => {
+    const result = await POST(request(origin, "session-token", host), context);
+    expect(result.status).toBe(403);
+    expect(mocks.getSessionUser).not.toHaveBeenCalled();
+    expect(mocks.drawRoundResults).not.toHaveBeenCalled();
   });
 
   it("rejects cross-origin requests", async () => {
