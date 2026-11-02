@@ -72,6 +72,20 @@ describe("player withdrawals API", () => {
     expect(mocks.withdrawalCreate).not.toHaveBeenCalled();
   });
 
+  it("accepts the public host behind a reverse proxy", async () => {
+    const proxyRequest = new NextRequest("http://internal-service:3000/api/player/withdrawals", {
+      method: "POST",
+      headers: {
+        origin: "https://example.test",
+        host: "example.test",
+        cookie: "superquina_session=session-token",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ pixKey: "pix@example.com" }),
+    });
+    expect((await POST(proxyRequest)).status).toBe(201);
+  });
+
   it("rejects cross-origin requests", async () => {
     const response = await POST(request("/api/player/withdrawals", { amountCents: 1000, pixKey: "pix@example.com" }, "https://attacker.test"));
     expect(response.status).toBe(403);
