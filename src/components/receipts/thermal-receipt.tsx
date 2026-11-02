@@ -14,6 +14,7 @@ export type ThermalReceiptProps = {
   totalCents: number;
   entries: ThermalReceiptEntry[];
   customerLabel?: string | null;
+  cashierLabel?: string | null;
   paymentLabel?: string;
   qrCodeDataUrl?: string | null;
   onClose?: () => void;
@@ -124,7 +125,7 @@ export function ThermalReceipt({
           )}
         </section>
 
-        {customerLabel && <p className="thermal-receipt-customer"><span>Cliente:</span> {customerLabel}</p>}
+        {customerLabel && <p className="thermal-receipt-customer"><span>Cliente:</span> {customerLabel}</p>}\n        {cashierLabel && <p className="thermal-receipt-customer"><strong>Cambista:</strong> {cashierLabel}</p>}
 
         <div className="thermal-receipt-divider" />
         <section className="thermal-receipt-items">
