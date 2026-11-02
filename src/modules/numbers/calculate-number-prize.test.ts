@@ -13,8 +13,8 @@ function line(numberValue: string) {
 }
 
 describe("calculateNumberPrizeCents", () => {
-  it("pays only the highest matching category when unit, tens and hundreds match", () => {
-    // 12345 vs 99345: the hundreds (terno) tier wins; unit and tens are not accumulated.
+  it("pays only the highest matching category when lower suffixes also match", () => {
+    // Final three digits match; unit and tens are included in the match but not paid separately.
     expect(calculateNumberPrizeCents(line("12345"), "99345")).toBe(20 * 200);
   });
 
@@ -22,21 +22,24 @@ describe("calculateNumberPrizeCents", () => {
     expect(calculateNumberPrizeCents(line("01234"), "01234")).toBe(20 * 20_000);
   });
 
-  it("pays only quadra (four final digits) when quina does not match", () => {
-    expect(calculateNumberPrizeCents(line("12345"), "99345")).toBe(20 * 200);
-    expect(calculateNumberPrizeCents(line("12345"), "99345")).not.toBe(20 * (5 + 20 + 200));
+  it("pays only quadra when the final four digits match", () => {
+    expect(calculateNumberPrizeCents(line("12345"), "92345")).toBe(20 * 2_000);
   });
 
-  it("pays only dezena when the final two digits match", () => {
+  it("pays only terno when the final three digits match", () => {
     expect(calculateNumberPrizeCents(line("12345"), "99345")).toBe(20 * 200);
-    expect(calculateNumberPrizeCents(line("12345"), "99305")).toBe(20 * 20);
+  });
+
+  it("pays only dezena when only the final two digits match", () => {
+    expect(calculateNumberPrizeCents(line("12345"), "99445")).toBe(20 * 20);
   });
 
   it("pays only unidade when only the final digit matches", () => {
-    expect(calculateNumberPrizeCents(line("12345"), "99346")).toBe(0);
-    expect(calculateNumberPrizeCents(line("12345"), "99345")).toBe(20 * 200);
-    expect(calculateNumberPrizeCents(line("12345"), "99344")).toBe(0);
-    expect(calculateNumberPrizeCents(line("12345"), "99335")).toBe(20 * 200);
+    expect(calculateNumberPrizeCents(line("12345"), "99335")).toBe(20 * 5);
+  });
+
+  it("returns zero when no suffix matches", () => {
+    expect(calculateNumberPrizeCents(line("12345"), "99336")).toBe(0);
   });
 
   it("uses leading zeroes literally", () => {
