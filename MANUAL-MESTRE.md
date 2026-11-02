@@ -1,21 +1,19 @@
 # Manual mestre — Super Quina
 
-Repositório: jpveiculos/Super-Quina. Branch ativa: setup/super-quina.
+## Identidade do projeto
+Super Quina é uma aplicação nova de apostas numéricas. Trabalha exclusivamente com números de cinco algarismos, de 00000 a 99999.
 
-## Estado
-A main permanece preservada. O projeto original jpveiculos/JogaPlacas, domínio antigo, banco, DNS e produção não fazem parte desta implementação. Não houve merge nem deploy.
+## Escopo
+- Áreas de jogador, cambista e administrador.
+- Compra de participações, Pix via Mercado Pago, carteira e vendas em dinheiro.
+- Rodadas, sorteio numérico, apuração, prêmios, comissões e recibos.
+- Banco de dados próprio, inicialmente vazio.
 
-## Documentos de referência
-1. docs/PRODUCT_SPEC.md — regras funcionais; considerar a seção mais recente.
-2. MANUAL_TECNICO.md — arquitetura, operação, ambiente e validação.
-3. docs/NUMERIC-GAME-MIGRATION.md — regras numéricas e migration final.
-4. ARCHITECTURE.md — mapa das camadas.
+## Limites
+- Não importar nem manter dados operacionais do Joga Placas.
+- Não implementar fluxo de placas ou compatibilidade com o sistema antigo.
+- Não alterar `main`, banco de produção ou infraestrutura sem autorização explícita.
+- Não fazer deploy sem autorização explícita.
 
-## Regras
-- Trabalhar em setup/super-quina.
-- Preservar Pix, carteira, recibos, comissões, relatórios e administração.
-- Não reintroduzir lógica de placas.
-- Não editar src/generated/prisma manualmente.
-- Não colocar secrets no Git ou no chat.
-- Não alterar main, banco legado, DNS ou produção.
-- Não fazer merge ou deploy sem autorização explícita.
+## Documentação
+Consulte `MANUAL_TECNICO.md` para comandos e operação e `docs/PRODUCT_SPEC.md` para regras funcionais aprovadas.
