@@ -4,6 +4,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 
 import type { ThermalReceiptEntry } from "./thermal-receipt-types";
 import { getReceiptRepetitionNumbers } from "./receipt-repetition";
+import { createReceiptQrDataUrl } from "./receipt-qr";
 export { getReceiptRepetitionNumbers } from "./receipt-repetition";
 
 
@@ -38,14 +39,14 @@ export function ThermalReceipt({
   const [generatedQr, setGeneratedQr] = useState<{ receiptCode: string; url: string } | null>(null);
   useEffect(() => {
     if (paymentStatus !== "CONFIRMED" || !/^SQ-[A-Z0-9]{8,32}$/.test(receiptCode)) return;
-    const timer = window.setTimeout(() => {
-      const verificationUrl = window.location.origin + "/verificar-recibo/" + encodeURIComponent(receiptCode);
-      setGeneratedQr({
-        receiptCode,
-        url: "https://api.qrserver.com/v1/create-qr-code/?size=240x240&format=png&data=" + encodeURIComponent(verificationUrl),
-      });
-    }, 0);
-    return () => window.clearTimeout(timer);
+    let cancelled = false;
+    const verificationUrl = window.location.origin + "/verificar-recibo/" + encodeURIComponent(receiptCode);
+    void createReceiptQrDataUrl(verificationUrl).then((dataUrl) => {
+      if (!cancelled) setGeneratedQr({ receiptCode, url: dataUrl });
+    }).catch(() => {
+      if (!cancelled) setGeneratedQr({ receiptCode, url: "" });
+    });
+    return () => { cancelled = true; };
   }, [receiptCode, paymentStatus]);
 
   if (paymentStatus !== "CONFIRMED" || !/^SQ-[A-Z0-9]{8,32}$/.test(receiptCode)) return null;
@@ -77,7 +78,7 @@ export function ThermalReceipt({
   };
 
   const qrStyle: CSSProperties = { width: 76, height: 76, objectFit: "contain" };
-  const effectiveQrUrl = qrCodeDataUrl ?? (generatedQr?.receiptCode === receiptCode ? generatedQr.url : null);
+  const effectiveQrUrl = qrCodeDataUrl ?? (generatedQr?.receiptCode === receiptCode && generatedQr.url ? generatedQr.url : null);
   const repetitionNumbers = getReceiptRepetitionNumbers(entries);
 
   function downloadReceipt() {
