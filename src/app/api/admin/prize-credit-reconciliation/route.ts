@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
 const repairSchema = z.object({ lineId: z.string().min(1).max(128), reason: z.string().trim().min(8).max(500) }).strict();
 export async function POST(request: NextRequest) {
   const origin = request.headers.get("origin");
+  if (!origin) return NextResponse.json({ error: "Requisição inválida." }, { status: 403, headers });
   if (origin) {
     let originHost = "";
     try {
