@@ -6,7 +6,8 @@ type Summary = {
   cashSalesCents: number;
   pixSalesCents: number;
   totalSalesCents: number;
-  confirmedSalesCount: number;\n  gamesCount: number;
+  confirmedSalesCount: number;
+  gamesCount: number;
   commissionCents: number;
   lastSettlementAt: string | null;
 };
@@ -47,7 +48,8 @@ export function CashierSalesSummary() {
         <article className="cashier-summary-tile"><span>Vendas no Pix confirmado</span><strong>{summary ? money(summary.pixSalesCents) : "Carregando…"}</strong></article>
         <article className="cashier-summary-tile"><span>Total de vendas</span><strong>{summary ? money(summary.totalSalesCents) : "Carregando…"}</strong></article>
         <article className="cashier-summary-tile"><span>Quantidade de vendas</span><strong>{summary ? summary.confirmedSalesCount : "Carregando…"}</strong></article>
-        <article className="cashier-summary-tile"><span>Jogos realizados</span><strong>{summary ? summary.gamesCount : "Carregando…"}</strong></article>\n        <article className="cashier-summary-tile"><span>Comissão acumulada</span><strong>{summary ? money(summary.commissionCents) : "Carregando…"}</strong></article>
+        <article className="cashier-summary-tile"><span>Jogos realizados</span><strong>{summary ? summary.gamesCount : "Carregando…"}</strong></article>
+        <article className="cashier-summary-tile"><span>Comissão acumulada</span><strong>{summary ? money(summary.commissionCents) : "Carregando…"}</strong></article>
       </div>
       {summary?.lastSettlementAt && <p className="note-inline">Último acerto: {new Date(summary.lastSettlementAt).toLocaleString("pt-BR")}</p>}
     </section>
