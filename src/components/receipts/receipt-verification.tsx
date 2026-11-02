@@ -131,7 +131,7 @@ export function ReceiptVerification({ receiptCode }: { receiptCode: string }) {
                       const status = number.resultStatus === "PREMIADA" ? (number.prizePaid ? "Prêmio pago" : "Premiada")
                         : number.resultStatus === "NAO_PREMIADA" ? "Não premiada"
                           : number.resultStatus === "AGUARDANDO_APURACAO" ? "Aguardando apuração"
-                            : round.status === "SORTEIO_AGUARDANDO" ? "Aguardando sorteio" : "Aguardando resultado";
+                            : round.status === "RODADA_CANCELADA" ? "Rodada cancelada" : round.status === "SORTEIO_AGUARDANDO" ? "Aguardando sorteio" : "Aguardando resultado";
                       const color = number.resultStatus === "PREMIADA" ? "#166534" : number.resultStatus === "NAO_PREMIADA" ? "#991b1b" : "#1d4ed8";
                       return <div key={round.roundCode + number.numberValue + index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, padding: "8px 10px", borderRadius: 6, background: "#f3f4f6", border: "1px solid #d1d5db" }}>
                         <strong style={{ color: "#111827", fontSize: 18, letterSpacing: "0.1em" }}>{number.numberValue}</strong>
