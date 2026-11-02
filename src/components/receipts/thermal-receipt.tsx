@@ -39,14 +39,13 @@ export function ThermalReceipt({
   const [generatedQr, setGeneratedQr] = useState<{ receiptCode: string; url: string } | null>(null);
   useEffect(() => {
     if (paymentStatus !== "CONFIRMED" || !/^SQ-[A-Z0-9]{8,32}$/.test(receiptCode)) return;
-    let cancelled = false;
     const verificationUrl = window.location.origin + "/verificar-recibo/" + encodeURIComponent(receiptCode);
-    void createReceiptQrDataUrl(verificationUrl).then((dataUrl) => {
-      if (!cancelled) setGeneratedQr({ receiptCode, url: dataUrl });
-    }).catch(() => {
-      if (!cancelled) setGeneratedQr({ receiptCode, url: "" });
-    });
-    return () => { cancelled = true; };
+    try {
+      const dataUrl = createReceiptQrDataUrl(verificationUrl);
+      setGeneratedQr({ receiptCode, url: dataUrl });
+    } catch {
+      setGeneratedQr({ receiptCode, url: "" });
+    }
   }, [receiptCode, paymentStatus]);
 
   if (paymentStatus !== "CONFIRMED" || !/^SQ-[A-Z0-9]{8,32}$/.test(receiptCode)) return null;
