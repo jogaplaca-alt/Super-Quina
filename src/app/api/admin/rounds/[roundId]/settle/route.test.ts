@@ -12,7 +12,7 @@ vi.mock("@/modules/rounds/round-settlement-error", () => ({
 import { POST } from "./route";
 import { RoundSettlementError } from "@/modules/rounds/round-settlement-error";
 function request(origin = "https://example.test", token = "session-token") {
-  return new NextRequest("https://example.test/api/admin/rounds/round-123456/settle", { method: "POST", headers: { origin, ...(token ? { cookie: "superquina_session=" + token } : {}) } });
+  return new NextRequest("http://internal-next/api/admin/rounds/round-123456/settle", { method: "POST", headers: { origin, host: "example.test", ...(token ? { cookie: "superquina_session=" + token } : {}) } });
 }
 const context = { params: Promise.resolve({ roundId: "round-123456" }) };
 describe("POST /api/admin/rounds/[roundId]/settle", () => {
