@@ -76,7 +76,8 @@ export async function createNumericPurchase(prisma: PrismaClient, input: Numeric
         const isCash = paymentMethod === PaymentMethod.CASH;
         const isWallet = paymentMethod === PaymentMethod.WALLET;
         const isConfirmed = isCash || isWallet;
-        let selectedRounds: Array<{ id: string } & Record<string, unknown>> = [];
+        let selectedRounds: Array<{ id: string }> = [];
+        let decisionTime: Date | null = null;
 
         if (isConfirmed) {
           const lockedRows = await tx.$queryRaw<Array<{ id: string }>>`
@@ -84,7 +85,7 @@ export async function createNumericPurchase(prisma: PrismaClient, input: Numeric
             WHERE "status" IN ('OPEN', 'SCHEDULED') AND "cutoffAt" > clock_timestamp()
             ORDER BY "id" FOR UPDATE
           `;
-          const decisionTime = decisionTimeOverride ?? (await tx.$queryRaw<Array<{ decisionTime: Date }>>`
+          decisionTime = decisionTimeOverride ?? (await tx.$queryRaw<Array<{ decisionTime: Date }>>`
             SELECT clock_timestamp() AS "decisionTime"
           `)[0]!.decisionTime;
           const available = await tx.round.findMany({
@@ -101,9 +102,7 @@ export async function createNumericPurchase(prisma: PrismaClient, input: Numeric
           if ((ledger._sum.amountCents ?? 0) < totalCents) throw new PurchaseServiceError("Saldo insuficiente para esta compra.", "INSUFFICIENT_BALANCE");
         }
 
-        const decisionTime = isConfirmed
-          ? (decisionTimeOverride ?? (await tx.$queryRaw<Array<{ decisionTime: Date }>>`SELECT clock_timestamp() AS "decisionTime"`)[0]!.decisionTime)
-          : null;
+        
         const receiptCode = isConfirmed ? "SQ-" + randomBytes(8).toString("hex").toUpperCase() : null;
         const created = await tx.purchase.create({
           data: {

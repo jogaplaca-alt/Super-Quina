@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 const requestSchema = z.object({
   idempotencyKey: z.string().trim().min(16).max(200),
-  roundIds: z.array(z.string().trim().min(1).max(100)).min(1).max(10),
+  roundCount: z.number().int().min(1).max(10),
   numbers: z.array(z.string().regex(/^\d{5}$/)).min(1).max(100),
   stakeCents: z.number().int().safe().min(100).max(2_000_000_000),
   paymentMethod: z.enum(["PIX", "WALLET"]).default("PIX"),
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
   try { body = await request.json(); }
   catch { return NextResponse.json({ error: "Dados inválidos." }, { status: 400 }); }
   const parsed = requestSchema.safeParse(body);
-  if (!parsed.success || new Set(parsed.data?.roundIds ?? []).size !== (parsed.data?.roundIds.length ?? 0)) {
+  if (!parsed.success) {
     return NextResponse.json({ error: "Informe rodadas, números de cinco algarismos e valores em centavos." }, { status: 400 });
   }
 
@@ -53,13 +53,18 @@ export async function POST(request: NextRequest) {
       idempotencyKey: parsed.data.idempotencyKey,
       playerId: user.id,
       paymentMethod: parsed.data.paymentMethod,
-      roundIds: parsed.data.roundIds,
+      roundCount: parsed.data.roundCount,
       numbers: parsed.data.numbers,
       stakeCents: parsed.data.stakeCents,
     });
     const purchaseView = {
       id: purchase.id, receiptCode: purchase.receiptCode, status: purchase.status,
       totalCents: purchase.totalCents, currency: purchase.currency,
+      numericIntent: purchase.numericIntent ? {
+        roundCount: purchase.numericIntent.roundCount,
+        numbers: purchase.numericIntent.numbers,
+        allocationCents: purchase.numericIntent.allocation,
+      } : null,
       participations: purchase.participations.map((part) => ({
         roundId: part.roundId, totalCents: part.totalCents,
         lines: part.numericLines.map((line) => ({

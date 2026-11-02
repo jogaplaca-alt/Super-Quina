@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 const requestSchema = z.object({
   idempotencyKey: z.string().trim().min(16).max(200),
-  roundIds: z.array(z.string().trim().min(1).max(100)).min(1).max(10),
+  roundCount: z.number().int().min(1).max(10),
   numbers: z.array(z.string().regex(/^\d{5}$/)).min(1).max(100),
   stakeCents: z.number().int().safe().min(100).max(2_000_000_000),
 }).strict();
@@ -40,13 +40,13 @@ export async function POST(request: NextRequest) {
   let body: unknown;
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Dados inválidos." }, { status: 400 }); }
   const parsed = requestSchema.safeParse(body);
-  if (!parsed.success || new Set(parsed.data?.roundIds ?? []).size !== (parsed.data?.roundIds.length ?? 0)) {
+  if (!parsed.success) {
     return NextResponse.json({ error: "Informe rodadas, números de cinco algarismos e valores em centavos." }, { status: 400 });
   }
   try {
     const purchase = await createNumericPurchase(authPrisma, {
       idempotencyKey: parsed.data.idempotencyKey, cashierId: user.id,
-      roundIds: parsed.data.roundIds, numbers: parsed.data.numbers, stakeCents: parsed.data.stakeCents,
+      roundCount: parsed.data.roundCount, numbers: parsed.data.numbers, stakeCents: parsed.data.stakeCents,
     });
     let pixCheckout: { copyPaste: string | null; qrCodeBase64: string | null; ticketUrl: string | null } | null = null;
     const payment = purchase.payment;
@@ -75,6 +75,11 @@ export async function POST(request: NextRequest) {
       purchase: {
         id: purchase.id, receiptCode: purchase.receiptCode, status: purchase.status,
         paymentStatus: purchase.payment?.status ?? "PENDING", totalCents: purchase.totalCents, currency: purchase.currency,
+        numericIntent: purchase.numericIntent ? {
+          roundCount: purchase.numericIntent.roundCount,
+          numbers: purchase.numericIntent.numbers,
+          allocationCents: purchase.numericIntent.allocation,
+        } : null,
         participations: purchase.participations.map((part) => ({
           roundId: part.roundId, totalCents: part.totalCents,
           lines: part.numericLines.map((line) => ({

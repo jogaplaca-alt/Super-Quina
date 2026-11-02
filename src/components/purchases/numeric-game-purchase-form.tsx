@@ -10,6 +10,7 @@ type NumericLine = { numberValue: string; totalCents: number; allocationCents: R
 type Purchase = {
   id: string; receiptCode: string | null; status: string; totalCents: number; currency: string;
   paymentStatus?: string;
+  numericIntent?: { roundCount: number; numbers: string[]; allocationCents: Record<string, number> } | null;
   participations: Array<{ roundId: string; totalCents: number; lines: NumericLine[] }>;
 };
 type PixCheckout = { copyPaste: string | null; qrCodeBase64: string | null; ticketUrl: string | null };
@@ -26,9 +27,6 @@ function parseStake(value: string): number | null {
 }
 function clearInput(value: string) {
   return value.replace(/\D/g, "").slice(0, 5);
-}
-function dateLabel(value: string) {
-  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "Etc/GMT+3" }).format(new Date(value));
 }
 
 export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
@@ -167,7 +165,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
     }
     setSubmitting(true);
     try {
-      const signature = JSON.stringify({ roundIds: selectedRounds, numbers, stakeCents, paymentMethod });
+      const signature = JSON.stringify({ roundCount: selectedRounds.length, numbers, stakeCents, paymentMethod });
       const idempotencyKey = idempotency.current?.signature === signature
         ? idempotency.current.key
         : crypto.randomUUID();
@@ -246,10 +244,6 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
                 .map((count) => <option key={count} value={count}>{count} {count === 1 ? "rodada" : "rodadas"}</option>)}
             </select>
             <p>A aposta será direcionada automaticamente às próximas rodadas válidas. Não é necessário escolher uma rodada específica.</p>
-            <div className="upcoming-round-preview">
-              {visibleRounds.slice(0, Math.max(1, selectedRounds.length)).map((round) =>
-                <p key={round.id}><strong>{round.code}</strong> · Resultado {dateLabel(round.resultAt)}</p>)}
-            </div>
           </>}
         </fieldset>
 
@@ -278,7 +272,9 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
           <p>Status: {reconciliationRequired ? "pagamento confirmado; aguardando atualização do recibo" : "aguardando confirmação do pagamento"}</p>
           <p>{purchaseMessage}</p>
           <p>Total: <strong>{money(purchase.totalCents)}</strong></p>
-          {purchase.participations.flatMap((part) => part.lines.map((line, index) => <div key={part.roundId + line.numberValue + index}>
+          {purchase.numericIntent ? purchase.numericIntent.numbers.map((number, index) => <div key={"intent-" + number + "-" + index}>
+            <strong>{number}</strong> — {money(Object.values(purchase.numericIntent!.allocationCents).reduce((sum, value) => sum + value, 0))}
+          </div>) : purchase.participations.flatMap((part) => part.lines.map((line, index) => <div key={part.roundId + line.numberValue + index}>
             <strong>{line.numberValue}</strong> — {money(line.totalCents)}
             <small>Unidade {money(line.allocationCents.unit)} · Dezena {money(line.allocationCents.tens)} · Centena {money(line.allocationCents.hundreds)} · Milhar {money(line.allocationCents.thousands)} · Quina {money(line.allocationCents.quina)}</small>
           </div>))}
