@@ -147,6 +147,18 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
   const stakeCents = useMemo(() => parseStake(stake), [stake]);
   const totalEstimate = stakeCents !== null ? stakeCents * numbers.length * selectedRounds.length : 0;
 
+  function generateRandomNumber() {
+    const existing = new Set(numbers);
+    let generated = "";
+    for (let attempt = 0; attempt < 100; attempt += 1) {
+      generated = String(crypto.getRandomValues(new Uint32Array(1))[0]! % 100000).padStart(5, "0");
+      if (!existing.has(generated)) break;
+    }
+    setNumberInput(generated);
+    setError("");
+    setNotice("Número aleatório gerado. Confira e adicione à aposta.");
+  }
+
   function addNumber() {
     const normalized = clearInput(numberInput);
     if (!/^\d{5}$/.test(normalized)) { setError("Digite exatamente cinco algarismos, incluindo os zeros à esquerda."); return; }
@@ -219,6 +231,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
             onChange={(event) => setNumberInput(clearInput(event.target.value))}
             inputMode="numeric" pattern="[0-9]{5}" maxLength={5} placeholder="00000" autoComplete="off" />
           <button type="button" className="secondary-button" disabled={Boolean(purchase)} onClick={addNumber}>Adicionar</button>
+          <button type="button" className="secondary-button" disabled={Boolean(purchase)} onClick={generateRandomNumber}>Gerar número</button>
         </div>
 
         {numbers.length > 0 && <div className="added-numbers">
