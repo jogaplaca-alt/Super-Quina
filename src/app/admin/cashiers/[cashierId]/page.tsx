@@ -16,7 +16,9 @@ export default async function AdminCashierDetailPage({ params }: { params: Promi
     select: { id: true, username: true, fullName: true, whatsapp: true, status: true, commissionRateBasisPoints: true, createdAt: true },
   });
   if (!cashier) notFound();
-  const [purchases, settlements] = await Promise.all([
+  const latestSettlement = await authPrisma.cashierSettlement.findFirst({ where: { cashierId }, orderBy: { settledAt: "desc" }, select: { settledAt: true } });
+  const since = latestSettlement?.settledAt ?? new Date(0);
+  const [purchases, settlements, cashNow, pixNow, commissionNow] = await Promise.all([
     authPrisma.purchase.findMany({
       where: { cashierId }, orderBy: [{ createdAt: "desc" }],
       select: {
@@ -31,7 +33,12 @@ export default async function AdminCashierDetailPage({ params }: { params: Promi
       where: { cashierId }, orderBy: { settledAt: "desc" },
       select: { id: true, settledAt: true, cashSalesCents: true, pixSalesCents: true, totalSalesCents: true, salesCount: true, commissionCents: true, admin: { select: { username: true } } },
     }),
+    authPrisma.purchase.aggregate({ where: { cashierId, status: "CONFIRMED", paymentMethod: "CASH", confirmedAt: { gt: since } }, _sum: { totalCents: true }, _count: { _all: true } }),
+    authPrisma.purchase.aggregate({ where: { cashierId, status: "CONFIRMED", paymentMethod: "PIX", confirmedAt: { gt: since }, payment: { is: { status: "CONFIRMED" } } }, _sum: { totalCents: true }, _count: { _all: true } }),
+    authPrisma.cashierCommission.aggregate({ where: { cashierId, createdAt: { gt: since }, purchase: { is: { status: "CONFIRMED" } } }, _sum: { amountCents: true } }),
   ]);
+  const cashTotal = cashNow._sum.totalCents ?? 0;
+  const pixTotal = pixNow._sum.totalCents ?? 0;
   return <AreaShell title="Financeiro do cambista" username={admin.username} description="Cadastro, vendas e histórico de acertos.">
     <div className="admin-cashier-detail">
       <p><Link href="/admin">← Voltar ao administrador</Link></p>
@@ -42,6 +49,7 @@ export default async function AdminCashierDetailPage({ params }: { params: Promi
         <p>Status: {cashier.status === "ACTIVE" ? "Ativo" : cashier.status === "BLOCKED" ? "Bloqueado" : "Pendente"} · Comissão atual: {(cashier.commissionRateBasisPoints / 100).toLocaleString("pt-BR")}%</p>
         <p>Cadastro: {cashier.createdAt.toLocaleString("pt-BR")}</p>
       </section>
+      <section className="feature-card admin-cashier-current"><h2>Saldo desde o último acerto</h2><div className="cashier-summary-grid"><article className="cashier-summary-tile"><span>Dinheiro</span><strong>{money(cashTotal)}</strong></article><article className="cashier-summary-tile"><span>Pix confirmado</span><strong>{money(pixTotal)}</strong></article><article className="cashier-summary-tile"><span>Total</span><strong>{money(cashTotal + pixTotal)}</strong></article><article className="cashier-summary-tile"><span>Quantidade de vendas</span><strong>{cashNow._count._all + pixNow._count._all}</strong></article><article className="cashier-summary-tile"><span>Comissão</span><strong>{money(commissionNow._sum.amountCents ?? 0)}</strong></article></div><p>Contagem iniciada em: {latestSettlement ? latestSettlement.settledAt.toLocaleString("pt-BR") : "início das vendas"}</p></section>
       <CashierSettlementActions cashierId={cashier.id} />
       <section className="feature-card admin-cashier-history">
         <h2>Histórico de vendas</h2>
