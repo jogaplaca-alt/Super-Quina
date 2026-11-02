@@ -25,10 +25,10 @@ export default function ConsultaPage() {
     <section className="feature-card" aria-labelledby="ticket-check-heading">
       <span className="feature-label">Consulta pública</span>
       <h1 id="ticket-check-heading">Consultar recibo e resultados</h1>
-      <p>Digite o código completo do recibo iniciado por JP-. A consulta de números e resultados fica disponível por 7 dias a partir da compra. Depois desse prazo, o recibo vence e não pode ser consultado nem reimpresso. <Link href="/termos-de-uso">Leia os termos de uso</Link>.</p>
+      <p>Digite o código completo do recibo iniciado por SQ-. A consulta de números e resultados fica disponível por 7 dias a partir da compra. Depois desse prazo, o recibo vence e não pode ser consultado nem reimpresso. <Link href="/termos-de-uso">Leia os termos de uso</Link>.</p>
       <form onSubmit={submit} className="purchase-form">
         <label htmlFor="receipt-code">Código do recibo</label>
-        <input id="receipt-code" value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} placeholder="JP-12345678" minLength={11} maxLength={35} autoComplete="off" required />
+        <input id="receipt-code" value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} placeholder="SQ-12345678" minLength={11} maxLength={35} autoComplete="off" required />
         <button type="submit" disabled={loading}>{loading ? "Consultando…" : "Consultar recibo"}</button>
       </form>
       {error && <p className="note-inline" role="alert">{error}</p>}
