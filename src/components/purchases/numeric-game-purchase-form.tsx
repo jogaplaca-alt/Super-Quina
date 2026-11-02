@@ -123,11 +123,13 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
         const body = await response.json();
         if (!active) return;
         if (body.receiptReady) {
-          setReceiptPurchaseId(purchase.id);
+          if (mode === "CASHIER") setReceiptPurchaseId(purchase.id);
           idempotency.current = null;
           setPurchase(null); setPixCheckout(null); setPurchaseMessage(""); setPixModalOpen(false); setReconciliationRequired(false);
           setNumbers([]); setNumberInput(""); setSelectedRounds([]);
-          setNotice("Pagamento confirmado. O recibo oficial está na tela.");
+          setNotice(mode === "CASHIER"
+            ? "Pagamento confirmado. O recibo oficial está na tela."
+            : "Pagamento confirmado. Sua aposta foi registrada.");
         } else {
           setReconciliationRequired(Boolean(body.reconciliationRequired));
           if (["FAILED", "CANCELLED", "EXPIRED", "REFUNDED"].includes(body.paymentStatus ?? "")
@@ -198,10 +200,12 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
       if (!response.ok) throw new Error(body.error ?? "Não foi possível registrar a compra.");
       const created = body.purchase as Purchase;
       if (paymentMethod === "CASH" || paymentMethod === "WALLET" || body.receiptReady) {
-        setReceiptPurchaseId(created.id);
+        if (mode === "CASHIER") setReceiptPurchaseId(created.id);
         idempotency.current = null;
         setNumbers([]); setNumberInput(""); setSelectedRounds([]);
-        setNotice("Compra confirmada. O recibo oficial está disponível.");
+        setNotice(mode === "CASHIER"
+          ? "Venda confirmada. O recibo oficial está disponível."
+          : "Compra confirmada. Sua aposta foi registrada.");
       } else {
         setPurchase(created);
         setPurchaseMessage(typeof body.message === "string" ? body.message : "Aguardando confirmação do pagamento.");
@@ -301,7 +305,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
         </section>
       </div>}
 
-      {receiptPurchaseId && <PlayerPurchaseReceipt purchaseId={receiptPurchaseId} autoOpen onClose={() => setReceiptPurchaseId(null)} />}
+      {mode === "CASHIER" && receiptPurchaseId && <PlayerPurchaseReceipt purchaseId={receiptPurchaseId} autoOpen onClose={() => setReceiptPurchaseId(null)} />}
     </section>
   );
 }
