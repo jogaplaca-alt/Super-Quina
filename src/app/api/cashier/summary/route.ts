@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     });
     const since = lastSettlement?.settledAt ?? new Date(0);
     const common = { cashierId: user.id, status: "CONFIRMED" as const, confirmedAt: { gt: since } };
-    const [cash, pix, commission, profile] = await Promise.all([
+    const [cash, pix, commission, profile, games] = await Promise.all([
       authPrisma.purchase.aggregate({
         where: { ...common, paymentMethod: "CASH" },
         _sum: { totalCents: true }, _count: { _all: true },
@@ -31,12 +31,13 @@ export async function GET(request: NextRequest) {
         _sum: { amountCents: true },
       }),
       authPrisma.user.findUnique({ where: { id: user.id }, select: { commissionRateBasisPoints: true } }),
+      authPrisma.numericParticipationLine.count({ where: { participation: { is: { status: "CONFIRMED", confirmedAt: { gt: since }, purchase: { is: { cashierId: user.id, status: "CONFIRMED" } } } } } }),
     ]);
     const cashSalesCents = cash._sum.totalCents ?? 0;
     const pixSalesCents = pix._sum.totalCents ?? 0;
     return NextResponse.json({
       cashSalesCents, pixSalesCents, totalSalesCents: cashSalesCents + pixSalesCents,
-      confirmedSalesCount: cash._count._all + pix._count._all,
+      confirmedSalesCount: cash._count._all + pix._count._all, gamesCount: games,
       commissionCents: commission._sum.amountCents ?? 0,
       commissionRateBasisPoints: profile?.commissionRateBasisPoints ?? 0,
       lastSettlementAt: lastSettlement?.settledAt.toISOString() ?? null,
