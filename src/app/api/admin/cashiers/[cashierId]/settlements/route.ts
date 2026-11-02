@@ -30,7 +30,10 @@ export async function POST(request: NextRequest, context: { params: Promise<{ ca
       const last = await tx.cashierSettlement.findFirst({ where: { cashierId }, orderBy: { settledAt: "desc" }, select: { settledAt: true } });
       const since = last?.settledAt ?? new Date(0);
       const eligible = { cashierId, status: "CONFIRMED" as const, confirmedAt: { gt: since } };
-      const [cash, pix, commissions, settledAt] = await Promise.all([
+      const [settledAt] = await Promise.all([tx.$queryRaw<Array<{ now: Date }>>`SELECT clock_timestamp() AS now`]);
+      const cutoff = settledAt[0]!.now;
+      const eligible = { cashierId, status: "CONFIRMED" as const, confirmedAt: { gt: since, lte: cutoff } };
+      const [cash, pix, commissions, games] = await Promise.all([
         tx.purchase.aggregate({ where: { ...eligible, paymentMethod: "CASH" }, _sum: { totalCents: true }, _count: { _all: true } }),
         tx.purchase.aggregate({ where: { ...eligible, paymentMethod: "PIX", payment: { is: { status: "CONFIRMED" } } }, _sum: { totalCents: true }, _count: { _all: true } }),
         tx.cashierCommission.aggregate({ where: { cashierId, createdAt: { gt: since }, purchase: { is: { status: "CONFIRMED" } } }, _sum: { amountCents: true } }),
@@ -46,7 +49,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ ca
       } });
       await tx.auditEvent.create({ data: {
         actorId: admin.id, action: "CASHIER_SETTLEMENT_RECORDED", entityType: "CashierSettlement", entityId: snapshot.id,
-        metadata: { cashierId, cashSalesCents, pixSalesCents, totalSalesCents: snapshot.totalSalesCents, salesCount: snapshot.salesCount, commissionCents: snapshot.commissionCents, settledAt: snapshot.settledAt.toISOString() },
+        metadata: { cashierId, cashSalesCents, pixSalesCents, totalSalesCents: snapshot.totalSalesCents, salesCount: snapshot.salesCount, gamesCount: snapshot.gamesCount, commissionCents: snapshot.commissionCents, settledAt: snapshot.settledAt.toISOString() },
       } });
       return snapshot;
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
