@@ -9,7 +9,7 @@ import {
 describe("numeric prize rules", () => {
   it("defines the five approved categories and multipliers", () => {
     expect(APPROVED_NUMERIC_PRIZE_MULTIPLIERS).toEqual({
-      unit: 5, tens: 50, hundreds: 500, thousands: 5_000, quina: 50_000,
+      unit: 5, tens: 20, hundreds: 200, thousands: 2_000, quina: 20_000,
     });
   });
 
