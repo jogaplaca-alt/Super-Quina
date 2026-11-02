@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useState } from "react";
 
 type Summary = {
+  cashSalesCents: number;
+  pixSalesCents: number;
   totalSalesCents: number;
   confirmedSalesCount: number;
   commissionCents: number;
-  commissionRateBasisPoints: number;
+  lastSettlementAt: string | null;
 };
 
 const money = (cents: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
@@ -20,8 +22,7 @@ export function CashierSalesSummary() {
       const response = await fetch("/api/cashier/summary", { cache: "no-store" });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "Não foi possível consultar o resumo.");
-      setSummary(body as Summary);
-      setError("");
+      setSummary(body as Summary); setError("");
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Falha ao consultar o resumo.");
     }
@@ -37,20 +38,18 @@ export function CashierSalesSummary() {
     <summary>
       <span className="player-collapsible-label">Financeiro</span>
       <span className="player-collapsible-title">Resumo financeiro</span>
-      <span className="player-collapsible-hint">Acompanhe suas apostas e comissão</span>
+      <span className="player-collapsible-hint">Vendas acumuladas desde o último acerto</span>
     </summary>
     <section className="cashier-compact-summary" aria-label="Resumo financeiro do cambista">
       {error && <p role="alert" className="note-inline">{error}</p>}
       <div className="cashier-summary-grid">
-        <article className="cashier-summary-tile">
-          <span>Apostas</span>
-          <strong>{summary ? money(summary.totalSalesCents) : "Carregando…"}</strong>
-        </article>
-        <article className="cashier-summary-tile">
-          <span>Comissão</span>
-          <strong>{summary ? money(summary.commissionCents) : "Carregando…"}</strong>
-        </article>
+        <article className="cashier-summary-tile"><span>Vendas em dinheiro</span><strong>{summary ? money(summary.cashSalesCents) : "Carregando…"}</strong></article>
+        <article className="cashier-summary-tile"><span>Vendas no Pix confirmado</span><strong>{summary ? money(summary.pixSalesCents) : "Carregando…"}</strong></article>
+        <article className="cashier-summary-tile"><span>Total de vendas</span><strong>{summary ? money(summary.totalSalesCents) : "Carregando…"}</strong></article>
+        <article className="cashier-summary-tile"><span>Quantidade de vendas</span><strong>{summary ? summary.confirmedSalesCount : "Carregando…"}</strong></article>
+        <article className="cashier-summary-tile"><span>Comissão</span><strong>{summary ? money(summary.commissionCents) : "Carregando…"}</strong></article>
       </div>
+      {summary?.lastSettlementAt && <p className="note-inline">Último acerto: {new Date(summary.lastSettlementAt).toLocaleString("pt-BR")}</p>}
     </section>
   </details>;
 }
