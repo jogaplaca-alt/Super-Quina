@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import { Prisma, PaymentMethod, RoundStatus, type PrismaClient } from "../../generated/prisma/client";
 import { calculateCommissionCents } from "../../domain/cashier-commission";
 import { allocateNumberStake } from "../../domain/allocate-number-stake";
-import { APPROVED_NUMERIC_PRIZE_MULTIPLIERS, createNumericPrizeRuleSnapshot, NUMERIC_PRIZE_RULE_VERSION } from "../../domain/numeric-prize-rules";
+import { DEFAULT_NUMERIC_PRIZE_MULTIPLIERS, createNumericPrizeRuleSnapshot, NUMERIC_PRIZE_RULE_VERSION, parseNumericPrizeMultipliers } from "../../domain/numeric-prize-rules";
 import { normalizeNumber } from "../numbers/normalize-number";
 import { selectNextValidRounds } from "../payments/select-next-valid-rounds";
 import { PurchaseServiceError } from "./purchase-service-error";
@@ -37,14 +37,6 @@ export async function createNumericPurchase(prisma: PrismaClient, input: Numeric
   if (Boolean(input.playerId) === Boolean(input.cashierId)) throw new PurchaseServiceError("Exactly one player or cashier must own the purchase", "INVALID_ACTOR");
 
   const allocation = allocateNumberStake(input.stakeCents);
-  const maximumLinePrizeCents = allocation.unitCents * APPROVED_NUMERIC_PRIZE_MULTIPLIERS.unit +
-    allocation.tensCents * APPROVED_NUMERIC_PRIZE_MULTIPLIERS.tens +
-    allocation.hundredsCents * APPROVED_NUMERIC_PRIZE_MULTIPLIERS.hundreds +
-    allocation.thousandsCents * APPROVED_NUMERIC_PRIZE_MULTIPLIERS.thousands +
-    allocation.quinaCents * APPROVED_NUMERIC_PRIZE_MULTIPLIERS.quina;
-  if (!Number.isSafeInteger(maximumLinePrizeCents) || maximumLinePrizeCents > 2_147_483_647) throw new PurchaseServiceError("The stake is too high for the maximum numeric prize supported by the account ledger", "INVALID_PURCHASE");
-
-  const snapshot = createNumericPrizeRuleSnapshot();
   const perRoundCents = numbers.length * input.stakeCents;
   const totalCents = perRoundCents * roundCount;
   if (!Number.isSafeInteger(perRoundCents) || perRoundCents > 2_147_483_647 || totalCents > 2_147_483_647) throw new PurchaseServiceError("Purchase total exceeds the database integer limit", "INVALID_PURCHASE");
@@ -71,6 +63,27 @@ export async function createNumericPurchase(prisma: PrismaClient, input: Numeric
                 .flat().sort().join("\n");
           if (!sameOwner || !sameIntent) throw new PurchaseServiceError("The idempotency key was already used for a different purchase", "IDEMPOTENCY_CONFLICT");
           return existing;
+        }
+
+        const configuredRules = await tx.setting.findUnique({ where: { key: "numeric_prize_multipliers" } });
+        let currentMultipliers = DEFAULT_NUMERIC_PRIZE_MULTIPLIERS;
+        if (configuredRules) {
+          let parsedValue: unknown;
+          try { parsedValue = JSON.parse(configuredRules.value); }
+          catch { throw new PurchaseServiceError("A configuração de multiplicadores está inválida. Contate o administrador.", "INVALID_PRIZE_CONFIGURATION"); }
+          const validated = parseNumericPrizeMultipliers(parsedValue);
+          if (!validated) throw new PurchaseServiceError("A configuração de multiplicadores está inválida. Contate o administrador.", "INVALID_PRIZE_CONFIGURATION");
+          currentMultipliers = validated;
+        }
+        const snapshot = createNumericPrizeRuleSnapshot(currentMultipliers);
+        const maximumLinePrizeCents =
+          allocation.unitCents * currentMultipliers.unit +
+          allocation.tensCents * currentMultipliers.tens +
+          allocation.hundredsCents * currentMultipliers.hundreds +
+          allocation.thousandsCents * currentMultipliers.thousands +
+          allocation.quinaCents * currentMultipliers.quina;
+        if (!Number.isSafeInteger(maximumLinePrizeCents) || maximumLinePrizeCents > 2_147_483_647) {
+          throw new PurchaseServiceError("Os multiplicadores atuais tornam o prêmio máximo maior que o limite financeiro suportado.", "INVALID_PURCHASE");
         }
 
         const isCash = paymentMethod === PaymentMethod.CASH;
