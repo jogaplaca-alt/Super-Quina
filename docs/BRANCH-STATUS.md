@@ -1,29 +1,47 @@
 # Estado do projeto — Super Quina
 
 Atualizado em 2026-11-02. Repositório: `jpveiculos/Super-Quina`.
+Branch de trabalho: `setup/super-quina`.
 
-## Branches e limites
-- `setup/super-quina`: branch de trabalho.
-- `main`: preservada; não alterar nesta rotina.
-- A branch de trabalho está divergente de `main` (196 commits à frente e 5 atrás, na última comparação). Não fazer merge ou PR sem reconciliar esses 5 commits.
-- Não fazer deploy, alteração de infraestrutura ou migração em produção sem autorização explícita.
+## Limites de segurança e operação
+- `main` permanece sem alterações nesta rotina.
+- Não fazer merge, deploy, alteração de DNS/infraestrutura ou migração em banco de produção sem autorização explícita.
+- O Super Quina usa banco novo e vazio. A única herança permitida do sistema anterior é a identidade/hash da conta ADMIN já existente, sem copiar usuários, apostas, pagamentos, saldos, sorteios, resultados ou histórico financeiro.
+- Não provisionar um segundo administrador se a conta existente puder ser preservada. O procedimento deve ser validado antes de qualquer execução no banco novo.
 
-## Estado conhecido
-- Produto exclusivamente numérico: `00000` a `99999`.
-- Novas compras PIX gravam `NumericPurchaseIntent` com números, rateio, snapshot e quantidade; não criam participações, linhas, roundIds ou recibo antes da aprovação.
-- A confirmação Pix materializa participações somente após aprovação, selecionando as rodadas válidas no instante da confirmação. Compras antigas pendentes com participações provisórias mantêm o caminho de compatibilidade.
-- CASH e WALLET selecionam as próximas rodadas válidas e confirmam participações dentro da transação da venda/débito.
-- Rodadas `SCHEDULED` podem receber apostas antes de `startsAt`, desde que o fechamento ainda não tenha ocorrido. Isso cobre o intervalo entre fechar a rodada anterior, realizar o sorteio e abrir a próxima.
-- Foi acrescentado teste de regressão cobrindo vendas às 12h29, 12h30 e 12h30min59s (horário de Brasília), direcionadas à próxima rodada programada.
-- O scheduler processa fechamento, abertura, sorteio e reconciliação Pix. O código pressupõe execução a cada minuto, mas a configuração efetiva do cron no provedor ainda precisa ser confirmada.
-- O CI do commit `998b472` passou: Prisma validate/generate, TypeScript, testes, lint, migrations em PostgreSQL limpo, integração PostgreSQL e build. O teste de regressão adicional foi enviado no commit `ca89938`; seu CI estava na fila no momento desta atualização.
-- O schema Prisma atual é numérico e não contém modelos/colunas de placas.
-- O histórico de migrations ainda começa com estrutura de placas e termina com uma migration de limpeza. Não apagar nem reordenar essa cadeia sem criar e validar uma baseline numérica substituta em PostgreSQL descartável.
-- Nenhuma implantação ou migração em produção foi realizada ou confirmada nesta rotina.
+## Estado técnico confirmado
+- Produto exclusivamente numérico: palpites de cinco algarismos, de `00000` a `99999`.
+- Compra Pix pendente é uma intenção; participações e recibo só são criados após confirmação válida do provedor.
+- Webhook Mercado Pago valida assinatura e consulta o estado canônico no provedor; o scheduler também reconcilia Pix pendente.
+- Compras CASH e WALLET confirmam participações transacionalmente.
+- Rodadas são mantidas em fila futura, com fechamento, abertura, sorteio e apuração processados pelo endpoint interno do scheduler.
+- Financeiro do cambista separa dinheiro e Pix confirmado, acumula até acerto individual e preserva histórico. O botão de acerto é exclusivo do ADMIN e a autorização também é validada no servidor.
+- Migração de acertos de cambistas criada em `20261102020000_cashier_settlements`; ainda não aplicada em produção.
+- A área do jogador deve manter a ordem e a posição atuais dos componentes. Não fazer reorganização visual nessa área sem pedido explícito.
 
-## Próximos gates
-1. Confirmar CI do commit mais recente.
-2. Confirmar no provedor Hydro que o endpoint `/api/internal/round-scheduler` é chamado a cada minuto com o segredo correto, sem expor o segredo.
-3. Auditar leituras de histórico/relatórios para garantir que compras PIX pendentes sem participações não sejam tratadas como apostas confirmadas.
-4. Reconciliar os 5 commits de `main` antes de propor integração.
-5. Só então avaliar implantação, após autorização explícita e validação do ambiente.
+## Validação automatizada
+- Em 2026-11-02, o GitHub Actions concluiu com sucesso no commit `79b524ef3d900e9e76a8afb75c70de0d0cadec01`: Prisma validate/generate, TypeScript, testes unitários/rotas, lint, migrations em PostgreSQL descartável, testes de integração PostgreSQL e build de produção.
+- Isso valida o commit no CI; não comprova funcionamento no Hydro, configuração de secrets, pagamento real, impressora ou ambiente de produção.
+- Execução: https://github.com/jpveiculos/Super-Quina/actions/runs/41540351089
+
+## Bloqueios antes de liberar o site
+1. **Reconciliação de branches:** `setup/super-quina` está divergente de `main` e de `foundation/super-quina-v2` (246 commits à frente e 9 atrás na comparação atual). Revisar os 9 commits ausentes e o diff antes de qualquer integração. Não mesclar automaticamente.
+2. **Baseline do banco:** a cadeia histórica de migrations começa com tabelas do jogo de placas e depois faz a limpeza numérica. Antes do banco novo, construir e validar uma baseline numérica limpa em PostgreSQL descartável; não apagar nem reordenar migrations existentes.
+3. **Conta ADMIN:** revisar o script de provisionamento e definir um procedimento seguro de preservação da identidade/hash do ADMIN existente. Não executar no banco de produção.
+4. **Hydro / scheduler:** confirmar configuração de execução do endpoint `POST /api/internal/round-scheduler` a cada minuto, com `Authorization: Bearer <ROUND_SCHEDULER_SECRET>`. Verificar logs, último sucesso e tratamento de falhas sem revelar segredo.
+5. **Variáveis e integração Pix:** conferir no ambiente correto a presença e consistência de `DATABASE_URL`, `AUTH_SECRET`, `APP_BASE_URL`, `ROUND_SCHEDULER_SECRET`, `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_WEBHOOK_SECRET` e `WALLET_PIX_ENCRYPTION_KEY`. Nunca copiar valores secretos para Git ou chat.
+6. **Auditoria financeira:** testar ponta a ponta Pix aprovado/rejeitado/cancelado/expirado/reembolsado, reentregas de webhook, confirmação tardia, idempotência, comissões, estornos e acerto de cambista. Confirmar também como tratar estorno ocorrido depois de um acerto já fechado.
+7. **Operação e segurança:** verificar backup/restauração, logs, health check, limites de acesso, cookies/CSRF, rate limit e procedimento de rollback.
+
+## Integrações seguintes — ainda não iniciadas como produto
+- **Android:** não há projeto Android/Capacitor/Expo no repositório. Definir se será um app Android dedicado ou uma camada nativa para impressão e comunicação com o site.
+- **Impressora térmica:** existe benchmark de impressão Bluetooth no iPhone, mas não há integração Bluetooth implementada. Validar modelo/protocolo/SDK da impressora e testar impressão real de recibo do cambista.
+- **API de acompanhamento do servidor:** não há contrato OpenAPI/Swagger nem painel de monitoramento identificado. Definir endpoints autenticados de saúde/diagnóstico e métricas operacionais sem expor dados pessoais ou segredos.
+- **Sincronização servidor/repositório:** definir alertas de deploy, commit implantado, resultado de build, saúde do serviço e compatibilidade de migrations. Não confundir deploy automático com autorização para promover código.
+
+## Próxima sequência de trabalho
+1. Fechar auditoria do código e resolver falhas encontradas.
+2. Reconciliar branches e revisar migrations/baseline e preservação do ADMIN.
+3. Validar configuração e execução no Hydro sem tocar produção até autorização.
+4. Executar homologação completa de compras, Pix, sorteios, premiações, carteira, cambistas e recibos.
+5. Só então avançar para Android, impressora térmica e API de monitoramento.
