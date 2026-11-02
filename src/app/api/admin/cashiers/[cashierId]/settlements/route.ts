@@ -36,7 +36,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ ca
         tx.purchase.aggregate({ where: { ...eligible, paymentMethod: "CASH" }, _sum: { totalCents: true }, _count: { _all: true } }),
         tx.purchase.aggregate({ where: { ...eligible, paymentMethod: "PIX", payment: { is: { status: "CONFIRMED" } } }, _sum: { totalCents: true }, _count: { _all: true } }),
         tx.cashierCommission.aggregate({ where: { cashierId, createdAt: { gt: since, lte: cutoff }, purchase: { is: { status: "CONFIRMED" } } }, _sum: { amountCents: true } }),
-        tx.numericParticipationLine.count({ where: { participation: { is: { status: "CONFIRMED", confirmedAt: { gt: since, lte: cutoff }, purchase: { is: { cashierId, status: "CONFIRMED" } } } } } }),
+        tx.numericParticipationLine.count({ where: { participation: { is: { status: "CONFIRMED", purchase: { is: { cashierId, status: "CONFIRMED", confirmedAt: { gt: since, lte: cutoff } } } } } } }),
       ]);
       const cashSalesCents = cash._sum.totalCents ?? 0;
       const pixSalesCents = pix._sum.totalCents ?? 0;
