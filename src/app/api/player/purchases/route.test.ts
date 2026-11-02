@@ -23,10 +23,11 @@ vi.mock("@/modules/purchases/purchase-service-error", () => ({
 import { POST } from "./route";
 
 function request(body: unknown, options: { origin?: string; token?: string } = {}) {
-  return new NextRequest("https://example.test/api/player/purchases", {
+  return new NextRequest("http://internal-next/api/player/purchases", {
     method: "POST",
     headers: {
       "content-type": "application/json",
+      host: "example.test",
       ...(options.origin === undefined ? { origin: "https://example.test" } : { origin: options.origin }),
       ...(options.token === undefined ? { cookie: "superquina_session=session-token" } : options.token ? { cookie: `superquina_session=${options.token}` } : {}),
     },
@@ -67,6 +68,12 @@ describe("POST /api/player/purchases", () => {
     expect(response.status).toBe(403);
     expect(mocks.getSessionUser).not.toHaveBeenCalled();
     expect(mocks.createNumericPurchase).not.toHaveBeenCalled();
+  });
+
+  it("accepts same-origin requests forwarded by an internal reverse proxy", async () => {
+    const response = await POST(request(validBody()));
+    expect(response.status).toBe(201);
+    expect(mocks.createNumericPurchase).toHaveBeenCalledOnce();
   });
 
   it("requires an authenticated session", async () => {
