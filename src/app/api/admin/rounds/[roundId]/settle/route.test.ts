@@ -11,8 +11,15 @@ vi.mock("@/modules/rounds/round-settlement-error", () => ({
 }));
 import { POST } from "./route";
 import { RoundSettlementError } from "@/modules/rounds/round-settlement-error";
-function request(origin = "https://example.test", token = "session-token") {
-  return new NextRequest("http://internal-next/api/admin/rounds/round-123456/settle", { method: "POST", headers: { origin, host: "example.test", ...(token ? { cookie: "superquina_session=" + token } : {}) } });
+function request(origin: string | null = "https://example.test", token = "session-token", host: string | null = "example.test") {
+  const headers: Record<string, string> = {};
+  if (origin) headers.origin = origin;
+  if (host) headers.host = host;
+  if (token) headers.cookie = `superquina_session=${token}`;
+  return new NextRequest("http://internal-next/api/admin/rounds/round-123456/settle", {
+    method: "POST",
+    headers,
+  });
 }
 const context = { params: Promise.resolve({ roundId: "round-123456" }) };
 describe("POST /api/admin/rounds/[roundId]/settle", () => {
@@ -21,6 +28,16 @@ describe("POST /api/admin/rounds/[roundId]/settle", () => {
     mocks.getSessionUser.mockResolvedValue({ id: "admin-1", username: "admin", role: "ADMIN", status: "ACTIVE", mustChangePassword: false });
     mocks.settleNumericRoundPrizes.mockResolvedValue({ roundId: "round-123456", status: "settled", eligibleLines: 2, creditedLines: 1, pendingManualPayouts: 0, totalPrizeCents: 1200 });
   });
+  it.each([
+    ["missing Origin", null, "example.test"],
+    ["missing Host", "https://example.test", null],
+  ])("rejects requests with %s", async (_label, origin, host) => {
+    const result = await POST(request(origin, "session-token", host), context);
+    expect(result.status).toBe(403);
+    expect(mocks.getSessionUser).not.toHaveBeenCalled();
+    expect(mocks.settleNumericRoundPrizes).not.toHaveBeenCalled();
+  });
+
   it("rejects cross-origin requests", async () => { expect((await POST(request("https://attacker.test"), context)).status).toBe(403); expect(mocks.settleNumericRoundPrizes).not.toHaveBeenCalled(); });
   it("requires a valid session", async () => { mocks.getSessionUser.mockResolvedValue(null); expect((await POST(request(), context)).status).toBe(401); });
   it("rejects non-admin roles", async () => { mocks.getSessionUser.mockResolvedValue({ id: "p", role: "PLAYER", mustChangePassword: false }); expect((await POST(request(), context)).status).toBe(403); });
