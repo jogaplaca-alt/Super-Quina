@@ -145,10 +145,11 @@ export function AdminCashierManager() {
       {notice && <p role="status" className="note-inline form-feedback-success" aria-live="polite">{notice}</p>}
     </div>
     <h3>Cambistas cadastrados</h3>
+    {!loading && cashiers.length > 0 && <div className="admin-cashier-directory"><label htmlFor="admin-cashier-select">Abrir financeiro e histórico do cambista</label><select id="admin-cashier-select" className="admin-cashier-select" defaultValue="" onChange={(event) => { if (event.target.value) window.location.href = "/admin/cashiers/" + encodeURIComponent(event.target.value); }}><option value="" disabled>Selecione um cambista</option>{cashiers.map((cashier) => <option key={cashier.id} value={cashier.id}>{cashier.fullName || cashier.username} · {cashier.username}</option>)}</select></div>}
     {loading ? <p>Carregando cambistas…</p> : cashiers.length === 0 ? <p>Nenhum cambista cadastrado.</p> : <div className="admin-round-list">
       {cashiers.map((cashier) => <article className="round-option" key={cashier.id}>
         <div>
-          <strong>{cashier.fullName || cashier.username}</strong>
+          <a className="admin-cashier-name-link" href={"/admin/cashiers/" + encodeURIComponent(cashier.id)}><strong>{cashier.fullName || cashier.username}</strong> — Ver financeiro e histórico</a>
           <p>Usuário: {cashier.username} · WhatsApp: {cashier.whatsapp || "Não informado"}</p>
           <p>Comissão individual: <strong>{cashier.commissionPercent.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%</strong> · Status: {cashier.status === "ACTIVE" ? "Ativo" : cashier.status === "BLOCKED" ? "Bloqueado" : "Pendente"}</p>
           <p>Cadastro: {new Date(cashier.createdAt).toLocaleDateString("pt-BR")}{cashier.mustChangePassword ? " · Troca de senha no primeiro acesso" : ""}</p>
