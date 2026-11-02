@@ -7,7 +7,8 @@ export class PurchaseServiceError extends Error {
       | "IDEMPOTENCY_CONFLICT"
       | "ROUND_UNAVAILABLE"
       | "INVALID_PURCHASE"
-      | "INSUFFICIENT_BALANCE",
+      | "INSUFFICIENT_BALANCE"
+      | "INVALID_PRIZE_CONFIGURATION",
   ) {
     super(message);
     this.name = "PurchaseServiceError";
