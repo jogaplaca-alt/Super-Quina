@@ -27,6 +27,7 @@ async function requireAdmin(request: NextRequest) {
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
   const origin = request.headers.get("origin");
+  if (!origin) return NextResponse.json({ error: "Requisição inválida." }, { status: 403, headers });
   if (origin) {
     let originHost: string;
     try {
