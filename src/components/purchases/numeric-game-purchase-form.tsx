@@ -177,7 +177,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           idempotencyKey: idempotencyKey,
-          roundIds: selectedRounds,
+          roundCount: selectedRounds.length,
           numbers,
           stakeCents,
           ...(mode === "PLAYER" ? { paymentMethod } : {}),

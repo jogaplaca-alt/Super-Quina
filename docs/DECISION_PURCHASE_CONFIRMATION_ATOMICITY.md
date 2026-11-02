@@ -2,7 +2,7 @@
 
 Data: 2026-11-02  
 Branch: `setup/super-quina`  
-Status: regra aprovada. O núcleo de confirmação Pix, realocação para rodadas válidas e emissão de recibo está implementado. A criação de registros provisórios/roundIds antes do pagamento permanece uma divergência de contrato a ser avaliada; não reimplementar o fluxo de confirmação.
+Status: regra aprovada. O fluxo novo grava uma intenção numérica sem participações/roundIds antes do pagamento; a confirmação Pix cria e vincula as participações às rodadas válidas na mesma transação. Compras pendentes antigas com participações provisórias continuam suportadas durante a transição.
 
 ## Regra inviolável
 
@@ -37,11 +37,11 @@ A ordem lógica é: pagamento válido → rodadas revalidadas → participaçõe
 
 ## Intenção antes do pagamento — contrato-alvo
 
-A intenção PIX pendente deve armazenar números, valor unitário, quantidade de participações (1 a 10), snapshot da regra e dados necessários à cobrança. O contrato-alvo não cria participações, linhas numéricas, roundIds ou receiptCode antes da confirmação.
+A intenção PIX pendente armazena números, rateio, quantidade de participações (1 a 10), versão e snapshot da regra e dados necessários à cobrança. O contrato não cria participações, linhas numéricas, roundIds ou receiptCode antes da confirmação.
 
 A quantidade não seleciona nem reserva rodadas. As APIs e telas pendentes não devem expor IDs, códigos ou horários de rodadas como se já estivessem atribuídos. O QR Code Pix do provedor é distinto do QR Code de consulta do recibo.
 
-**Nota de auditoria do HEAD:** a implementação existente cria placeholders PENDING vinculados inicialmente a roundIds e os reatribui na confirmação. Esses placeholders não são participações confirmadas nem aparecem na consulta pública do recibo. A diferença deve ser corrigida de forma incremental, após rastrear dependências e testes; não substituir o núcleo de confirmação já implementado.
+**Nota de compatibilidade:** compras PIX antigas ainda podem conter placeholders PENDING vinculados a roundIds. A confirmação mantém o caminho legado para esses registros. Novas compras usam NumericPurchaseIntent e não criam participações antes da aprovação.
 
 ## CASH e WALLET
 

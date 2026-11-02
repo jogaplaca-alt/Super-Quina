@@ -48,6 +48,7 @@ function setup(availableRounds = [nextRound]) {
     purchase: { update: purchaseUpdate },
     auditEvent: { create: auditCreate, findFirst: auditFindFirst },
     $queryRaw: vi.fn()
+      .mockResolvedValueOnce([])
       .mockResolvedValueOnce([{ id: "round-old" }, { id: "round-next" }])
       .mockResolvedValueOnce([{ decisionTime: now }]),
   };
