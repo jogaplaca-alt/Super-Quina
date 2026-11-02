@@ -37,7 +37,20 @@ const requestSchema = z.object({
 
 export async function POST(request: NextRequest) {
   const origin = request.headers.get("origin");
-  if (origin && origin !== request.nextUrl.origin) return NextResponse.json({ error: "Requisição inválida." }, { status: 403, headers });
+  if (origin) {
+    let originHost: string;
+    try { originHost = new URL(origin).host.toLowerCase(); }
+    catch { return NextResponse.json({ error: "Requisição inválida." }, { status: 403, headers }); }
+    const acceptedHosts = [
+      request.headers.get("x-forwarded-host"),
+      request.headers.get("host"),
+    ].filter((value): value is string => Boolean(value))
+      .flatMap((value) => value.split(","))
+      .map((value) => value.trim().toLowerCase()).filter(Boolean);
+    if (!acceptedHosts.includes(originHost)) {
+      return NextResponse.json({ error: "Requisição inválida." }, { status: 403, headers });
+    }
+  }
   const user = await getSessionUser(request.cookies.get(SESSION_COOKIE)?.value);
   if (!user) return NextResponse.json({ error: "É necessário entrar na conta." }, { status: 401, headers });
   if (user.role !== "PLAYER" || user.mustChangePassword) return NextResponse.json({ error: "Acesso não permitido." }, { status: 403, headers });
