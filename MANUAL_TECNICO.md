@@ -1,43 +1,47 @@
 # Manual técnico — Super Quina
 
-Atualizado em 01/11/2026. Refere-se à branch setup/super-quina.
+Atualizado em 02/11/2026. Branch de trabalho: `setup/super-quina`.
 
-## 1. Isolamento
-jpveiculos/Super-Quina é separado de jpveiculos/JogaPlacas. Não alterar o repositório original, jogaplacas.com.br, banco antigo, DNS ou produção. O novo serviço deve ter banco, credenciais, variáveis e integração de pagamentos próprios. Não houve merge nem deploy.
+## 1. Projeto
+Super Quina é um sistema novo, independente, com banco próprio e inicialmente vazio. O produto trabalha exclusivamente com números de cinco algarismos, de `00000` a `99999`. Não importar dados nem implementar compatibilidade com Joga Placas.
 
-## 2. Regras
-- Um resultado por rodada, texto de cinco algarismos: 00000 a 99999.
-- Unidade 5x; dezena 50x; centena 500x; milhar 5.000x; quina 50.000x.
-- Dividir a aposta igualmente em cinco categorias usando centavos inteiros; resto destinado à Unidade.
-- O snapshot versionado da compra é a fonte da apuração. Não recalcular compras antigas.
-
-## 3. Código e dados
+## 2. Aplicação
 - Next.js full-stack na raiz.
-- Compra: src/modules/purchases/create-numeric-purchase.ts.
-- Sorteio: src/modules/rounds/draw-round-results.ts.
-- Liquidação: src/modules/rounds/settle-numeric-round-prizes.ts.
-- Persistência: Round.resultNumber e NumericParticipationLine.
-- Schema final sem GameMode, PlateFormat, ParticipationLine e colunas de resultado de placas.
-- Preservar Purchase, PurchaseParticipation, Payment, LedgerEntry, CashierCommission, Withdrawal, usuários e auditoria.
-- src/generated/prisma é saída de prisma generate.
+- Persistência com Prisma e PostgreSQL.
+- Compra numérica: `src/modules/purchases/create-numeric-purchase.ts`.
+- Confirmação de pagamento: `src/modules/payments/confirm-payment.ts`.
+- Sorteio: `src/modules/rounds/draw-round-results.ts`.
+- Apuração: `src/modules/rounds/settle-numeric-round-prizes.ts`.
+- Cliente Prisma gerado: saída de `prisma generate`; não editar manualmente.
 
-## 4. Agendador e gestão de rodadas
-- A criação de rodadas é exclusiva do endpoint interno `POST /api/internal/round-scheduler`, acionado pelo cron da hospedagem. A criação manual pelo administrador foi removida da API e da interface.
-- O painel administrativo mantém apenas consulta das rodadas existentes e ações operacionais permitidas (fechamento, sorteio e apuração); não cria rodadas.
-## 4. Agendador
-POST /api/internal/round-scheduler, com Authorization: Bearer e ROUND_SCHEDULER_SECRET. Mantém no máximo dez rodadas futuras em intervalos de 30 minutos. Abre, fecha, sorteia e reconcilia Pix. A hospedagem deve chamar o endpoint a cada minuto; a branch não comprova que o cron externo esteja configurado.
+## 3. Rodadas
+- Agendador interno: `POST /api/internal/round-scheduler`.
+- Mantém até dez rodadas futuras, em intervalos de 30 minutos.
+- A hospedagem deve acionar o endpoint periodicamente; a existência da rota não comprova que o cron esteja configurado.
+- Fuso fixo: `Etc/GMT+3` (UTC−03:00). Não alterar sem revisão das regras e testes.
+- Fechamento, sorteio e apuração são operações distintas.
 
-Fuso fixo: UTC-03:00 (Etc/GMT+3). Alterações exigem revisão de cálculos e testes.
+## 4. Compras e pagamentos
+- Única integração externa de negócio: Mercado Pago, para Pix e confirmação.
+- QR Code Pix não comprova pagamento. Recibo só é emitido após confirmação financeira válida.
+- Jogador pode usar Pix ou carteira; cambista pode registrar Pix ou dinheiro.
+- Débitos, créditos e comissões devem ser transacionais e idempotentes.
+- Quantidade de participações vai de 1 a 10; não selecionar rodadas antes da confirmação do pagamento.
+- A confirmação deve vincular as participações às próximas rodadas válidas e emitir o recibo de forma atômica.
 
-## 5. Pagamentos e recibos
-Pix depende de confirmação autêntica do Mercado Pago; QR Code exibido não significa pagamento confirmado. Recibo só é emitido após confirmação. Jogador pode usar Pix/carteira; cambista pode registrar Pix/dinheiro. Débitos, créditos e comissão são transacionais e idempotentes. Consulta pública, histórico, recibo térmico e verificação QR mostram números.
+## 5. Validação
+Comandos principais:
+- `npm ci`
+- `npm run db:validate`
+- `npm run db:generate`
+- `npm run lint`
+- `npm run typecheck`
+- `npm test`
+- `npm run build`
 
-A reconciliação administrativa usa numeric-prize-credit:<lineId> e deve conferir o livro-razão antes de corrigir registros.
+O teste PostgreSQL dedicado é `npm run test:postgres`. Não declarar testes aprovados sem execução no commit correspondente.
 
-## 6. Migration
-20261101020000_numeric_only_cleanup remove ParticipationLine, Round.resultLegacyPlate, Round.resultMercosurPlate, Round.gameMode e enums PlateFormat/GameMode. A sequência é exclusiva do banco novo e vazio da Super Quina. Não executar no banco legado do Joga Placas.
+## 6. Segurança operacional
+Não alterar `main`, banco de produção, domínio, DNS ou infraestrutura e não fazer deploy sem autorização explícita. Não registrar segredos em documentação ou logs.
 
-## 7. Validação
-Executar npm ci, npm run db:validate, npm run typecheck, npm test, npm run lint e npm run build. Validar migration em PostgreSQL descartável, Pix, carteira, dinheiro, comissões, recibos, apuração, concorrência e agendador antes de deploy. Não declarar validações como aprovadas sem execução real.
-
-O código contém recibo térmico web. Não presumir que o aplicativo Android nativo/Bluetooth esteja integrado nesta branch.
+O código contém recibo térmico web. Não presumir integração com aplicativo Android nativo ou impressão Bluetooth.
