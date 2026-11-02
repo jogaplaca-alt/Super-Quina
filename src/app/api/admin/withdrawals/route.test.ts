@@ -110,6 +110,20 @@ describe("admin withdrawals API", () => {
     expect(mocks.auditCreate).not.toHaveBeenCalled();
   });
 
+  it("accepts the public host behind a reverse proxy", async () => {
+    const proxyRequest = new NextRequest("http://internal-service:3000/api/admin/withdrawals", {
+      method: "POST",
+      headers: {
+        origin: "https://example.test",
+        host: "example.test",
+        cookie: "superquina_session=session-token",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ withdrawalId: "withdrawal-1", action: "reject", note: "Chave Pix divergente" }),
+    });
+    expect((await POST(proxyRequest)).status).toBe(200);
+  });
+
   it("rejects cross-origin actions", async () => {
     const response = await POST(request({ withdrawalId: "withdrawal-1", action: "reject", note: "Motivo suficiente" }, "https://attacker.test"));
     expect(response.status).toBe(403);
