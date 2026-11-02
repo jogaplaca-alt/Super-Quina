@@ -92,7 +92,11 @@ export async function confirmPixPayment(
           const numbers = intent.numbers as string[];
           const allocation = intent.allocation as { unitCents: number; tensCents: number; hundredsCents: number; thousandsCents: number; quinaCents: number };
           const ruleSnapshot = intent.ruleSnapshot as Prisma.InputJsonValue;
-          if (!Array.isArray(numbers) || !numbers.length || numbers.some((number) => !/^\d{5}$/.test(number))) {
+          const allocationValues = [allocation.unitCents, allocation.tensCents, allocation.hundredsCents, allocation.thousandsCents, allocation.quinaCents];
+          if (!Array.isArray(numbers) || !numbers.length ||
+              numbers.some((number) => typeof number !== "string" || !/^\d{5}$/.test(number)) ||
+              allocationValues.some((value) => !Number.isSafeInteger(value) || value < 0) ||
+              allocationValues.reduce((sum, value) => sum + value, 0) < 100) {
             throw new Error("Persisted numeric purchase intent is invalid");
           }
           const perRoundCents = numbers.length * (allocation.unitCents + allocation.tensCents + allocation.hundredsCents + allocation.thousandsCents + allocation.quinaCents);
