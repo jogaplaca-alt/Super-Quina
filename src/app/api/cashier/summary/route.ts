@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
         _sum: { amountCents: true },
       }),
       authPrisma.user.findUnique({ where: { id: user.id }, select: { commissionRateBasisPoints: true } }),
-      authPrisma.numericParticipationLine.count({ where: { participation: { is: { status: "CONFIRMED", confirmedAt: { gt: since }, purchase: { is: { cashierId: user.id, status: "CONFIRMED" } } } } } }),
+      authPrisma.numericParticipationLine.count({ where: { participation: { is: { status: "CONFIRMED", purchase: { is: { cashierId: user.id, status: "CONFIRMED", confirmedAt: { gt: since } } } } } } }),
     ]);
     const cashSalesCents = cash._sum.totalCents ?? 0;
     const pixSalesCents = pix._sum.totalCents ?? 0;
