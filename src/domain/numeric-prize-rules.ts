@@ -9,14 +9,14 @@ export const NUMERIC_PRIZE_CATEGORIES = [
 export type NumericPrizeCategory = (typeof NUMERIC_PRIZE_CATEGORIES)[number];
 export type NumericPrizeMultipliers = Record<NumericPrizeCategory, number>;
 
-export const NUMERIC_PRIZE_RULE_VERSION = "numeric-approved-v2";
+export const NUMERIC_PRIZE_RULE_VERSION = "numeric-approved-v3";
 
 export const APPROVED_NUMERIC_PRIZE_MULTIPLIERS: NumericPrizeMultipliers = {
   unit: 5,
-  tens: 50,
-  hundreds: 500,
-  thousands: 5_000,
-  quina: 50_000,
+  tens: 20,
+  hundreds: 200,
+  thousands: 2_000,
+  quina: 20_000,
 };
 
 export function createNumericPrizeRuleSnapshot(): {
