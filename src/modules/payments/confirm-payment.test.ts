@@ -112,4 +112,53 @@ describe("confirmPixPayment next-valid-round allocation", () => {
       data: expect.objectContaining({ action: "PIX_PAYMENT_APPROVED_WITHOUT_AVAILABLE_ROUNDS" }),
     }));
   });
+
+  it("creates final round participations from the stored intent only after Pix approval", async () => {
+    const createParticipation = vi.fn().mockResolvedValue({});
+    const paymentUpdate = vi.fn().mockResolvedValue({});
+    const purchaseUpdate = vi.fn().mockResolvedValue({});
+    const auditCreate = vi.fn().mockResolvedValue({});
+    const tx = {
+      payment: { findUnique: vi.fn().mockResolvedValue({
+        id: "payment-1", purchaseId: "purchase-1", status: "PENDING", amountCents: 100,
+        purchase: {
+          status: "PENDING_PAYMENT", totalCents: 100, receiptCode: null, cashierId: null,
+          numericIntent: {
+            roundCount: 1, numbers: ["00007"],
+            allocation: { unitCents: 20, tensCents: 20, hundredsCents: 20, thousandsCents: 20, quinaCents: 20 },
+            ruleVersion: "numeric-v1", ruleSnapshot: { version: "numeric-v1" },
+          },
+        },
+      }), update: paymentUpdate },
+      purchaseParticipation: {
+        findMany: vi.fn().mockResolvedValue([]),
+        create: createParticipation,
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      round: { findMany: vi.fn().mockResolvedValue([nextRound]) },
+      purchase: { update: purchaseUpdate },
+      auditEvent: { create: auditCreate, findFirst: vi.fn().mockResolvedValue(null) },
+      $queryRaw: vi.fn()
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([{ id: "round-next" }])
+        .mockResolvedValueOnce([{ decisionTime: now }]),
+    };
+    const prisma = { $transaction: vi.fn(async (callback: (client: unknown) => Promise<unknown>) => callback(tx)) };
+
+    const result = await confirmPixPayment(prisma as never, {
+      paymentId: "payment-1", providerStatus: "processed", providerStatusDetail: "accredited",
+    });
+
+    expect(result).toMatchObject({ outcome: "confirmed", receiptCode: expect.stringMatching(/^SQ-[A-F0-9]{16}$/) });
+    expect(createParticipation).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        purchaseId: "purchase-1", roundId: "round-next", totalCents: 100,
+        numericLines: { create: [expect.objectContaining({ numberValue: "00007", unitCents: 20 })] },
+      }),
+    }));
+    expect(purchaseUpdate).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ status: "CONFIRMED", confirmedAt: now }),
+    }));
+  });
+
 });
