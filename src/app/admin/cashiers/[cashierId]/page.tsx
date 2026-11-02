@@ -18,7 +18,7 @@ export default async function AdminCashierDetailPage({ params }: { params: Promi
   if (!cashier) notFound();
   const latestSettlement = await authPrisma.cashierSettlement.findFirst({ where: { cashierId }, orderBy: { settledAt: "desc" }, select: { settledAt: true } });
   const since = latestSettlement?.settledAt ?? new Date(0);
-  const [purchases, settlements, cashNow, pixNow, commissionNow] = await Promise.all([
+  const [purchases, settlements, cashNow, pixNow, commissionNow, gamesNow] = await Promise.all([
     authPrisma.purchase.findMany({
       where: { cashierId }, orderBy: [{ createdAt: "desc" }],
       select: {
@@ -26,16 +26,17 @@ export default async function AdminCashierDetailPage({ params }: { params: Promi
         customer: { select: { name: true, phone: true } },
         payment: { select: { status: true, confirmedAt: true } },
         commission: { select: { amountCents: true, rateBasisPoints: true } },
-        participations: { select: { id: true, round: { select: { code: true } } } },
+        participations: { select: { id: true, round: { select: { code: true } }, numericLines: { select: { id: true } } } },
       },
     }),
     authPrisma.cashierSettlement.findMany({
       where: { cashierId }, orderBy: { settledAt: "desc" },
-      select: { id: true, settledAt: true, cashSalesCents: true, pixSalesCents: true, totalSalesCents: true, salesCount: true, commissionCents: true, admin: { select: { username: true } } },
+      select: { id: true, settledAt: true, cashSalesCents: true, pixSalesCents: true, totalSalesCents: true, salesCount: true, gamesCount: true, commissionCents: true, admin: { select: { username: true } } },
     }),
     authPrisma.purchase.aggregate({ where: { cashierId, status: "CONFIRMED", paymentMethod: "CASH", confirmedAt: { gt: since } }, _sum: { totalCents: true }, _count: { _all: true } }),
     authPrisma.purchase.aggregate({ where: { cashierId, status: "CONFIRMED", paymentMethod: "PIX", confirmedAt: { gt: since }, payment: { is: { status: "CONFIRMED" } } }, _sum: { totalCents: true }, _count: { _all: true } }),
     authPrisma.cashierCommission.aggregate({ where: { cashierId, createdAt: { gt: since }, purchase: { is: { status: "CONFIRMED" } } }, _sum: { amountCents: true } }),
+    authPrisma.numericParticipationLine.count({ where: { participation: { is: { status: "CONFIRMED", purchase: { is: { cashierId, status: "CONFIRMED", confirmedAt: { gt: since } } } } } } }),
   ]);
   const cashTotal = cashNow._sum.totalCents ?? 0;
   const pixTotal = pixNow._sum.totalCents ?? 0;
@@ -49,7 +50,7 @@ export default async function AdminCashierDetailPage({ params }: { params: Promi
         <p>Status: {cashier.status === "ACTIVE" ? "Ativo" : cashier.status === "BLOCKED" ? "Bloqueado" : "Pendente"} · Comissão atual: {(cashier.commissionRateBasisPoints / 100).toLocaleString("pt-BR")}%</p>
         <p>Cadastro: {cashier.createdAt.toLocaleString("pt-BR")}</p>
       </section>
-      <section className="feature-card admin-cashier-current"><h2>Saldo desde o último acerto</h2><div className="cashier-summary-grid"><article className="cashier-summary-tile"><span>Dinheiro</span><strong>{money(cashTotal)}</strong></article><article className="cashier-summary-tile"><span>Pix confirmado</span><strong>{money(pixTotal)}</strong></article><article className="cashier-summary-tile"><span>Total</span><strong>{money(cashTotal + pixTotal)}</strong></article><article className="cashier-summary-tile"><span>Quantidade de vendas</span><strong>{cashNow._count._all + pixNow._count._all}</strong></article><article className="cashier-summary-tile"><span>Comissão</span><strong>{money(commissionNow._sum.amountCents ?? 0)}</strong></article></div><p>Contagem iniciada em: {latestSettlement ? latestSettlement.settledAt.toLocaleString("pt-BR") : "início das vendas"}</p></section>
+      <section className="feature-card admin-cashier-current"><h2>Fechamento atual — desde o último acerto</h2><div className="cashier-summary-grid"><article className="cashier-summary-tile"><span>Dinheiro</span><strong>{money(cashTotal)}</strong></article><article className="cashier-summary-tile"><span>Pix confirmado</span><strong>{money(pixTotal)}</strong></article><article className="cashier-summary-tile"><span>Total</span><strong>{money(cashTotal + pixTotal)}</strong></article><article className="cashier-summary-tile"><span>Quantidade de vendas</span><strong>{cashNow._count._all + pixNow._count._all}</strong></article><article className="cashier-summary-tile"><span>Jogos realizados</span><strong>{gamesNow}</strong></article><article className="cashier-summary-tile"><span>Comissão a pagar</span><strong>{money(commissionNow._sum.amountCents ?? 0)}</strong></article></div><p>Contagem iniciada em: {latestSettlement ? latestSettlement.settledAt.toLocaleString("pt-BR") : "início das vendas"}</p></section>
       <CashierSettlementActions cashierId={cashier.id} />
       <section className="feature-card admin-cashier-history">
         <h2>Histórico de vendas</h2>
@@ -63,15 +64,15 @@ export default async function AdminCashierDetailPage({ params }: { params: Promi
             <td>{sale.paymentMethod === "PIX" ? "Pix" : sale.paymentMethod === "CASH" ? "Dinheiro" : "Carteira"}</td>
             <td>{sale.status === "CONFIRMED" && (sale.paymentMethod !== "PIX" || sale.payment?.status === "CONFIRMED") ? "Confirmada" : sale.status === "PENDING_PAYMENT" ? "Pendente" : sale.status === "REFUNDED" ? "Estornada" : "Cancelada"}</td>
             <td>{money(sale.totalCents)}</td><td>{sale.commission ? money(sale.commission.amountCents) : "—"}</td>
-            <td>{sale.participations.length}</td>
+            <td>{sale.participations.reduce((total, participation) => total + participation.numericLines.length, 0)}</td>
           </tr>)}</tbody>
         </table></div>}
       </section>
       <section className="feature-card admin-cashier-history">
         <h2>Histórico de acertos</h2>
         {settlements.length === 0 ? <p>Nenhum acerto registrado.</p> : <div className="admin-cashier-table-wrap"><table className="admin-cashier-table">
-          <thead><tr><th>Data</th><th>Dinheiro</th><th>Pix</th><th>Total</th><th>Vendas</th><th>Comissão</th><th>Responsável</th></tr></thead>
-          <tbody>{settlements.map((item) => <tr key={item.id}><td>{item.settledAt.toLocaleString("pt-BR")}</td><td>{money(item.cashSalesCents)}</td><td>{money(item.pixSalesCents)}</td><td>{money(item.totalSalesCents)}</td><td>{item.salesCount}</td><td>{money(item.commissionCents)}</td><td>{item.admin.username}</td></tr>)}</tbody>
+          <thead><tr><th>Data</th><th>Dinheiro</th><th>Pix</th><th>Total</th><th>Vendas</th><th>Jogos</th><th>Comissão</th><th>Responsável</th></tr></thead>
+          <tbody>{settlements.map((item) => <tr key={item.id}><td>{item.settledAt.toLocaleString("pt-BR")}</td><td>{money(item.cashSalesCents)}</td><td>{money(item.pixSalesCents)}</td><td>{money(item.totalSalesCents)}</td><td>{item.salesCount}</td><td>{item.gamesCount}</td><td>{money(item.commissionCents)}</td><td>{item.admin.username}</td></tr>)}</tbody>
         </table></div>}
       </section>
     </div>
