@@ -29,6 +29,21 @@ describe("selectNextValidRounds", () => {
     expect(selectNextValidRounds(rounds, 1, instant).map((item) => item.id)).toEqual(["next"]);
   });
 
+  it("accepts sales during the close-draw-open gap into the next scheduled round", () => {
+    const previousRound = round("just-closed", "2026-10-30T15:30:00.000Z", "CLOSED", "2026-10-30T15:29:00.000Z");
+    const nextScheduledRound = round("next-opening", "2026-10-30T16:00:00.000Z");
+
+    // 12:29, 12:30 and 12:30:59 in Brasília (UTC-03:00).
+    for (const decisionTime of [
+      new Date("2026-10-30T15:29:00.000Z"),
+      new Date("2026-10-30T15:30:00.000Z"),
+      new Date("2026-10-30T15:30:59.000Z"),
+    ]) {
+      expect(selectNextValidRounds([previousRound, nextScheduledRound], 1, decisionTime).map((item) => item.id))
+        .toEqual(["next-opening"]);
+    }
+  });
+
   it("returns fewer rounds when the requested repetition count cannot be satisfied", () => {
     expect(selectNextValidRounds([round("only", "2026-10-30T15:30:00.000Z")], 2, instant)).toHaveLength(1);
   });
