@@ -56,7 +56,22 @@ export async function GET(request: NextRequest) {
 const repairSchema = z.object({ lineId: z.string().min(1).max(128), reason: z.string().trim().min(8).max(500) }).strict();
 export async function POST(request: NextRequest) {
   const origin = request.headers.get("origin");
-  if (origin && origin !== request.nextUrl.origin) return NextResponse.json({ error: "Requisição inválida." }, { status: 403, headers });
+  if (origin) {
+    let originHost = "";
+    try {
+      const parsedOrigin = new URL(origin);
+      if (parsedOrigin.protocol !== "https:" && parsedOrigin.protocol !== "http:") {
+        return NextResponse.json({ error: "Requisição inválida." }, { status: 403, headers });
+      }
+      originHost = parsedOrigin.host.toLowerCase();
+    } catch {
+      return NextResponse.json({ error: "Requisição inválida." }, { status: 403, headers });
+    }
+    const requestHost = request.headers.get("host")?.trim().toLowerCase();
+    if (!requestHost || originHost !== requestHost) {
+      return NextResponse.json({ error: "Requisição inválida." }, { status: 403, headers });
+    }
+  }
   const auth = await adminFromRequest(request);
   if (auth.response) return auth.response;
   let payload: unknown;
