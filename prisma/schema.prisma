@@ -98,6 +98,8 @@ model User {
   commissions           CashierCommission[]
   customersCreated      Customer[]              @relation("CustomerCreator")
   withdrawalHistoryActions WithdrawalStatusHistory[] @relation("WithdrawalHistoryActor")
+  cashierSettlementsAsCashier CashierSettlement[] @relation("CashierSettlementCashier")
+  cashierSettlementsCreated CashierSettlement[] @relation("CashierSettlementAdmin")
 
   @@index([role, status])
 }
@@ -299,6 +301,23 @@ model CashierCommission {
   cashier               User     @relation(fields: [cashierId], references: [id], onDelete: Restrict)
 
   @@index([cashierId, createdAt])
+}
+
+model CashierSettlement {
+  id                    String   @id @default(cuid())
+  cashierId             String
+  adminId               String
+  settledAt             DateTime @default(now())
+  cashSalesCents        Int
+  pixSalesCents         Int
+  totalSalesCents       Int
+  salesCount            Int
+  commissionCents       Int
+  cashier               User     @relation("CashierSettlementCashier", fields: [cashierId], references: [id], onDelete: Restrict)
+  admin                 User     @relation("CashierSettlementAdmin", fields: [adminId], references: [id], onDelete: Restrict)
+
+  @@index([cashierId, settledAt])
+  @@index([adminId, settledAt])
 }
 
 model Withdrawal {
