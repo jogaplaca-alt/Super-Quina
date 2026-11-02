@@ -7,6 +7,7 @@ CREATE TABLE "CashierSettlement" (
   "pixSalesCents" INTEGER NOT NULL,
   "totalSalesCents" INTEGER NOT NULL,
   "salesCount" INTEGER NOT NULL,
+  "gamesCount" INTEGER NOT NULL DEFAULT 0,
   "commissionCents" INTEGER NOT NULL,
   CONSTRAINT "CashierSettlement_pkey" PRIMARY KEY ("id"),
   CONSTRAINT "CashierSettlement_cashierId_fkey" FOREIGN KEY ("cashierId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -15,6 +16,7 @@ CREATE TABLE "CashierSettlement" (
   CONSTRAINT "CashierSettlement_pixSalesCents_check" CHECK ("pixSalesCents" >= 0),
   CONSTRAINT "CashierSettlement_totalSalesCents_check" CHECK ("totalSalesCents" = "cashSalesCents" + "pixSalesCents"),
   CONSTRAINT "CashierSettlement_salesCount_check" CHECK ("salesCount" >= 0),
+  CONSTRAINT "CashierSettlement_gamesCount_check" CHECK ("gamesCount" >= 0),
   CONSTRAINT "CashierSettlement_commissionCents_check" CHECK ("commissionCents" >= 0)
 );
 CREATE INDEX "CashierSettlement_cashierId_settledAt_idx" ON "CashierSettlement"("cashierId", "settledAt");
