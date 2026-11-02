@@ -6,6 +6,6 @@ Inclui áreas do jogador, cambista e administrador; apostas numéricas; Pix via 
 
 Branch de trabalho: `setup/super-quina`.
 
-O Super Quina é um sistema novo, com banco de dados próprio e vazio. Não importa nem mantém dados operacionais do Joga Placas.
+O Super Quina é um produto novo, com banco de dados próprio e vazio. Não importar nem manter histórico, cadastros, apostas, vendas, sorteios, resultados, prêmios, saldos ou comissões do sistema de placas.
 
-Consulte `MANUAL_TECNICO.md` e os documentos de arquitetura e regras do produto em `docs/`.
+A estrutura técnica existente é apenas uma base de código a ser aproveitada seletivamente. As regras do produto e os fluxos serão definidos para o Super Quina, sem seguir manuais ou processos do sistema anterior.
