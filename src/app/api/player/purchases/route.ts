@@ -20,14 +20,19 @@ export async function POST(request: NextRequest) {
   const origin = request.headers.get("origin");
   if (origin) {
     let originHost = "";
-    try { originHost = new URL(origin).host.toLowerCase(); }
-    catch { return NextResponse.json({ error: "Requisição inválida." }, { status: 403 }); }
-    const acceptedHosts = [
-      request.headers.get("x-forwarded-host"), request.headers.get("host"), request.nextUrl.host,
-    ].filter((value): value is string => Boolean(value))
-      .flatMap((value) => value.split(","))
-      .map((value) => value.trim().toLowerCase()).filter(Boolean);
-    if (!acceptedHosts.includes(originHost)) return NextResponse.json({ error: "Requisição inválida." }, { status: 403 });
+    try {
+      const parsedOrigin = new URL(origin);
+      if (parsedOrigin.protocol !== "https:" && parsedOrigin.protocol !== "http:") {
+        return NextResponse.json({ error: "Requisição inválida." }, { status: 403 });
+      }
+      originHost = parsedOrigin.host.toLowerCase();
+    } catch {
+      return NextResponse.json({ error: "Requisição inválida." }, { status: 403 });
+    }
+    const requestHost = request.headers.get("host")?.trim().toLowerCase();
+    if (!requestHost || originHost !== requestHost) {
+      return NextResponse.json({ error: "Requisição inválida." }, { status: 403 });
+    }
   }
 
   const user = await getSessionUser(request.cookies.get(SESSION_COOKIE)?.value);
