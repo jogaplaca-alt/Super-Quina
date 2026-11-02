@@ -14,7 +14,7 @@ import { GET, POST } from "./route";
 
 function request(path = "/api/player/withdrawals", body?: unknown, origin = "https://example.test") {
   return new NextRequest("https://example.test" + path, {
-    ...(body === undefined ? {} : { method: "POST", headers: { origin, "content-type": "application/json", cookie: "superquina_session=session-token" }, body: JSON.stringify(body) }),
+    ...(body === undefined ? {} : { method: "POST", headers: { origin, host: "example.test", "content-type": "application/json", cookie: "superquina_session=session-token" }, body: JSON.stringify(body) }),
     ...(body === undefined ? { headers: { cookie: "superquina_session=session-token" } } : {}),
   });
 }
