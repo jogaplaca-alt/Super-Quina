@@ -312,6 +312,7 @@ model CashierSettlement {
   pixSalesCents         Int
   totalSalesCents       Int
   salesCount            Int
+  gamesCount            Int      @default(0)
   commissionCents       Int
   cashier               User     @relation("CashierSettlementCashier", fields: [cashierId], references: [id], onDelete: Restrict)
   admin                 User     @relation("CashierSettlementAdmin", fields: [adminId], references: [id], onDelete: Restrict)
