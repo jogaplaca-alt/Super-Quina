@@ -48,6 +48,13 @@ export async function POST(request: NextRequest) {
       idempotencyKey: parsed.data.idempotencyKey, cashierId: user.id,
       roundCount: parsed.data.roundCount, numbers: parsed.data.numbers, stakeCents: parsed.data.stakeCents,
     });
+    if (purchase.status === "CONFIRMED" && purchase.payment?.status === "CONFIRMED" && purchase.receiptCode && purchase.confirmedAt) {
+      return NextResponse.json({
+        purchase: { id: purchase.id, receiptCode: purchase.receiptCode, status: purchase.status, totalCents: purchase.totalCents, currency: purchase.currency },
+        paymentActionRequired: false, receiptReady: true,
+        message: "Esta venda já está confirmada. O recibo oficial está disponível.",
+      }, { status: 201, headers: { "Cache-Control": "no-store" } });
+    }
     let pixCheckout: { copyPaste: string | null; qrCodeBase64: string | null; ticketUrl: string | null } | null = null;
     const payment = purchase.payment;
     if (payment && process.env.MERCADOPAGO_ACCESS_TOKEN?.trim()) {

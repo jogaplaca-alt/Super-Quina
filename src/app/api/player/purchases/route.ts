@@ -75,6 +75,14 @@ export async function POST(request: NextRequest) {
       })),
     };
 
+    if (purchase.status === "CONFIRMED" && purchase.payment?.status === "CONFIRMED" && purchase.receiptCode && purchase.confirmedAt) {
+      return NextResponse.json({
+        purchase: { ...purchaseView, paymentStatus: "CONFIRMED" },
+        paymentActionRequired: false, receiptReady: true,
+        message: "Esta compra já está confirmada. O recibo oficial está disponível.",
+      }, { status: 201, headers: { "Cache-Control": "no-store" } });
+    }
+
     if (parsed.data.paymentMethod === "WALLET") {
       if (purchase.status !== "CONFIRMED" || purchase.paymentMethod !== "WALLET" || !purchase.receiptCode || !purchase.confirmedAt) {
         return NextResponse.json({ error: "Não foi possível confirmar o pagamento com saldo. Atualize a carteira e tente novamente." }, { status: 409, headers: { "Cache-Control": "no-store" } });
