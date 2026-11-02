@@ -1489,3 +1489,20 @@ p, .intro, .auth-description, .area-description, .feature-card p,
 .admin-cashier-details dl>div{min-width:0}
 .admin-cashier-details dt{font-size:.8rem;color:var(--muted,#a5b1c2)}
 .admin-cashier-details dd{margin:3px 0 0;font-weight:700;overflow-wrap:anywhere}
+
+
+/* Painel administrativo individual do cambista e histórico de acertos. */
+.admin-cashier-name-link{display:inline-flex;gap:7px;flex-wrap:wrap;color:var(--accent);text-decoration:none;font-weight:800}
+.admin-cashier-name-link:hover{text-decoration:underline}
+.admin-cashier-detail{display:grid;gap:18px;margin-top:20px}
+.admin-cashier-detail>.feature-card{max-width:none}
+.admin-cashier-history{overflow:hidden}
+.admin-cashier-table-wrap{width:100%;overflow-x:auto;margin-top:14px}
+.admin-cashier-table{width:100%;border-collapse:collapse;font-size:.9rem;white-space:nowrap}
+.admin-cashier-table th,.admin-cashier-table td{padding:11px 12px;border-bottom:1px solid var(--border);text-align:left}
+.admin-cashier-table th{background:var(--background);font-weight:800}
+.admin-settlement-action .primary-button{min-height:48px}
+.cashier-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.cashier-summary-tile{display:grid;gap:5px;padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+.cashier-summary-tile span{color:var(--muted);font-size:.88rem}
+.cashier-summary-tile strong{font-size:1.2rem;overflow-wrap:anywhere}
