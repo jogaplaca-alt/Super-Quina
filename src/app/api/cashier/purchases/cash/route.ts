@@ -16,6 +16,7 @@ const requestSchema = z.object({
 
 export async function POST(request: NextRequest) {
   const origin = request.headers.get("origin");
+  if (!origin) return NextResponse.json({ error: "Requisição inválida." }, { status: 403, headers });
   if (origin) {
     let originHost = "";
     try {
