@@ -76,12 +76,13 @@ export async function createNumericPurchase(prisma: PrismaClient, input: Numeric
           currentMultipliers = validated;
         }
         const snapshot = createNumericPrizeRuleSnapshot(currentMultipliers);
-        const maximumLinePrizeCents =
-          allocation.unitCents * currentMultipliers.unit +
-          allocation.tensCents * currentMultipliers.tens +
-          allocation.hundredsCents * currentMultipliers.hundreds +
-          allocation.thousandsCents * currentMultipliers.thousands +
-          allocation.quinaCents * currentMultipliers.quina;
+        const maximumLinePrizeCents = Math.max(
+          allocation.unitCents * currentMultipliers.unit,
+          allocation.tensCents * currentMultipliers.tens,
+          allocation.hundredsCents * currentMultipliers.hundreds,
+          allocation.thousandsCents * currentMultipliers.thousands,
+          allocation.quinaCents * currentMultipliers.quina,
+        );
         if (!Number.isSafeInteger(maximumLinePrizeCents) || maximumLinePrizeCents > 2_147_483_647) {
           throw new PurchaseServiceError("Os multiplicadores atuais tornam o prêmio máximo maior que o limite financeiro suportado.", "INVALID_PURCHASE");
         }
