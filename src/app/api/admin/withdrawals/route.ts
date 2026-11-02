@@ -61,7 +61,20 @@ const actionSchema = z.object({
 
 export async function POST(request: NextRequest) {
   const origin = request.headers.get("origin");
-  if (origin && origin !== request.nextUrl.origin) return NextResponse.json({ error: "Requisição inválida." }, { status: 403, headers });
+  if (origin) {
+    let originHost: string;
+    try { originHost = new URL(origin).host.toLowerCase(); }
+    catch { return NextResponse.json({ error: "Requisição inválida." }, { status: 403, headers }); }
+    const acceptedHosts = [
+      request.headers.get("x-forwarded-host"),
+      request.headers.get("host"),
+    ].filter((value): value is string => Boolean(value))
+      .flatMap((value) => value.split(","))
+      .map((value) => value.trim().toLowerCase()).filter(Boolean);
+    if (!acceptedHosts.includes(originHost)) {
+      return NextResponse.json({ error: "Requisição inválida." }, { status: 403, headers });
+    }
+  }
   const auth = await requireAdmin(request);
   if (auth.response) return auth.response;
   let payload: unknown;
