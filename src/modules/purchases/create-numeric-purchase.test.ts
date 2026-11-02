@@ -11,6 +11,7 @@ describe("createNumericPurchase pending Pix intent", () => {
     });
     const tx = {
       purchase: { findUnique: vi.fn().mockResolvedValue(null), create: purchaseCreate },
+      setting: { findUnique: vi.fn().mockResolvedValue(null) },
       $queryRaw: vi.fn(),
     };
     const prisma = {
