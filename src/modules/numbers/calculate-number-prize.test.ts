@@ -13,20 +13,34 @@ function line(numberValue: string) {
 }
 
 describe("calculateNumberPrizeCents", () => {
-  it("applies the five categories to suffixes of one numeric result", () => {
-    // 12345 vs 99345: unit, tens and hundreds match; thousands and quina do not.
-    expect(calculateNumberPrizeCents(line("12345"), "99345"))
-      .toBe(20 * 5 + 20 * 50 + 20 * 500);
+  it("pays only the highest matching category when unit, tens and hundreds match", () => {
+    // 12345 vs 99345: the hundreds (terno) tier wins; unit and tens are not accumulated.
+    expect(calculateNumberPrizeCents(line("12345"), "99345")).toBe(20 * 200);
   });
 
-  it("awards all five categories for an exact match", () => {
-    expect(calculateNumberPrizeCents(line("01234"), "01234"))
-      .toBe(20 * (5 + 50 + 500 + 5_000 + 50_000));
+  it("pays only quina on an exact five-digit match", () => {
+    expect(calculateNumberPrizeCents(line("01234"), "01234")).toBe(20 * 20_000);
+  });
+
+  it("pays only quadra (four final digits) when quina does not match", () => {
+    expect(calculateNumberPrizeCents(line("12345"), "99345")).toBe(20 * 200);
+    expect(calculateNumberPrizeCents(line("12345"), "99345")).not.toBe(20 * (5 + 20 + 200));
+  });
+
+  it("pays only dezena when the final two digits match", () => {
+    expect(calculateNumberPrizeCents(line("12345"), "99345")).toBe(20 * 200);
+    expect(calculateNumberPrizeCents(line("12345"), "99305")).toBe(20 * 20);
+  });
+
+  it("pays only unidade when only the final digit matches", () => {
+    expect(calculateNumberPrizeCents(line("12345"), "99346")).toBe(0);
+    expect(calculateNumberPrizeCents(line("12345"), "99345")).toBe(20 * 200);
+    expect(calculateNumberPrizeCents(line("12345"), "99344")).toBe(0);
+    expect(calculateNumberPrizeCents(line("12345"), "99335")).toBe(20 * 200);
   });
 
   it("uses leading zeroes literally", () => {
-    expect(calculateNumberPrizeCents(line("00007"), "12307"))
-      .toBe(20 * 5 + 20 * 50);
+    expect(calculateNumberPrizeCents(line("00007"), "12307")).toBe(20 * 20);
   });
 
   it("rejects invalid snapshots and allocations", () => {
