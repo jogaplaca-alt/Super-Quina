@@ -27,7 +27,7 @@ describe("POST /api/auth/logout", () => {
     revoke.mockResolvedValue(undefined);
     const request = new NextRequest("https://example.test/api/auth/logout", {
       method: "POST",
-      headers: { origin: "https://example.test", cookie: "superquina_session=opaque-token" },
+      headers: { origin: "https://example.test", host: "example.test", cookie: "superquina_session=opaque-token" },
     });
     const response = await POST(request);
     expect(response.status).toBe(200);
