@@ -59,8 +59,21 @@ function roundCodeFor(date: Date) {
 
 export async function POST(request: NextRequest) {
   const origin = request.headers.get("origin");
-  if (origin && origin !== request.nextUrl.origin) {
-    return NextResponse.json({ error: "Requisição inválida." }, { status: 403, headers: { "Cache-Control": "no-store" } });
+  if (origin) {
+    let originHost = "";
+    try {
+      const parsedOrigin = new URL(origin);
+      if (parsedOrigin.protocol !== "https:" && parsedOrigin.protocol !== "http:") {
+        return NextResponse.json({ error: "Requisição inválida." }, { status: 403, headers });
+      }
+      originHost = parsedOrigin.host.toLowerCase();
+    } catch {
+      return NextResponse.json({ error: "Requisição inválida." }, { status: 403, headers });
+    }
+    const requestHost = request.headers.get("host")?.trim().toLowerCase();
+    if (!requestHost || originHost !== requestHost) {
+      return NextResponse.json({ error: "Requisição inválida." }, { status: 403, headers });
+    }
   }
   const user = await getSessionUser(request.cookies.get(SESSION_COOKIE)?.value);
   if (!user) return NextResponse.json({ error: "É necessário entrar na conta." }, { status: 401, headers: { "Cache-Control": "no-store" } });
