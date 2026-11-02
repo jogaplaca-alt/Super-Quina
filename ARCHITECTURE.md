@@ -17,6 +17,10 @@ Cada rodada tem um único resultado textual de cinco algarismos. NumericParticip
 ## Financeiro
 Purchase, PurchaseParticipation, Payment, LedgerEntry, CashierCommission, Withdrawal, usuários e auditoria permanecem. Jogadores usam Pix/carteira; cambistas usam Pix/dinheiro. Recibos dependem de confirmação de pagamento. Créditos de prêmios usam chave idempotente por linha numérica.
 
+## Agendador e gestão de rodadas
+- A criação de rodadas é exclusiva do `POST /api/internal/round-scheduler`, protegido por `ROUND_SCHEDULER_SECRET`.
+- O endpoint administrativo `/api/admin/rounds` é somente leitura; criação manual de rodadas não faz parte do produto.
+- O painel administrativo consulta rodadas existentes e mantém os controles operacionais de fechamento, sorteio e apuração.
 ## Agendador
 POST /api/internal/round-scheduler, protegido por ROUND_SCHEDULER_SECRET. Mantém até dez rodadas futuras em intervalos de 30 minutos e processa abertura, fechamento, sorteio e reconciliação Pix. A hospedagem precisa chamar o endpoint a cada minuto; o cron externo não é criado pelo código.
 
