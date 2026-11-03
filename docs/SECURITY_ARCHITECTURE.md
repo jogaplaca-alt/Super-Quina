@@ -1,4 +1,4 @@
-# Joga Placas — Princípios de arquitetura e segurança
+# Super Quina — Princípios de arquitetura e segurança
 
 Este documento define guardrails de implementação, não uma afirmação de que controles já estejam implementados.
 
