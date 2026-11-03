@@ -40,10 +40,22 @@ export default async function AdminCashierDetailPage({ params }: { params: Promi
   ]);
   const cashTotal = cashNow._sum.totalCents ?? 0;
   const pixTotal = pixNow._sum.totalCents ?? 0;
+  const commissionTotal = commissionNow._sum.amountCents ?? 0;
   return <AreaShell title="Financeiro do cambista" username={admin.username} description="Cadastro, vendas e histórico de acertos.">
     <div className="admin-cashier-detail">
       <p><Link href="/admin">← Voltar ao administrador</Link></p>
-      <section className="feature-card admin-cashier-current"><h2>Fechamento atual — desde o último acerto</h2><div className="cashier-summary-grid"><article className="cashier-summary-tile"><span>Dinheiro</span><strong>{money(cashTotal)}</strong></article><article className="cashier-summary-tile"><span>Pix confirmado</span><strong>{money(pixTotal)}</strong></article><article className="cashier-summary-tile"><span>Total</span><strong>{money(cashTotal + pixTotal)}</strong></article><article className="cashier-summary-tile"><span>Quantidade de vendas</span><strong>{cashNow._count._all + pixNow._count._all}</strong></article><article className="cashier-summary-tile"><span>Jogos realizados</span><strong>{gamesNow}</strong></article><article className="cashier-summary-tile"><span>Comissão a pagar</span><strong>{money(commissionNow._sum.amountCents ?? 0)}</strong></article></div><p>Contagem iniciada em: {latestSettlement ? latestSettlement.settledAt.toLocaleString("pt-BR") : "início das vendas"}</p></section>
+      <section className="feature-card admin-cashier-current">
+        <h2>Resumo financeiro — igual ao painel do cambista</h2>
+        <p>Valores acumulados desde o último acerto. Somente vendas confirmadas entram no resumo.</p>
+        <div className="cashier-summary-grid">
+          <article className="cashier-summary-tile"><span>Comissão acumulada</span><strong>{money(commissionTotal)}</strong></article>
+          <article className="cashier-summary-tile"><span>Valor total das vendas</span><strong>{money(cashTotal + pixTotal)}</strong></article>
+          <article className="cashier-summary-tile"><span>Vendas em dinheiro</span><strong>{money(cashTotal)}</strong></article>
+          <article className="cashier-summary-tile"><span>Vendas em Pix confirmado</span><strong>{money(pixTotal)}</strong></article>
+        </div>
+        <p>Vendas confirmadas: {cashNow._count._all + pixNow._count._all} · Jogos realizados: {gamesNow}</p>
+        <p>Contagem iniciada em: {latestSettlement ? latestSettlement.settledAt.toLocaleString("pt-BR") : "início das vendas"}</p>
+      </section>
       <section className="feature-card">
         <span className="feature-label">Dados do cambista</span>
         <h2>{cashier.fullName || cashier.username}</h2>
