@@ -5,12 +5,11 @@ import { PlayerPurchaseReceipt } from "@/components/receipts/player-purchase-rec
 
 type Mode = "PLAYER" | "CASHIER";
 type PaymentMethod = "PIX" | "WALLET" | "CASH";
-type Round = { id: string; code: string; startsAt: string; cutoffAt: string; resultAt: string; status: "SCHEDULED" | "OPEN" };
 type NumericLine = { numberValue: string; totalCents: number; allocationCents: Record<string, number> };
 type Purchase = {
   id: string; receiptCode: string | null; status: string; totalCents: number; currency: string;
   paymentStatus?: string;
-  numericIntent?: { roundCount: number; numbers: string[]; allocationCents: Record<string, number> } | null;
+  numericIntent?: { participationCount: number; numbers: string[]; allocationCents: Record<string, number> } | null;
   participations: Array<{ roundId: string; totalCents: number; lines: NumericLine[] }>;
 };
 type PixCheckout = { copyPaste: string | null; qrCodeBase64: string | null; ticketUrl: string | null };
@@ -30,15 +29,12 @@ function clearInput(value: string) {
 }
 
 export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
-  const [rounds, setRounds] = useState<Round[]>([]);
-  const [clockNow, setClockNow] = useState(() => Date.now());
-  const [selectedRounds, setSelectedRounds] = useState<string[]>([]);
+  const [participationCount, setParticipationCount] = useState(1);
   const [numberInput, setNumberInput] = useState("");
   const [numbers, setNumbers] = useState<string[]>([]);
   const [stake, setStake] = useState("1,00");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(mode === "PLAYER" ? "PIX" : "PIX");
   const [walletBalanceCents, setWalletBalanceCents] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -49,56 +45,6 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
   const [receiptPurchaseId, setReceiptPurchaseId] = useState<string | null>(null);
   const idempotency = useRef<{ signature: string; key: string } | null>(null);
   const [reconciliationRequired, setReconciliationRequired] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    let refreshing = false;
-    const endpoint = mode === "PLAYER" ? "/api/player/rounds" : "/api/cashier/rounds";
-    const refresh = async (showLoading = false) => {
-      if (refreshing) return;
-      refreshing = true;
-      if (showLoading) setLoading(true);
-      try {
-        const response = await fetch(endpoint, { cache: "no-store" });
-        const body = await response.json();
-        if (!response.ok) throw new Error(body.error ?? "Não foi possível carregar as rodadas.");
-        const items = body.rounds as Round[];
-        if (!active) return;
-        setRounds(items);
-        setSelectedRounds((current) => {
-          const stillValid = current.filter((id) => items.some((round) => round.id === id));
-          const desiredCount = Math.max(1, current.length);
-          const replacements = items.filter((round) => !stillValid.includes(round.id))
-            .slice(0, Math.max(0, desiredCount - stillValid.length)).map((round) => round.id);
-          return [...stillValid, ...replacements].slice(0, desiredCount);
-        });
-        setError("");
-      } catch (reason) {
-        if (active) setError(reason instanceof Error ? reason.message : "Erro ao atualizar as rodadas.");
-      } finally {
-        refreshing = false;
-        if (active) setLoading(false);
-      }
-    };
-    void refresh(true);
-    const timer = window.setInterval(() => {
-      if (document.visibilityState === "visible") void refresh();
-    }, 2000);
-    const refreshOnReturn = () => { if (document.visibilityState === "visible") void refresh(); };
-    window.addEventListener("focus", refreshOnReturn);
-    document.addEventListener("visibilitychange", refreshOnReturn);
-    return () => {
-      active = false;
-      window.clearInterval(timer);
-      window.removeEventListener("focus", refreshOnReturn);
-      document.removeEventListener("visibilitychange", refreshOnReturn);
-    };
-  }, [mode]);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => setClockNow(Date.now()), 1000);
-    return () => window.clearInterval(timer);
-  }, []);
 
   useEffect(() => {
     if (mode !== "PLAYER") return;
@@ -126,7 +72,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
           if (mode === "CASHIER") setReceiptPurchaseId(purchase.id);
           idempotency.current = null;
           setPurchase(null); setPixCheckout(null); setPurchaseMessage(""); setPixModalOpen(false); setReconciliationRequired(false);
-          setNumbers([]); setNumberInput(""); setSelectedRounds([]);
+          setNumbers([]); setNumberInput(""); setParticipationCount(1);
           setNotice(mode === "CASHIER"
             ? "Pagamento confirmado. O recibo oficial está na tela."
             : "Pagamento confirmado. Sua aposta foi registrada.");
@@ -145,9 +91,8 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
     return () => { active = false; window.clearInterval(timer); };
   }, [mode, paymentMethod, purchase?.id]);
 
-  const visibleRounds = useMemo(() => rounds.filter((round) => new Date(round.cutoffAt).getTime() > clockNow), [rounds, clockNow]);
   const stakeCents = useMemo(() => parseStake(stake), [stake]);
-  const totalEstimate = stakeCents !== null ? stakeCents * numbers.length * selectedRounds.length : 0;
+  const totalEstimate = stakeCents !== null ? stakeCents * numbers.length * participationCount : 0;
 
   function generateRandomNumber() {
     const existing = new Set(numbers);
@@ -181,13 +126,12 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
     event.preventDefault(); setError(""); setNotice("");
     if (!numbers.length) { setError("Adicione pelo menos um número de cinco algarismos."); return; }
     if (stakeCents === null) { setError("O valor mínimo por número e rodada é R$ 1,00."); return; }
-    if (!selectedRounds.length) { setError("Selecione pelo menos uma rodada disponível."); return; }
     if (mode === "PLAYER" && paymentMethod === "WALLET" && (walletBalanceCents === null || walletBalanceCents < totalEstimate)) {
       setError("Saldo insuficiente ou indisponível para esta compra."); return;
     }
     setSubmitting(true);
     try {
-      const signature = JSON.stringify({ roundCount: selectedRounds.length, numbers, stakeCents, paymentMethod });
+      const signature = JSON.stringify({ participationCount, numbers, stakeCents, paymentMethod });
       const idempotencyKey = idempotency.current?.signature === signature
         ? idempotency.current.key
         : crypto.randomUUID();
@@ -199,7 +143,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           idempotencyKey: idempotencyKey,
-          roundCount: selectedRounds.length,
+          participationCount,
           numbers,
           stakeCents,
           ...(mode === "PLAYER" ? { paymentMethod } : {}),
@@ -211,7 +155,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
       if (paymentMethod === "CASH" || paymentMethod === "WALLET" || body.receiptReady) {
         if (mode === "CASHIER") setReceiptPurchaseId(created.id);
         idempotency.current = null;
-        setNumbers([]); setNumberInput(""); setSelectedRounds([]);
+        setNumbers([]); setNumberInput(""); setParticipationCount(1);
         setNotice(mode === "CASHIER"
           ? "Venda confirmada. O recibo oficial está disponível."
           : "Compra confirmada. Sua aposta foi registrada.");
@@ -257,19 +201,14 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
         <label htmlFor={mode.toLowerCase() + "-stake"}>Valor por número em cada rodada (R$)</label>
         <input id={mode.toLowerCase() + "-stake"} disabled={Boolean(purchase)} value={stake} onChange={(event) => setStake(event.target.value)} inputMode="decimal" />
 
-        <fieldset className="round-repeat-fieldset" disabled={Boolean(purchase) || loading || visibleRounds.length === 0}>
-          <legend>Quantidade de próximas rodadas</legend>
-          {loading ? <p>Carregando rodadas…</p> : visibleRounds.length === 0 ? <p>Não há rodadas numéricas disponíveis no momento.</p> : <>
-            <select aria-label="Quantidade de próximas rodadas" value={String(Math.max(1, selectedRounds.length))}
-              onChange={(event) => {
-                const count = Math.max(1, Math.min(10, Number(event.target.value) || 1));
-                setSelectedRounds(visibleRounds.slice(0, count).map((round) => round.id));
-              }}>
-              {Array.from({ length: Math.min(10, visibleRounds.length) }, (_, index) => index + 1)
-                .map((count) => <option key={count} value={count}>{count} {count === 1 ? "rodada" : "rodadas"}</option>)}
-            </select>
-            <p>A aposta será direcionada automaticamente às próximas rodadas válidas. Não é necessário escolher uma rodada específica.</p>
-          </>}
+        <fieldset className="round-repeat-fieldset" disabled={Boolean(purchase)}>
+          <legend>Quantidade de jogos</legend>
+          <select aria-label="Quantidade de jogos" value={String(participationCount)}
+            onChange={(event) => setParticipationCount(Math.max(1, Math.min(10, Number(event.target.value) || 1)))}>
+            {Array.from({ length: 10 }, (_, index) => index + 1)
+              .map((count) => <option key={count} value={count}>{count} {count === 1 ? "jogo" : "jogos"}</option>)}
+          </select>
+          <p>As rodadas serão atribuídas automaticamente somente após a confirmação do pagamento.</p>
         </fieldset>
 
         {mode === "PLAYER" ? <fieldset className="round-repeat-fieldset">
@@ -286,7 +225,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
         <p><strong>Total estimado: {money(totalEstimate)}</strong></p>
         {error && <p role="alert" className="note-inline form-feedback-error">{error}</p>}
         {notice && <p role="status" className="note-inline form-feedback-success">{notice}</p>}
-        <button type="submit" disabled={submitting || loading || Boolean(purchase) || !numbers.length || !selectedRounds.length}>
+        <button type="submit" disabled={submitting || Boolean(purchase) || !numbers.length}>
           {submitting ? "Registrando…" : mode === "PLAYER" ? "Continuar para pagamento" : "Registrar venda"}
         </button>
       </form>
@@ -297,7 +236,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
           <p>Status: {reconciliationRequired ? "pagamento confirmado; aguardando atualização do recibo" : "aguardando confirmação do pagamento"}</p>
           <p>{purchaseMessage}</p>
           <p>Total: <strong>{money(purchase.totalCents)}</strong></p>
-          {purchase.numericIntent && <p>Quantidade: {purchase.numericIntent.roundCount} {purchase.numericIntent.roundCount === 1 ? "rodada futura" : "rodadas futuras"}</p>}
+          {purchase.numericIntent && <p>Quantidade de jogos: {purchase.numericIntent.participationCount} {purchase.numericIntent.participationCount === 1 ? "jogo" : "jogos"}</p>}
           {purchase.numericIntent ? purchase.numericIntent.numbers.map((number, index) => <div key={"intent-" + number + "-" + index}>
             <strong>{number}</strong> — {money(Object.values(purchase.numericIntent!.allocationCents).reduce((sum, value) => sum + value, 0))}
           </div>) : purchase.participations.flatMap((part) => part.lines.map((line, index) => <div key={part.roundId + line.numberValue + index}>
