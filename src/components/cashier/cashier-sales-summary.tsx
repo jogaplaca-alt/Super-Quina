@@ -39,19 +39,21 @@ export function CashierSalesSummary() {
     <summary>
       <span className="player-collapsible-label">Financeiro</span>
       <span className="player-collapsible-title">Resumo financeiro</span>
-      <span className="player-collapsible-hint">Vendas acumuladas desde o último acerto</span>
+      <span className="player-collapsible-hint">Confira comissão e vendas por forma de pagamento</span>
     </summary>
     <section className="cashier-compact-summary" aria-label="Resumo financeiro do cambista">
       {error && <p role="alert" className="note-inline">{error}</p>}
       <div className="cashier-summary-grid">
-        <article className="cashier-summary-tile"><span>Vendas em dinheiro</span><strong>{summary ? money(summary.cashSalesCents) : "Carregando…"}</strong></article>
-        <article className="cashier-summary-tile"><span>Vendas no Pix confirmado</span><strong>{summary ? money(summary.pixSalesCents) : "Carregando…"}</strong></article>
-        <article className="cashier-summary-tile"><span>Total de vendas</span><strong>{summary ? money(summary.totalSalesCents) : "Carregando…"}</strong></article>
-        <article className="cashier-summary-tile"><span>Quantidade de vendas</span><strong>{summary ? summary.confirmedSalesCount : "Carregando…"}</strong></article>
-        <article className="cashier-summary-tile"><span>Jogos realizados</span><strong>{summary ? summary.gamesCount : "Carregando…"}</strong></article>
         <article className="cashier-summary-tile"><span>Comissão acumulada</span><strong>{summary ? money(summary.commissionCents) : "Carregando…"}</strong></article>
+        <article className="cashier-summary-tile"><span>Valor total das vendas</span><strong>{summary ? money(summary.totalSalesCents) : "Carregando…"}</strong></article>
+        <article className="cashier-summary-tile"><span>Vendas em dinheiro</span><strong>{summary ? money(summary.cashSalesCents) : "Carregando…"}</strong></article>
+        <article className="cashier-summary-tile"><span>Vendas em Pix confirmado</span><strong>{summary ? money(summary.pixSalesCents) : "Carregando…"}</strong></article>
       </div>
+      <p className="note-inline">
+        {summary ? `Vendas confirmadas: ${summary.confirmedSalesCount} · Jogos realizados: ${summary.gamesCount}` : "Carregando quantidade de vendas e jogos…"}
+      </p>
       {summary?.lastSettlementAt && <p className="note-inline">Último acerto: {new Date(summary.lastSettlementAt).toLocaleString("pt-BR")}</p>}
+      <p className="note-inline">Somente vendas confirmadas entram nos valores. O resumo acumula desde o último acerto registrado pelo administrador.</p>
     </section>
   </details>;
 }
