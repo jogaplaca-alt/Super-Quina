@@ -3,7 +3,7 @@
 async function main() {
   if (process.argv.includes("--help")) {
     process.stdout.write(
-      "Safely create the first Joga Placas administrator if none exists.\n" +
+      "Safely create the first Super Quina administrator if none exists.\n" +
       "Required only when no administrator exists: DATABASE_URL, ADMIN_USERNAME, ADMIN_INITIAL_PASSWORD, CONFIRM_ADMIN_PROVISIONING=CREATE_FIRST_ADMIN.\n" +
       "The account is created with mustChangePassword=true. Never put credentials in source control.\n" +
       "If an administrator already exists, this command exits successfully without changing any account.\n",
