@@ -36,7 +36,7 @@ function request(body: unknown, options: { origin?: string; token?: string } = {
 }
 const validBody = () => ({
   idempotencyKey: "idempotency-key-0001",
-  roundCount: 1,
+  repetitionCount: 1,
   numbers: ["01234"],
   stakeCents: 100,
   paymentMethod: "PIX",
@@ -92,7 +92,7 @@ describe("POST /api/player/purchases", () => {
     expect(malformed.status).toBe(400);
     const invalidNumber = await POST(request({ ...validBody(), numbers: ["1234A"] }));
     expect(invalidNumber.status).toBe(400);
-    const invalidCount = await POST(request({ ...validBody(), roundCount: 11 }));
+    const invalidCount = await POST(request({ ...validBody(), repetitionCount: 11 }));
     expect(invalidCount.status).toBe(400);
     const obsoleteRoundIds = await POST(request({ ...validBody(), roundIds: ["round-1"] }));
     expect(obsoleteRoundIds.status).toBe(400);
