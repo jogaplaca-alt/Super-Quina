@@ -25,8 +25,8 @@ A alocação de cada aposta entre unidade, dezena, centena, milhar e quina é um
 - O fluxo aceita vendas de jogadores e cambistas durante a transição entre fechamento, sorteio e abertura de rodadas.
 - A ausência momentânea de uma rodada com status `OPEN` não deve, por si só, bloquear uma venda.
 - No fluxo Pix, a compra fica como intenção pendente e não recebe vínculo definitivo com rodadas antes da confirmação autêntica do pagamento.
-- Após a confirmação do Pix, o sistema deve atribuir automaticamente as repetições às próximas rodadas válidas.
-- Para dinheiro e saldo da carteira, o recebimento/débito é registrado mesmo que o agendador esteja momentaneamente entre rodadas. A compra permanece em estado pendente de alocação, com a intenção numérica persistida; o agendador tenta vinculá-la automaticamente assim que houver a sequência necessária de rodadas. O débito da carteira e a comissão do cambista não podem ser repetidos durante a retentativa.
+- Após a confirmação do Pix, o sistema deve atribuir automaticamente as repetições às próximas rodadas válidas. Se ainda não houver uma sequência completa ou ocorrer uma falha transitória, o pagamento permanece pendente de conclusão da alocação e o scheduler consulta novamente o Mercado Pago e tenta vincular as rodadas em execuções subsequentes, até concluir. A confirmação externa do Pix não pode ser perdida só porque a alocação falhou na primeira tentativa.
+- Para dinheiro e saldo da carteira, o recebimento/débito é registrado mesmo que o agendador esteja momentaneamente entre rodadas. A compra permanece em estado pendente de alocação, com a intenção numérica persistida. O agendador tenta vinculá-la automaticamente em cada execução (configurado para rodar a cada minuto) e repete a tentativa enquanto a compra continuar pendente, até conseguir vincular todas as repetições. Falta de rodadas, indisponibilidade temporária do banco ou erro técnico não pode descartar a intenção nem encerrar definitivamente as tentativas. O débito da carteira e a comissão do cambista não podem ser repetidos durante a retentativa.
 - O recibo oficial só pode ser emitido depois que o pagamento estiver confirmado e todas as repetições estiverem vinculadas às rodadas correspondentes.
 - Se ocorrer falha técnica depois de o pagamento ter sido recebido, a compra deve permanecer registrada para tratamento administrativo auditável. Não se deve cancelar a aposta paga nem gerar reembolso automático. O recibo oficial só é criado depois da alocação completa; enquanto isso, a interface informa que o valor foi recebido e que a alocação está em processamento.
 
@@ -39,7 +39,7 @@ Não existe reembolso no fluxo comercial normal do jogo. Qualquer notificação 
 - As APIs públicas de criação de compra usam o nome `repetitionCount`.
 - O campo legado `NumericPurchaseIntent.roundCount` no banco representa **quantidade de repetições**, e não quantidade de jogos nem uma escolha de rodadas pelo usuário. Sua manutenção temporária evita uma migração destrutiva de dados; o código deve tratá-lo com esse significado.
 - Uma repetição gera uma participação em uma rodada. Cada participação contém todos os números do jogo.
-- Mudanças de estado, pagamentos recebidos e alocações pendentes devem ser auditáveis e idempotentes.
+- Mudanças de estado, pagamentos recebidos e alocações pendentes devem ser auditáveis e idempotentes. As retentativas devem continuar enquanto houver alocação pendente, sem limite de tentativas de negócio, sem nova cobrança e sem duplicar participações, recibos ou comissões.
 
 ## 6. Exemplo de referência
 
