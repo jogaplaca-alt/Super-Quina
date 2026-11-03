@@ -47,8 +47,15 @@ export async function POST(request: NextRequest) {
       idempotencyKey: parsed.data.idempotencyKey, cashierId: user.id, paymentMethod: "CASH",
       roundCount: parsed.data.repetitionCount, numbers: parsed.data.numbers, stakeCents: parsed.data.stakeCents,
     });
-    if (purchase.paymentMethod !== "CASH" || purchase.status !== "CONFIRMED" || !purchase.receiptCode) {
-      return NextResponse.json({ error: "A venda em dinheiro não foi confirmada." }, { status: 409, headers: { "Cache-Control": "no-store" } });
+    if (purchase.paymentMethod !== "CASH") {
+      return NextResponse.json({ error: "Método de pagamento inválido." }, { status: 409, headers: { "Cache-Control": "no-store" } });
+    }
+    if (purchase.status !== "CONFIRMED" || !purchase.receiptCode) {
+      return NextResponse.json({
+        purchase: { id: purchase.id, status: purchase.status, totalCents: purchase.totalCents, currency: purchase.currency },
+        receiptReady: false, allocationPending: true,
+        message: "Valor recebido e venda registrada. O sistema está aguardando a próxima sequência de rodadas para concluir a alocação e liberar o recibo.",
+      }, { status: 202, headers: { "Cache-Control": "no-store" } });
     }
     return NextResponse.json({
       purchase: {
