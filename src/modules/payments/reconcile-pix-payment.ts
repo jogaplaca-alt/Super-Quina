@@ -68,15 +68,31 @@ export async function reconcilePixPaymentFromProvider(
     return result.outcome;
   }
 
+  if (normalizedStatus === "refunded") {
+    await prisma.$transaction(async (tx) => {
+      const prior = await tx.auditEvent.findFirst({
+        where: { action: "UNEXPECTED_EXTERNAL_REFUND_REPORTED", entityType: "Purchase", entityId: payment.purchaseId },
+        select: { id: true },
+      });
+      if (!prior) await tx.auditEvent.create({
+        data: {
+          action: "UNEXPECTED_EXTERNAL_REFUND_REPORTED",
+          entityType: "Purchase",
+          entityId: payment.purchaseId,
+          metadata: { paymentId: payment.id, providerStatus, source: "status_fallback", note: "Manual financial review required; purchase and prizes were not reversed." },
+        },
+      });
+    });
+    return "still_pending";
+  }
+
   const terminalStatus = ["rejected", "failure", "failed"].includes(normalizedStatus)
     ? "FAILED"
     : ["cancelled", "canceled"].includes(normalizedStatus)
       ? "CANCELLED"
       : normalizedStatus === "expired"
         ? "EXPIRED"
-        : normalizedStatus === "refunded"
-          ? "REFUNDED"
-          : null;
+        : null;
   if (!terminalStatus) return "still_pending";
 
   await prisma.$transaction(async (tx) => {
