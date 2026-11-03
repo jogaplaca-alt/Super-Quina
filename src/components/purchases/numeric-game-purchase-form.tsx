@@ -178,7 +178,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
     <section className="feature-card numeric-game-purchase">
       <span className="feature-label">{mode === "PLAYER" ? "Jogo" : "Nova venda"}</span>
       <h2>{mode === "PLAYER" ? "Jogue seu número" : "Registrar aposta numérica"}</h2>
-      <p>Escolha um número de cinco algarismos, de 00000 a 99999. Os zeros à esquerda fazem parte do número.</p>
+      <p>Monte seu jogo com um ou mais números de cinco algarismos, de 00000 a 99999. Os zeros à esquerda fazem parte do número.</p>
 
       <form onSubmit={submit}>
         <label htmlFor={mode.toLowerCase() + "-number"}>Número (cinco algarismos)</label>
