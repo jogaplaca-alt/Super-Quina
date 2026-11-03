@@ -6,6 +6,7 @@ import { closeRound } from "@/modules/rounds/close-round";
 import { openRound } from "@/modules/rounds/open-round";
 import { drawRoundResults } from "@/modules/rounds/draw-round-results";
 import { reconcilePixPaymentFromProvider } from "@/modules/payments/reconcile-pix-payment";
+import { allocatePaidPurchases } from "@/modules/purchases/allocate-paid-purchases";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -92,6 +93,9 @@ export async function POST(request: NextRequest) {
   let pixChecked = 0;
   let pixConfirmed = 0;
   let pixNeedsReconciliation = 0;
+  let paidPurchasesChecked = 0;
+  let paidPurchasesAllocated = 0;
+  let paidPurchasesWaiting = 0;
 
   // Maintain a rolling queue of at most ten upcoming 30-minute numeric rounds.
   // This endpoint still runs every minute for precise opening, cutoff, draw and Pix reconciliation.
@@ -129,6 +133,18 @@ export async function POST(request: NextRequest) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") continue;
       failures += 1;
     }
+  }
+
+  // Allocate cash/wallet purchases whose funds were already accepted while the
+  // scheduler had no complete sequence of future rounds available.
+  try {
+    const allocation = await allocatePaidPurchases(authPrisma, 50);
+    paidPurchasesChecked = allocation.checked;
+    paidPurchasesAllocated = allocation.allocated;
+    paidPurchasesWaiting = allocation.waiting;
+    failures += allocation.failures;
+  } catch {
+    failures += 1;
   }
 
   // Reconcile pending Pix orders independently of the browser. Closing the QR modal
@@ -193,6 +209,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     ok: failures === 0, created, closed, drawn, failures, timeZone: TIME_ZONE,
     pixChecked, pixConfirmed, pixNeedsReconciliation,
+    paidPurchasesChecked, paidPurchasesAllocated, paidPurchasesWaiting,
   }, {
     status: failures === 0 ? 200 : 207, headers: { "Cache-Control": "no-store" },
   });
