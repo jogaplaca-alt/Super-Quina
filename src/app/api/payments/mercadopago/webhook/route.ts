@@ -140,16 +140,26 @@ export async function POST(request: NextRequest) {
       // A provider-final negative result must close the pending purchase without
       // issuing a receipt. Only pending records may transition; delayed duplicate
       // notifications must never undo a previously confirmed purchase.
-      const terminalStatus = ["rejected", "failure", "failed"].includes(normalizedStatus)
-        ? "FAILED"
-        : ["cancelled", "canceled"].includes(normalizedStatus)
-          ? "CANCELLED"
-          : normalizedStatus === "expired"
-          ? "EXPIRED"
-          : normalizedStatus === "refunded"
-            ? "REFUNDED"
-            : null;
-      if (terminalStatus) {
+      if (normalizedStatus === "refunded") {
+        // Refunds are not part of the game's commercial flow. Treat an external
+        // refund notification as an administrative incident; never undo a ticket.
+        await authPrisma.auditEvent.create({
+          data: {
+            action: "UNEXPECTED_EXTERNAL_REFUND_REPORTED",
+            entityType: "Purchase",
+            entityId: payment.purchaseId,
+            metadata: { paymentId: payment.id, providerStatus, note: "Manual financial review required; purchase and prizes were not reversed." },
+          },
+        });
+      } else {
+        const terminalStatus = ["rejected", "failure", "failed"].includes(normalizedStatus)
+          ? "FAILED"
+          : ["cancelled", "canceled"].includes(normalizedStatus)
+            ? "CANCELLED"
+            : normalizedStatus === "expired"
+              ? "EXPIRED"
+              : null;
+        if (terminalStatus) {
         await authPrisma.$transaction(async (tx) => {
           const changed = await tx.payment.updateMany({
             where: { id: payment.id, status: "PENDING" },
@@ -178,6 +188,7 @@ export async function POST(request: NextRequest) {
             },
           });
         }, { isolationLevel: "Serializable" });
+        }
       }
     }
 
