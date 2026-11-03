@@ -64,7 +64,7 @@ export async function allocatePaidPurchases(prisma: PrismaClient, take = 50): Pr
         const snapshot = purchase.numericIntent.ruleSnapshot as Prisma.InputJsonValue;
         const stakePerNumber = allocation.unitCents + allocation.tensCents + allocation.hundredsCents + allocation.thousandsCents + allocation.quinaCents;
         const perRoundCents = numbers.length * stakePerNumber;
-        if (!Array.isArray(numbers) || !numbers.length || numbers.some((value) => !/^\\d{5}$/.test(value))
+        if (!Array.isArray(numbers) || !numbers.length || numbers.some((value) => !/^\d{5}$/.test(value))
           || perRoundCents * count !== purchase.totalCents) {
           throw new Error("Paid numeric purchase intent failed integrity validation");
         }
