@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
   paymentFindMany: vi.fn(),
   paymentUpdateMany: vi.fn(),
   reconcilePixPaymentFromProvider: vi.fn(),
+  allocatePaidPurchases: vi.fn(),
 }));
 vi.mock("@/lib/auth/session", () => ({
   authPrisma: {
@@ -26,6 +27,7 @@ vi.mock("@/modules/rounds/close-round", () => ({ closeRound: mocks.closeRound })
 vi.mock("@/modules/rounds/open-round", () => ({ openRound: mocks.openRound }));
 vi.mock("@/modules/rounds/draw-round-results", () => ({ drawRoundResults: mocks.drawRoundResults }));
 vi.mock("@/modules/payments/reconcile-pix-payment", () => ({ reconcilePixPaymentFromProvider: mocks.reconcilePixPaymentFromProvider }));
+vi.mock("@/modules/purchases/allocate-paid-purchases", () => ({ allocatePaidPurchases: mocks.allocatePaidPurchases }));
 
 import { POST } from "./route";
 
@@ -47,6 +49,7 @@ describe("POST /api/internal/round-scheduler", () => {
     mocks.paymentFindMany.mockResolvedValue([]);
     mocks.paymentUpdateMany.mockResolvedValue({ count: 1 });
     mocks.reconcilePixPaymentFromProvider.mockResolvedValue("still_pending");
+    mocks.allocatePaidPurchases.mockResolvedValue({ checked: 0, allocated: 0, waiting: 0, failures: 0 });
     mocks.transaction.mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) =>
       callback({ round: { create: mocks.createRound }, auditEvent: { create: mocks.createAuditEvent } }),
     );
@@ -112,6 +115,7 @@ describe("POST /api/internal/round-scheduler", () => {
     expect(await response.json()).toMatchObject({
       ok: true, created: 0, closed: 0, drawn: 0, failures: 0, timeZone: "Etc/GMT+3",
       pixChecked: 0, pixConfirmed: 0, pixNeedsReconciliation: 0,
+      paidPurchasesChecked: 0, paidPurchasesAllocated: 0, paidPurchasesWaiting: 0,
     });
     expect(mocks.findMany).toHaveBeenCalledTimes(8);
     vi.useRealTimers();
