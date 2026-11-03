@@ -26,9 +26,9 @@ A alocação de cada aposta entre unidade, dezena, centena, milhar e quina é um
 - A ausência momentânea de uma rodada com status `OPEN` não deve, por si só, bloquear uma venda.
 - No fluxo Pix, a compra fica como intenção pendente e não recebe vínculo definitivo com rodadas antes da confirmação autêntica do pagamento.
 - Após a confirmação do Pix, o sistema deve atribuir automaticamente as repetições às próximas rodadas válidas.
-- Para dinheiro e saldo da carteira, o recebimento/debito não pode ser perdido nem a compra recusada apenas porque o agendador está momentaneamente entre rodadas. A implementação deve preservar o registro financeiro e encaminhar a alocação pendente para processamento confiável.
+- Para dinheiro e saldo da carteira, o recebimento/débito é registrado mesmo que o agendador esteja momentaneamente entre rodadas. A compra permanece em estado pendente de alocação, com a intenção numérica persistida; o agendador tenta vinculá-la automaticamente assim que houver a sequência necessária de rodadas. O débito da carteira e a comissão do cambista não podem ser repetidos durante a retentativa.
 - O recibo oficial só pode ser emitido depois que o pagamento estiver confirmado e todas as repetições estiverem vinculadas às rodadas correspondentes.
-- Se ocorrer falha técnica depois de o pagamento ter sido recebido, a compra deve permanecer registrada para tratamento administrativo auditável. Não se deve cancelar a aposta paga nem gerar reembolso automático.
+- Se ocorrer falha técnica depois de o pagamento ter sido recebido, a compra deve permanecer registrada para tratamento administrativo auditável. Não se deve cancelar a aposta paga nem gerar reembolso automático. O recibo oficial só é criado depois da alocação completa; enquanto isso, a interface informa que o valor foi recebido e que a alocação está em processamento.
 
 ## 4. Sem reembolso automático
 
