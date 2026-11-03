@@ -153,12 +153,18 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
       if (!response.ok) throw new Error(body.error ?? "Não foi possível registrar a compra.");
       const created = body.purchase as Purchase;
       if (paymentMethod === "CASH" || paymentMethod === "WALLET" || body.receiptReady) {
-        if (mode === "CASHIER") setReceiptPurchaseId(created.id);
-        idempotency.current = null;
-        setNumbers([]); setNumberInput(""); setParticipationCount(1);
-        setNotice(mode === "CASHIER"
-          ? "Venda confirmada. O recibo oficial está disponível."
-          : "Compra confirmada. Sua aposta foi registrada.");
+        if (body.allocationPending) {
+          idempotency.current = null;
+          setNumbers([]); setNumberInput(""); setParticipationCount(1);
+          setNotice("Pagamento recebido e compra registrada. Aguardando a alocação automática nas próximas rodadas; o recibo será liberado depois.");
+        } else {
+          if (mode === "CASHIER") setReceiptPurchaseId(created.id);
+          idempotency.current = null;
+          setNumbers([]); setNumberInput(""); setParticipationCount(1);
+          setNotice(mode === "CASHIER"
+            ? "Venda confirmada. O recibo oficial está disponível."
+            : "Compra confirmada. Sua aposta foi registrada.");
+        }
       } else {
         setPurchase(created);
         setPurchaseMessage(typeof body.message === "string" ? body.message : "Aguardando confirmação do pagamento.");
@@ -236,7 +242,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
           <p>Status: {reconciliationRequired ? "pagamento confirmado; aguardando atualização do recibo" : "aguardando confirmação do pagamento"}</p>
           <p>{purchaseMessage}</p>
           <p>Total: <strong>{money(purchase.totalCents)}</strong></p>
-          {purchase.numericIntent && <p>Repetições: {purchase.numericIntent.repetitionCount} {purchase.numericIntent.repetitionCount === 1 ? "jogo" : "jogos"}</p>}
+          {purchase.numericIntent && <p>Repetições: {purchase.numericIntent.repetitionCount} {purchase.numericIntent.repetitionCount === 1 ? "vez" : "vezes"}</p>}
           {purchase.numericIntent ? purchase.numericIntent.numbers.map((number, index) => <div key={"intent-" + number + "-" + index}>
             <strong>{number}</strong> — {money(Object.values(purchase.numericIntent!.allocationCents).reduce((sum, value) => sum + value, 0))}
           </div>) : purchase.participations.flatMap((part) => part.lines.map((line, index) => <div key={part.roundId + line.numberValue + index}>
