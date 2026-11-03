@@ -107,7 +107,7 @@ export async function createNumericPurchase(prisma: PrismaClient, input: Numeric
             orderBy: [{ resultAt: "asc" }, { id: "asc" }],
           });
           selectedRounds = selectNextValidRounds(available, roundCount, decisionTime);
-          if (selectedRounds.length !== roundCount) throw new PurchaseServiceError("There are not enough upcoming numeric rounds for this purchase", "ROUND_UNAVAILABLE");
+          // Paid cash/wallet purchases remain recorded if the scheduler is between rounds.
         }
 
         if (isWallet && input.playerId) {
@@ -117,13 +117,15 @@ export async function createNumericPurchase(prisma: PrismaClient, input: Numeric
         }
 
         
-        const receiptCode = isConfirmed ? "SQ-" + randomBytes(8).toString("hex").toUpperCase() : null;
+        const allocationPending = isConfirmed && selectedRounds.length !== roundCount;
+        const allocatedNow = isConfirmed && !allocationPending;
+        const receiptCode = allocatedNow ? "SQ-" + randomBytes(8).toString("hex").toUpperCase() : null;
         const created = await tx.purchase.create({
           data: {
             playerId: input.playerId ?? null, cashierId: input.cashierId ?? null, customerId: input.customerId ?? null,
-            status: isConfirmed ? "CONFIRMED" : "PENDING_PAYMENT", paymentMethod, totalCents, currency: "BRL",
-            receiptCode, confirmedAt: decisionTime, idempotencyKey: input.idempotencyKey,
-            ...(isConfirmed ? {
+            status: allocatedNow ? "CONFIRMED" : "PENDING_PAYMENT", paymentMethod, totalCents, currency: "BRL",
+            receiptCode, confirmedAt: allocatedNow ? decisionTime : null, idempotencyKey: input.idempotencyKey,
+            ...(allocatedNow ? {
               participations: { create: selectedRounds.map((round) => ({
                 roundId: round.id, status: "CONFIRMED", totalCents: perRoundCents, confirmedAt: decisionTime!,
                 numericLines: { create: numbers.map((numberValue) => ({
@@ -134,7 +136,9 @@ export async function createNumericPurchase(prisma: PrismaClient, input: Numeric
               numericIntent: { create: {
                 roundCount, numbers, allocation, ruleVersion: NUMERIC_PRIZE_RULE_VERSION, ruleSnapshot: snapshot,
               } },
-              payment: { create: { provider: "MERCADO_PAGO", status: "PENDING", amountCents: totalCents, idempotencyKey: "pix-payment:" + input.idempotencyKey } },
+              ...(!isConfirmed ? {
+                payment: { create: { provider: "MERCADO_PAGO", status: "PENDING", amountCents: totalCents, idempotencyKey: "pix-payment:" + input.idempotencyKey } },
+              } : {}),
             }),
           },
           include: { participations: { include: { numericLines: true } }, payment: true, numericIntent: true },
@@ -148,7 +152,7 @@ export async function createNumericPurchase(prisma: PrismaClient, input: Numeric
           } });
           await tx.auditEvent.create({ data: {
             actorId: input.playerId, action: "NUMERIC_WALLET_PURCHASE_CONFIRMED", entityType: "Purchase", entityId: created.id,
-            metadata: { receiptCode, totalCents, paymentMethod: "WALLET" },
+            metadata: { receiptCode, totalCents, paymentMethod: "WALLET", allocationPending },
           } });
         }
         if (isCash && input.cashierId) {
@@ -160,7 +164,7 @@ export async function createNumericPurchase(prisma: PrismaClient, input: Numeric
           } });
           await tx.auditEvent.create({ data: {
             actorId: input.cashierId, action: "NUMERIC_CASH_PURCHASE_CONFIRMED", entityType: "Purchase", entityId: created.id,
-            metadata: { receiptCode, totalCents },
+            metadata: { receiptCode, totalCents, allocationPending },
           } });
         }
         return created;
