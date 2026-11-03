@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 const requestSchema = z.object({
   idempotencyKey: z.string().trim().min(16).max(200),
-  roundCount: z.number().int().min(1).max(10),
+  repetitionCount: z.number().int().min(1).max(10),
   numbers: z.array(z.string().regex(/^\d{5}$/)).min(1).max(100),
   stakeCents: z.number().int().safe().min(100).max(2_000_000_000),
 }).strict();
@@ -41,12 +41,12 @@ export async function POST(request: NextRequest) {
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Dados inválidos." }, { status: 400 }); }
   const parsed = requestSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Informe rodadas, números de cinco algarismos e valores em centavos." }, { status: 400 });
+    return NextResponse.json({ error: "Informe de 1 a 10 repetições, números de cinco algarismos e valores em centavos." }, { status: 400 });
   }
   try {
     const purchase = await createNumericPurchase(authPrisma, {
       idempotencyKey: parsed.data.idempotencyKey, cashierId: user.id,
-      roundCount: parsed.data.roundCount, numbers: parsed.data.numbers, stakeCents: parsed.data.stakeCents,
+      roundCount: parsed.data.repetitionCount, numbers: parsed.data.numbers, stakeCents: parsed.data.stakeCents,
     });
     if (purchase.status === "CONFIRMED" && purchase.payment?.status === "CONFIRMED" && purchase.receiptCode && purchase.confirmedAt) {
       return NextResponse.json({
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
         id: purchase.id, receiptCode: purchase.receiptCode, status: purchase.status,
         paymentStatus: purchase.payment?.status ?? "PENDING", totalCents: purchase.totalCents, currency: purchase.currency,
         numericIntent: purchase.numericIntent ? {
-          roundCount: purchase.numericIntent.roundCount,
+          repetitionCount: purchase.numericIntent.roundCount,
           numbers: purchase.numericIntent.numbers,
           allocationCents: purchase.numericIntent.allocation,
         } : null,
