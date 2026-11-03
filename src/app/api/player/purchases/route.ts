@@ -84,8 +84,15 @@ export async function POST(request: NextRequest) {
     }
 
     if (parsed.data.paymentMethod === "WALLET") {
-      if (purchase.status !== "CONFIRMED" || purchase.paymentMethod !== "WALLET" || !purchase.receiptCode || !purchase.confirmedAt) {
-        return NextResponse.json({ error: "Não foi possível confirmar o pagamento com saldo. Atualize a carteira e tente novamente." }, { status: 409, headers: { "Cache-Control": "no-store" } });
+      if (purchase.paymentMethod !== "WALLET") {
+        return NextResponse.json({ error: "Método de pagamento inválido." }, { status: 409, headers: { "Cache-Control": "no-store" } });
+      }
+      if (purchase.status !== "CONFIRMED" || !purchase.receiptCode || !purchase.confirmedAt) {
+        return NextResponse.json({
+          purchase: { ...purchaseView, paymentStatus: "RECEIVED_AWAITING_ALLOCATION" },
+          paymentActionRequired: false, receiptReady: false, allocationPending: true,
+          message: "Pagamento realizado com o saldo da conta. A compra está registrada e aguarda a próxima sequência de rodadas para concluir a alocação e liberar o recibo.",
+        }, { status: 202, headers: { "Cache-Control": "no-store" } });
       }
       return NextResponse.json({
         purchase: { ...purchaseView, paymentStatus: "CONFIRMED" },
