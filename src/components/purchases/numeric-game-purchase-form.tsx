@@ -9,7 +9,7 @@ type NumericLine = { numberValue: string; totalCents: number; allocationCents: R
 type Purchase = {
   id: string; receiptCode: string | null; status: string; totalCents: number; currency: string;
   paymentStatus?: string;
-  numericIntent?: { participationCount: number; numbers: string[]; allocationCents: Record<string, number> } | null;
+  numericIntent?: { repetitionCount: number; numbers: string[]; allocationCents: Record<string, number> } | null;
   participations: Array<{ roundId: string; totalCents: number; lines: NumericLine[] }>;
 };
 type PixCheckout = { copyPaste: string | null; qrCodeBase64: string | null; ticketUrl: string | null };
@@ -29,7 +29,7 @@ function clearInput(value: string) {
 }
 
 export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
-  const [participationCount, setParticipationCount] = useState(1);
+  const [repetitionCount, setParticipationCount] = useState(1);
   const [numberInput, setNumberInput] = useState("");
   const [numbers, setNumbers] = useState<string[]>([]);
   const [stake, setStake] = useState("1,00");
@@ -92,7 +92,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
   }, [mode, paymentMethod, purchase?.id]);
 
   const stakeCents = useMemo(() => parseStake(stake), [stake]);
-  const totalEstimate = stakeCents !== null ? stakeCents * numbers.length * participationCount : 0;
+  const totalEstimate = stakeCents !== null ? stakeCents * numbers.length * repetitionCount : 0;
 
   function generateRandomNumber() {
     const existing = new Set(numbers);
@@ -131,7 +131,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
     }
     setSubmitting(true);
     try {
-      const signature = JSON.stringify({ participationCount, numbers, stakeCents, paymentMethod });
+      const signature = JSON.stringify({ repetitionCount, numbers, stakeCents, paymentMethod });
       const idempotencyKey = idempotency.current?.signature === signature
         ? idempotency.current.key
         : crypto.randomUUID();
@@ -143,7 +143,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           idempotencyKey: idempotencyKey,
-          participationCount,
+          repetitionCount,
           numbers,
           stakeCents,
           ...(mode === "PLAYER" ? { paymentMethod } : {}),
@@ -202,13 +202,13 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
         <input id={mode.toLowerCase() + "-stake"} disabled={Boolean(purchase)} value={stake} onChange={(event) => setStake(event.target.value)} inputMode="decimal" />
 
         <fieldset className="round-repeat-fieldset" disabled={Boolean(purchase)}>
-          <legend>Quantidade de jogos</legend>
-          <select aria-label="Quantidade de jogos" value={String(participationCount)}
+          <legend>Repetições</legend>
+          <select aria-label="Repetições" value={String(repetitionCount)}
             onChange={(event) => setParticipationCount(Math.max(1, Math.min(10, Number(event.target.value) || 1)))}>
             {Array.from({ length: 10 }, (_, index) => index + 1)
-              .map((count) => <option key={count} value={count}>{count} {count === 1 ? "jogo" : "jogos"}</option>)}
+              .map((count) => <option key={count} value={count}>{count} {count === 1 ? "vez" : "vezes"}</option>)}
           </select>
-          <p>As rodadas serão atribuídas automaticamente somente após a confirmação do pagamento.</p>
+          <p>O jogo completo será repetido nas próximas rodadas válidas. A atribuição é automática após a confirmação do pagamento.</p>
         </fieldset>
 
         {mode === "PLAYER" ? <fieldset className="round-repeat-fieldset">
@@ -236,7 +236,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
           <p>Status: {reconciliationRequired ? "pagamento confirmado; aguardando atualização do recibo" : "aguardando confirmação do pagamento"}</p>
           <p>{purchaseMessage}</p>
           <p>Total: <strong>{money(purchase.totalCents)}</strong></p>
-          {purchase.numericIntent && <p>Quantidade de jogos: {purchase.numericIntent.participationCount} {purchase.numericIntent.participationCount === 1 ? "jogo" : "jogos"}</p>}
+          {purchase.numericIntent && <p>Repetições: {purchase.numericIntent.repetitionCount} {purchase.numericIntent.repetitionCount === 1 ? "jogo" : "jogos"}</p>}
           {purchase.numericIntent ? purchase.numericIntent.numbers.map((number, index) => <div key={"intent-" + number + "-" + index}>
             <strong>{number}</strong> — {money(Object.values(purchase.numericIntent!.allocationCents).reduce((sum, value) => sum + value, 0))}
           </div>) : purchase.participations.flatMap((part) => part.lines.map((line, index) => <div key={part.roundId + line.numberValue + index}>
