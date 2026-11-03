@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 const requestSchema = z.object({
   idempotencyKey: z.string().trim().min(16).max(200),
-  roundCount: z.number().int().min(1).max(10),
+  repetitionCount: z.number().int().min(1).max(10),
   numbers: z.array(z.string().regex(/^\d{5}$/)).min(1).max(100),
   stakeCents: z.number().int().safe().min(100).max(2_000_000_000),
 }).strict();
@@ -40,12 +40,12 @@ export async function POST(request: NextRequest) {
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Dados inválidos." }, { status: 400 }); }
   const parsed = requestSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Informe rodadas, números de cinco algarismos e valores em centavos." }, { status: 400 });
+    return NextResponse.json({ error: "Informe de 1 a 10 repetições, números de cinco algarismos e valores em centavos." }, { status: 400 });
   }
   try {
     const purchase = await createNumericPurchase(authPrisma, {
       idempotencyKey: parsed.data.idempotencyKey, cashierId: user.id, paymentMethod: "CASH",
-      roundCount: parsed.data.roundCount, numbers: parsed.data.numbers, stakeCents: parsed.data.stakeCents,
+      roundCount: parsed.data.repetitionCount, numbers: parsed.data.numbers, stakeCents: parsed.data.stakeCents,
     });
     if (purchase.paymentMethod !== "CASH" || purchase.status !== "CONFIRMED" || !purchase.receiptCode) {
       return NextResponse.json({ error: "A venda em dinheiro não foi confirmada." }, { status: 409, headers: { "Cache-Control": "no-store" } });
