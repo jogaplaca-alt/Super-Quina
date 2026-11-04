@@ -24,7 +24,7 @@ export default async function AdminCashierDetailPage({ params, searchParams }: {
     select: { id: true, username: true, fullName: true, whatsapp: true, status: true, commissionRateBasisPoints: true, createdAt: true },
   });
   if (!cashier) notFound();
-  const latestSettlement = await authPrisma.cashierSettlement.findFirst({ where: { cashierId }, orderBy: [{ settledAt: "desc" }, { id: "desc" }], skip: (settlementsPage - 1) * PAGE_SIZE, take: PAGE_SIZE, select: { settledAt: true } });
+  const latestSettlement = await authPrisma.cashierSettlement.findFirst({ where: { cashierId }, orderBy: { settledAt: "desc" }, select: { settledAt: true } });
   const since = latestSettlement?.settledAt ?? new Date(0);
   const [purchases, settlements, purchaseCount, settlementCount, cashNow, pixNow, commissionNow, gamesNow, cashPrizePayouts] = await Promise.all([
     authPrisma.purchase.findMany({
@@ -38,7 +38,7 @@ export default async function AdminCashierDetailPage({ params, searchParams }: {
       },
     }),
     authPrisma.cashierSettlement.findMany({
-      where: { cashierId }, orderBy: { settledAt: "desc" },
+      where: { cashierId }, orderBy: [{ settledAt: "desc" }, { id: "desc" }], skip: (settlementsPage - 1) * PAGE_SIZE, take: PAGE_SIZE,
       select: {
         id: true, settledAt: true, cashSalesCents: true, pixSalesCents: true,
         totalSalesCents: true, salesCount: true, gamesCount: true,
