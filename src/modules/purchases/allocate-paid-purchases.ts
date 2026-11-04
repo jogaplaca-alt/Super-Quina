@@ -112,6 +112,7 @@ export async function allocatePaidPurchases(prisma: PrismaClient, take = 50): Pr
       // the next scheduler execution retries this item without losing it.
       failures += 1;
     }
+    }
 
     if (batch.length < take) break;
     cursorId = batch[batch.length - 1]!.id;
