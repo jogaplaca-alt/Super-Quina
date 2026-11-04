@@ -145,6 +145,11 @@ export function ReceiptVerification({ receiptCode }: { receiptCode: string }) {
           )) : <p style={{ color: "#374151" }}>Nenhuma rodada confirmada para este recibo.</p>}
         </>
       )}
+      <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid #d1d5db", textAlign: "center" }}>
+        <p style={{ margin: "0 0 9px", color: "#374151", fontSize: 14 }}>Precisa de ajuda com seu recibo ou prêmio?</p>
+        <a href={prizeSupportUrl} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", padding: "10px 16px", borderRadius: 7, background: "#15803d", color: "#ffffff", fontWeight: 800, textDecoration: "none" }}>Falar com o suporte pelo WhatsApp</a>
+        <p style={{ margin: "8px 0 0", color: "#6b7280", fontSize: 12 }}>Super Quina · superquina.com</p>
+      </div>
     </section>
   );
 }
