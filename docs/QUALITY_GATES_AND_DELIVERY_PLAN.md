@@ -83,3 +83,32 @@ Atualizado em 2026-11-04. Documento consolidado a partir da auditoria da branch 
 ## 6. Limites
 
 Este documento não autoriza deploy, alteração de DNS, conexão com banco real, execução de migrations em produção, alteração de secrets, Pix real, payout, pagamento de prêmio ou ativação de cron externo. Cada operação exige autorização específica.
+
+
+## 7. Registro de auditoria incremental — Bloco 1 (2026-11-04)
+
+Escopo: scheduler de rodadas, sorteio numérico e liquidação automática. Branch auditada: `setup/super-quina`.
+
+### Evidências confirmadas por leitura do código
+
+- `src/app/api/internal/round-scheduler/route.ts`: endpoint protegido por `ROUND_SCHEDULER_SECRET`; cria fila de rodadas, aloca compras pagas pendentes, reconcilia Pix, fecha/abre rodadas, realiza sorteios e chama a liquidação automática.
+- `src/app/api/internal/round-scheduler/route.test.ts`: há testes para autenticação, criação/idempotência da agenda, liquidação automática, falha com resposta 207 para permitir retentativa e reconciliação Pix sem polling do navegador.
+- `src/modules/rounds/close-round.ts`, `open-round.ts` e `draw-round-results.ts`: as operações usam transações e bloqueio da linha da rodada (`FOR UPDATE`). Fechamento e sorteio verificam os horários com relógio do banco. Fechamento e liquidação possuem retentativa limitada para conflitos de serialização; sorteio e abertura podem falhar naquela execução e ser retomados pelo scheduler seguinte.
+- `src/modules/rounds/settle-numeric-round-prizes.ts`: exige rodada concluída, bloqueia rodada e linhas elegíveis, recalcula o prêmio a partir do snapshot salvo e grava crédito no ledger com chave estável `numeric-prize-credit:<linha>` dentro da mesma transação. Divergências de valores existentes são tratadas como inconsistência, não sobrescritas.
+- `src/modules/purchases/allocate-paid-purchases.ts`: processamento é limitado a 100 compras por execução, em lotes de até 50, com cursor persistido; a compra é bloqueada antes da alocação e a intenção só é confirmada após vínculo de todas as repetições.
+- `prisma/schema.prisma`: `Round.code` é único; participações são únicas por compra/rodada; ledger tem chave de idempotência única.
+
+### Lacunas ainda não demonstradas
+
+1. Os testes da rota simulam as dependências. Não demonstram concorrência real entre duas requisições simultâneas no PostgreSQL nem provam ausência de starvation/retrocesso do cursor sob execuções sobrepostas.
+2. Não foi encontrado no endpoint um lock global/lease de execução. As operações críticas possuem proteções por linha, transação, constraints ou claim por `updatedAt`; isso reduz o risco de duplicação, mas a segurança do fluxo completo sob sobreposição ainda precisa de teste de integração PostgreSQL. Não adicionar lock global sem demonstrar que é necessário.
+3. O endpoint tem `maxDuration = 60` e executa reconciliações Pix sequencialmente (até 50 pagamentos selecionados) além da alocação de compras e processamento das rodadas. Não há evidência medida, nesta etapa, de que o pior caso caiba no limite. Medir latência e garantir retomada sem perda de itens.
+4. O teste de liquidação da rota comprova que a função é chamada e que a falha é reportada; não prova, por si só, crédito financeiro real. A idempotência e transação estão implementadas no serviço, mas ainda exigem teste PostgreSQL com linhas premiadas, duas execuções concorrentes e falha/reexecução.
+
+### Decisão desta etapa
+
+- Não foi feita alteração de código: a leitura confirmou que a integração sorteio → liquidação automática já existe; criar outra seria duplicação.
+- Bloco 1 permanece **PARCIAL — implementação identificada; validação concorrente e de duração pendente**.
+- Próximas verificações obrigatórias: testes de integração com PostgreSQL descartável para duas execuções concorrentes do scheduler, alocação/cursor, sorteio único e crédito único; medição do tempo de execução com lote Pix representativo; executar testes, typecheck, lint e build em ambiente de desenvolvimento antes de marcar o bloco como concluído.
+- Nenhum deploy, migration ou operação em banco de produção foi realizado ou autorizado.
+- Varredura de traços históricos: nesta etapa foram inspecionados os arquivos listados acima; não foi feita alteração nem integração de código de outro projeto. A varredura global continua sendo gate obrigatório antes de qualquer integração futura.
