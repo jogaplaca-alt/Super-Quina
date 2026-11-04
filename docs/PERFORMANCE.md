@@ -24,7 +24,7 @@ The platform runs frequent draws. Performance is a correctness and availability 
 
 ## Known asset work
 
-The source PNGs remain large: header 1,507,890 bytes, icon 1,743,132 bytes, and landing infographic 2,067,204 bytes. Header and landing infographic are served through the Next.js image optimizer with responsive dimensions and AVIF/WebP negotiation. Favicon and Apple touch metadata also use the optimizer. The PWA manifest still references the original PNG icon; replacing it safely requires producing and visually checking a smaller static icon asset. This source-asset task remains open and must not be described as complete.
+The source PNGs remain large: header 1,507,890 bytes, icon 1,743,132 bytes, and landing infographic 2,067,204 bytes. Header and landing infographic are served through the Next.js image optimizer with responsive dimensions and AVIF/WebP negotiation. Favicon and Apple touch metadata use the optimizer, and the PWA manifest now requests a 512px optimized icon rather than downloading the original PNG. The original source assets remain large in the repository; runtime delivery is optimized, but physically replacing the source files with visually verified smaller assets remains a separate follow-up.
 
 ## Validation requirements
 
