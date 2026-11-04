@@ -65,7 +65,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
   }, [mode]);
 
   useEffect(() => {
-    if (!purchase?.id || paymentMethod === "CASH" || paymentMethod === "WALLET") return;
+    if (!purchase?.id || (mode === "PLAYER" && paymentMethod !== "PIX")) return;
     let active = true;
     const endpoint = mode === "PLAYER"
       ? `/api/player/purchases/${encodeURIComponent(purchase.id)}/status`
@@ -81,7 +81,9 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
           idempotency.current = null;
           setPurchase(null); setPixCheckout(null); setPurchaseMessage(""); setPixModalOpen(false); setReconciliationRequired(false);
           setNumbers([]); setNumberInput(""); setParticipationCount(1);
-          setNotice("Pagamento confirmado. Sua aposta foi registrada.");
+          setNotice(mode === "CASHIER" && paymentMethod === "CASH"
+            ? "Venda em dinheiro confirmada e recibo liberado."
+            : "Pagamento confirmado. Sua aposta foi registrada.");
         } else {
           setReconciliationRequired(Boolean(body.reconciliationRequired));
           if (["FAILED", "CANCELLED", "EXPIRED", "REFUNDED"].includes(body.paymentStatus ?? "")
@@ -158,7 +160,13 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "Não foi possível registrar a compra.");
       const created = body.purchase as Purchase;
-      if (paymentMethod === "CASH" || paymentMethod === "WALLET" || body.receiptReady) {
+      if (paymentMethod === "CASH" && body.allocationPending) {
+        setPurchase(created);
+        setPurchaseMessage(typeof body.message === "string" ? body.message : "Venda recebida; aguardando a alocação nas próximas rodadas.");
+        setPixCheckout(null);
+        setPixModalOpen(false);
+        setNotice("Venda recebida. A tela acompanhará a alocação e abrirá o recibo quando estiver concluída.");
+      } else if (paymentMethod === "CASH" || paymentMethod === "WALLET" || body.receiptReady) {
         if (body.allocationPending) {
           idempotency.current = null;
           setNumbers([]); setNumberInput(""); setParticipationCount(1);
@@ -223,12 +231,12 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
           <p>O jogo completo será repetido nas próximas rodadas válidas. A atribuição é automática após a confirmação do pagamento.</p>
         </fieldset>
 
-        {mode === "PLAYER" ? <fieldset className="round-repeat-fieldset">
+        {mode === "PLAYER" ? <fieldset className="round-repeat-fieldset" disabled={Boolean(purchase)}>
           <legend>Forma de pagamento</legend>
           <label><input type="radio" name="numeric-payment" checked={paymentMethod === "PIX"} onChange={() => setPaymentMethod("PIX")} /> Pix</label>
           <label><input type="radio" name="numeric-payment" checked={paymentMethod === "WALLET"} onChange={() => setPaymentMethod("WALLET")} /> Saldo da conta</label>
           {paymentMethod === "WALLET" && <p>Saldo disponível: {walletBalanceCents === null ? "indisponível" : money(walletBalanceCents)}</p>}
-        </fieldset> : <fieldset className="round-repeat-fieldset">
+        </fieldset> : <fieldset className="round-repeat-fieldset" disabled={Boolean(purchase)}>
           <legend>Forma de pagamento</legend>
           <label><input type="radio" name="numeric-payment" checked={paymentMethod === "PIX"} onChange={() => setPaymentMethod("PIX")} /> Pix</label>
           <label><input type="radio" name="numeric-payment" checked={paymentMethod === "CASH"} onChange={() => setPaymentMethod("CASH")} /> Dinheiro</label>
@@ -241,6 +249,10 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
           {submitting ? "Registrando…" : "Continuar"}
         </button>
       </form>
+
+      {purchase && mode === "CASHIER" && paymentMethod === "CASH" && !pixModalOpen && (
+        <p role="status" className="note-inline">{purchaseMessage || "Venda recebida; aguardando a alocação automática para liberar o recibo."}</p>
+      )}
 
       {purchase && pixModalOpen && <div className="modal-backdrop" role="presentation">
         <section className="modal-panel pix-modal" role="dialog" aria-modal="true" aria-labelledby="numeric-pix-heading">
