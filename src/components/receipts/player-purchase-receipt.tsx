@@ -26,7 +26,7 @@ const paymentLabels: Record<string, string> = {
 const MAX_MANUAL_RETRIES = 2;
 
 export function PlayerPurchaseReceipt({ purchaseId, autoOpen = false, onClose }: { purchaseId: string; autoOpen?: boolean; onClose?: () => void }) {
-  const [receipt, setReceipt] = useState<ReceiptData | null>(null);
+  const [receipt, setReceipt] = useState<{ purchaseId: string; data: ReceiptData } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [manualRetries, setManualRetries] = useState(0);
@@ -49,7 +49,7 @@ export function PlayerPurchaseReceipt({ purchaseId, autoOpen = false, onClose }:
       if (!response.ok || !body.receipt) {
         throw new Error(body.error ?? "Não foi possível carregar o recibo.");
       }
-      if (!controller.signal.aborted && requestRef.current === controller) setReceipt(body.receipt);
+      if (!controller.signal.aborted && requestRef.current === controller) setReceipt({ purchaseId, data: body.receipt });
     } catch (reason) {
       if (!controller.signal.aborted && requestRef.current === controller) {
         setError(reason instanceof Error ? reason.message : "Não foi possível carregar o recibo.");
@@ -65,6 +65,10 @@ export function PlayerPurchaseReceipt({ purchaseId, autoOpen = false, onClose }:
   }
 
   useEffect(() => {
+    setReceipt(null);
+    setError("");
+    setManualRetries(0);
+    setLoading(false);
     const timer = autoOpen ? window.setTimeout(() => { void loadReceipt(); }, 0) : null;
     return () => {
       if (timer !== null) window.clearTimeout(timer);
@@ -98,19 +102,19 @@ export function PlayerPurchaseReceipt({ purchaseId, autoOpen = false, onClose }:
           )}
         </div>
       )}
-      {receipt && (
+      {receipt?.purchaseId === purchaseId && (
         <div className="modal-backdrop" role="presentation">
           <section className="modal-panel receipt-modal" role="dialog" aria-modal="true" aria-labelledby="receipt-heading">
             <h2 id="receipt-heading">Recibo oficial</h2>
             <ThermalReceipt
-              receiptCode={receipt.receiptCode}
-              paymentStatus={receipt.paymentStatus}
-              issuedAt={receipt.issuedAt}
-              totalCents={receipt.totalCents}
-              entries={receipt.entries}
-              customerLabel={receipt.customerLabel}
-              cashierLabel={receipt.cashierLabel}
-              paymentLabel={paymentLabels[receipt.paymentMethod] ?? "Pagamento confirmado"}
+              receiptCode={receipt.data.receiptCode}
+              paymentStatus={receipt.data.paymentStatus}
+              issuedAt={receipt.data.issuedAt}
+              totalCents={receipt.data.totalCents}
+              entries={receipt.data.entries}
+              customerLabel={receipt.data.customerLabel}
+              cashierLabel={receipt.data.cashierLabel}
+              paymentLabel={paymentLabels[receipt.data.paymentMethod] ?? "Pagamento confirmado"}
               onClose={() => { setReceipt(null); onClose?.(); }}
             />
           </section>
