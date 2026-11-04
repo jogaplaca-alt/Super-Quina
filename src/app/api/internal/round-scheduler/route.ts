@@ -16,7 +16,7 @@ export const maxDuration = 60;
 const TIME_ZONE = "Etc/GMT+3"; // Fixed UTC-03:00, as specified by MANUAL_TECNICO.md
 const HALF_HOUR_MS = 30 * 60_000;
 const MINUTE_MS = 60_000;
-const MAX_FUTURE_ROUNDS = 10;
+const MAX_FUTURE_ROUNDS = 48;
 
 function safeSecretMatch(actual: string | null, expected: string): boolean {
   if (!actual) return false;
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
   let paidPurchasesAllocated = 0;
   let paidPurchasesWaiting = 0;
 
-  // Maintain a rolling queue of at most ten upcoming 30-minute numeric rounds.
+  // Maintain 48 upcoming 30-minute numeric rounds, covering the next 24 hours.
   // This endpoint still runs every minute for precise opening, cutoff, draw and Pix reconciliation.
   const slots = resultSlots(now, horizon).slice(0, MAX_FUTURE_ROUNDS);
   const existingRounds = await authPrisma.round.findMany({
