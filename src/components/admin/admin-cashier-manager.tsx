@@ -48,15 +48,17 @@ export function AdminCashierManager() {
       const response = await fetch("/api/admin/cashiers", { cache: "no-store", signal: controller.signal });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "Não foi possível carregar os cambistas.");
-      setCashiers(body.cashiers as Cashier[]);
+      if (!controller.signal.aborted) setCashiers(body.cashiers as Cashier[]);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Falha ao carregar os cambistas.");
-    } finally { setLoading(false); }
+      if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Falha ao carregar os cambistas.");
+    } finally {
+      if (loadController.current === controller) { loadController.current = null; setLoading(false); }
+    }
   }, []);
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void load(); }, 0);
-    return () => window.clearTimeout(timer);
+    return () => { window.clearTimeout(timer); loadController.current?.abort(); };
   }, [load]);
 
   function beginEdit(cashier: Cashier) {
