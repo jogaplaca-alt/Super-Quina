@@ -19,6 +19,7 @@ export function AdminWithdrawalManager() {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [rejectionReasons, setRejectionReasons] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     setError("");
@@ -33,16 +34,23 @@ export function AdminWithdrawalManager() {
   useEffect(() => { const timer = window.setTimeout(() => { void load(); }, 0); return () => window.clearTimeout(timer); }, [load]);
 
   async function act(item: Item, action: "mark-paid" | "reject") {
-    const note = action === "mark-paid" ? "Pagamento Pix confirmado manualmente" : "Saque rejeitado pelo administrador";
+    const note = action === "mark-paid"
+      ? "Administrador confirmou a transferência Pix manual. Saque aprovado, pago e encerrado."
+      : rejectionReasons[item.id]?.trim() ?? "";
+    if (action === "reject" && note.length < 4) {
+      setError("Informe o motivo da recusa para registrar na auditoria e mostrar ao jogador.");
+      return;
+    }
     const prompt = action === "mark-paid"
-      ? `Confirma que você realizou e conferiu o Pix de ${money(item.amountCents)} para ${item.username}? Esta ação marcará o saque como pago.`
-      : `Confirma recusar o saque de ${money(item.amountCents)} de ${item.username} e liberar o valor reservado na carteira?`;
+      ? `Confirma que o Pix de ${money(item.amountCents)} para ${item.username} já foi transferido? Ao confirmar, o saque será marcado como pago e encerrado.`
+      : `Confirma recusar o saque de ${money(item.amountCents)} de ${item.username}? O saldo reservado será devolvido ao jogador.`;
     if (!window.confirm(prompt)) return;
     setBusy(item.id); setError(""); setNotice("");
     try {
       const response = await fetch("/api/admin/withdrawals", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ withdrawalId: item.id, action, note }) });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "Não foi possível atualizar o saque.");
+      setRejectionReasons((current) => { const next = { ...current }; delete next[item.id]; return next; });
       setNotice(action === "mark-paid"
         ? `Saque de ${money(body.withdrawal.amountCents)} de ${body.withdrawal.username} marcado como pago após confirmação do Pix.`
         : `Saque recusado. A reserva de ${money(body.withdrawal.amountCents)} foi liberada na carteira do jogador.`);
@@ -57,7 +65,7 @@ export function AdminWithdrawalManager() {
   return <section className="feature-card" aria-labelledby="admin-withdrawals-heading">
     <span className="feature-label">Financeiro</span>
     <h2 id="admin-withdrawals-heading">Saques das carteiras digitais</h2>
-    <p>Confira os dados e a chave Pix. Depois de realizar a transferência manualmente no banco, clique em “Pagar”. Se houver algo incorreto, clique em “Rejeitar” para devolver o valor reservado ao saldo disponível. O sistema não envia Pix automaticamente.</p>
+    <p>Confira os dados e realize o Pix manualmente. Depois da transferência, clique em “Aprovar e concluir” para encerrar o saque em uma única operação. Se a chave estiver inválida, informe o motivo e clique em “Recusar e devolver saldo”. O sistema não envia Pix automaticamente.</p>
     {error && <p role="alert" className="note-inline">{error}</p>}
     {notice && <p role="status" className="note-inline">{notice}</p>}
     {loading ? <p>Carregando solicitações…</p> : pending.length === 0 ? <p>Não há saques pendentes.</p> : <div className="admin-round-list">
