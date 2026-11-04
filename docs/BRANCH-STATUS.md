@@ -25,7 +25,7 @@ Branch de trabalho: `setup/super-quina`.
 - Execução: https://github.com/jpveiculos/Super-Quina/actions/runs/41752444863
 
 ## Bloqueios antes de liberar o site
-1. **Reconciliação de branches:** na comparação atual, `setup/super-quina` está divergente de `main` (308 commits à frente e 9 atrás) e de `foundation/super-quina-v2` (308 commits à frente e 45 atrás). Revisar individualmente os commits ausentes e o diff antes de qualquer integração. Não mesclar automaticamente.
+1. **Reconciliação de branches:** na comparação atual, `setup/super-quina` está divergente de `main` (309 commits à frente e 9 atrás) e de `foundation/super-quina-v2` (309 commits à frente e 45 atrás). Revisar individualmente os commits ausentes e o diff antes de qualquer integração. Não mesclar automaticamente.
 2. **Baseline do banco:** a cadeia histórica de migrations começa com tabelas do jogo de placas e depois faz a limpeza numérica. Antes do banco novo, construir e validar uma baseline numérica limpa em PostgreSQL descartável; não apagar nem reordenar migrations existentes.
 3. **Conta ADMIN:** revisar o script de provisionamento e definir um procedimento seguro de preservação da identidade/hash do ADMIN existente. Não executar no banco de produção.
 4. **Hydro / scheduler:** confirmar configuração de execução do endpoint `POST /api/internal/round-scheduler` a cada minuto, com `Authorization: Bearer <ROUND_SCHEDULER_SECRET>`. Verificar logs, último sucesso e tratamento de falhas sem revelar segredo.
@@ -45,3 +45,13 @@ Branch de trabalho: `setup/super-quina`.
 3. Validar configuração e execução no Hydro sem tocar produção até autorização.
 4. Executar homologação completa de compras, Pix, sorteios, premiações, carteira, cambistas e recibos.
 5. Só então avançar para Android, impressora térmica e API de monitoramento.
+
+
+## Resultado da revisão de integração e banco — 2026-11-04
+- A comparação com `main` identificou quatro arquivos com alterações posteriores à base comum: `src/app/globals.css`, `src/app/player/page.tsx`, `src/components/admin/admin-cashier-manager.tsx` e `src/components/player/player-bet-history.tsx`. São mudanças de interface/fluxo; devem ser avaliadas e portadas seletivamente, não por merge integral. Em particular, o `main` remove ações de recibo do histórico, enquanto o branch de trabalho mantém acesso ao recibo confirmado. Essa diferença exige decisão funcional antes de qualquer cópia.
+- A branch `foundation/super-quina-v2` contém uma migration `20261103000000_initial_foundation` que cria novamente os tipos `UserRole` e `AccountStatus`, além das tabelas `User` e `Session`. Ela não pode ser adicionada à cadeia atual: a migration inicial de `setup/super-quina` já cria esses objetos e a execução duplicada falharia.
+- A fundação também possui utilitários de identidade próprios e parâmetros scrypt diferentes (`N=32768`), enquanto o código atual usa `N=16384`. Não importar esses arquivos nem assumir compatibilidade de hashes sem conversão/verificação explícita. O importador atual aceita apenas `scrypt$16384$8$1`, salt de 16 bytes e digest de 64 bytes.
+- A cadeia atual contém 14 migrations SQL, da inicial `20261023000000_init` até `20261103010000_performance_queue_indexes`. O CI anterior executou migrations em PostgreSQL descartável e testes de integração com sucesso. Portanto, para o banco novo, a estratégia segura neste momento é aplicar a cadeia existente em ordem com `prisma migrate deploy`; não criar baseline paralela, não editar/reordenar migrations já aplicadas e não executar contra produção nesta etapa.
+- A migration `20261101020000_numeric_only_cleanup` elimina `ParticipationLine` e os campos/tipos específicos de placas. Ela é deliberadamente destrutiva e reforça que a cadeia histórica não deve ser aplicada sobre uma base antiga com dados de placas sem plano de migração e backup próprios.
+- O importador ADMIN está protegido contra destino com ADMIN existente, colisões de ID/usuário e hashes fora do formato aceito. Ainda falta validar em homologação se o hash real da conta antiga corresponde exatamente ao formato e se o username atende à regra de letras minúsculas/números/ponto/sublinhado/hífen. Nenhum dado foi importado.
+- Nenhuma alteração foi feita em `main`, na branch de fundação, no banco ou na infraestrutura. Nenhuma integração de branch foi executada.
