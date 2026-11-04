@@ -67,6 +67,11 @@ enum LedgerEntryType {
   ADJUSTMENT
 }
 
+enum NumericPrizePayoutChannel {
+  PLATFORM_PIX
+  CASHIER_CASH
+}
+
 enum WithdrawalStatus {
   PENDING
   APPROVED
@@ -100,6 +105,8 @@ model User {
   withdrawalHistoryActions WithdrawalStatusHistory[] @relation("WithdrawalHistoryActor")
   cashierSettlementsAsCashier CashierSettlement[] @relation("CashierSettlementCashier")
   cashierSettlementsCreated CashierSettlement[] @relation("CashierSettlementAdmin")
+  numericPrizePayoutsCreated NumericPrizePayout[] @relation("NumericPrizePayoutActor")
+  numericPrizePayoutsAsCashier NumericPrizePayout[] @relation("NumericPrizePayoutCashier")
 
   @@index([role, status])
 }
@@ -223,6 +230,7 @@ model NumericParticipationLine {
   prizeCreditedAt  DateTime?
   createdAt        DateTime @default(now())
   participation    PurchaseParticipation @relation(fields: [participationId], references: [id], onDelete: Restrict)
+  prizePayout      NumericPrizePayout?
 
   @@index([numberValue])
   @@index([participationId])
@@ -316,11 +324,33 @@ model CashierSettlement {
   salesCount            Int
   gamesCount            Int      @default(0)
   commissionCents       Int
+  cashPrizePayoutCount  Int      @default(0)
+  cashPrizePayoutCents  Int      @default(0)
   cashier               User     @relation("CashierSettlementCashier", fields: [cashierId], references: [id], onDelete: Restrict)
   admin                 User     @relation("CashierSettlementAdmin", fields: [adminId], references: [id], onDelete: Restrict)
+  cashPrizePayouts      NumericPrizePayout[]
 
   @@index([cashierId, settledAt])
   @@index([adminId, settledAt])
+}
+
+model NumericPrizePayout {
+  id                   String                    @id @default(cuid())
+  participationLineId String                    @unique
+  channel              NumericPrizePayoutChannel
+  amountCents          Int
+  actorId              String
+  cashierId            String?
+  settlementId         String?
+  reference            String?
+  paidAt               DateTime                  @default(now())
+  participationLine    NumericParticipationLine  @relation(fields: [participationLineId], references: [id], onDelete: Restrict)
+  actor                User                      @relation("NumericPrizePayoutActor", fields: [actorId], references: [id], onDelete: Restrict)
+  cashier              User?                     @relation("NumericPrizePayoutCashier", fields: [cashierId], references: [id], onDelete: Restrict)
+  settlement           CashierSettlement?        @relation(fields: [settlementId], references: [id], onDelete: Restrict)
+
+  @@index([cashierId, paidAt])
+  @@index([settlementId])
 }
 
 model Withdrawal {
