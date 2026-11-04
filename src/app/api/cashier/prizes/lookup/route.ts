@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   if (!user) return NextResponse.json({ error: "É necessário entrar na conta." }, { status: 401, headers });
   if (user.role !== "CASHIER" || user.mustChangePassword) return NextResponse.json({ error: "Acesso não permitido." }, { status: 403, headers });
 
-  const receiptCode = (request.nextUrl.searchParams.get("q") ?? "").replace(/\\s/g, "").toUpperCase();
+  const receiptCode = (request.nextUrl.searchParams.get("q") ?? "").replace(/\s/g, "").toUpperCase();
   if (!/^SQ-[A-Z0-9]{8,32}$/.test(receiptCode)) return NextResponse.json({ error: "Informe o código completo do recibo iniciado por SQ-." }, { status: 400, headers });
 
   try {
