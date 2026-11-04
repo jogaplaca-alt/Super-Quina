@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Item = {
   id: string; username: string; amountCents: number;
@@ -19,19 +19,26 @@ export function AdminWithdrawalManager() {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const loadController = useRef<AbortController | null>(null);
   const [rejectionReasons, setRejectionReasons] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
+    loadController.current?.abort();
+    const controller = new AbortController();
+    loadController.current = controller;
     setError("");
     try {
-      const response = await fetch("/api/admin/withdrawals", { cache: "no-store" });
+      const response = await fetch("/api/admin/withdrawals", { cache: "no-store", signal: controller.signal });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "Não foi possível consultar os saques.");
-      setItems(body.items);
-    } catch (reason) { setError(reason instanceof Error ? reason.message : "Falha ao consultar os saques."); }
-    finally { setLoading(false); }
+      if (!controller.signal.aborted) setItems(body.items);
+    } catch (reason) {
+      if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Falha ao consultar os saques.");
+    } finally {
+      if (loadController.current === controller) { loadController.current = null; setLoading(false); }
+    }
   }, []);
-  useEffect(() => { const timer = window.setTimeout(() => { void load(); }, 0); return () => window.clearTimeout(timer); }, [load]);
+  useEffect(() => { const timer = window.setTimeout(() => { void load(); }, 0); return () => { window.clearTimeout(timer); loadController.current?.abort(); }; }, [load]);
 
   async function act(item: Item, action: "mark-paid" | "reject") {
     const note = action === "mark-paid"
