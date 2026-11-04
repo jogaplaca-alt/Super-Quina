@@ -27,6 +27,7 @@ export function PlayerWalletWithdrawals() {
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "Não foi possível consultar a carteira.");
       setAvailableCents(body.availableCents);
+      window.dispatchEvent(new CustomEvent("superquina:player-wallet-updated", { detail: { availableCents: body.availableCents } }));
       setWithdrawals(body.withdrawals);
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Falha ao consultar a carteira."); }
     finally { setLoading(false); }
