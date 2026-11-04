@@ -112,3 +112,28 @@ Escopo: scheduler de rodadas, sorteio numérico e liquidação automática. Bran
 - Próximas verificações obrigatórias: testes de integração com PostgreSQL descartável para duas execuções concorrentes do scheduler, alocação/cursor, sorteio único e crédito único; medição do tempo de execução com lote Pix representativo; executar testes, typecheck, lint e build em ambiente de desenvolvimento antes de marcar o bloco como concluído.
 - Nenhum deploy, migration ou operação em banco de produção foi realizado ou autorizado.
 - Varredura de traços históricos: nesta etapa foram inspecionados os arquivos listados acima; não foi feita alteração nem integração de código de outro projeto. A varredura global continua sendo gate obrigatório antes de qualquer integração futura.
+
+
+### Complemento da auditoria — evidência de testes e risco operacional (2026-11-04)
+
+A inspeção adicional do pipeline `.github/workflows/quality.yml` confirmou que o CI sobe PostgreSQL 16, aplica migrations e executa `npm run test:postgres`. Porém, o script `test:postgres` do `package.json` aponta somente para `src/lib/auth/login-rate-limit.postgres.integration.test.ts`. Portanto, o pipeline atual **não executa testes PostgreSQL de concorrência do scheduler, sorteio, alocação de compras ou liquidação de prêmios**.
+
+Confirmações adicionais:
+- `drawRoundResults` bloqueia a linha da rodada, verifica o horário com o relógio do banco e grava resultado/status/auditoria na mesma transação. Uma segunda execução encontra a rodada concluída e não sorteia novamente.
+- `settleNumericRoundPrizes` bloqueia rodada e linhas, usa transação serializável e chave única `numeric-prize-credit:<lineId>`; repetições verificam se o lançamento existente corresponde ao prêmio recalculado.
+- `closeRound` também bloqueia a rodada e repete conflitos de serialização até três vezes.
+- Não há lock global/lease do endpoint. A criação de rodadas usa transação serializável e a unicidade do código; as rotinas críticas usam bloqueios por linha. Isso não demonstra, isoladamente, que o endpoint inteiro seja serializado — nem prova que tal serialização global seja necessária.
+- O scheduler executa reconciliação Pix sequencialmente para até 50 pagamentos e, no mesmo request, aloca compras, fecha/abre rodadas, sorteia e liquida até 100 rodadas. Com `maxDuration = 60`, há risco de ultrapassar o tempo de execução em picos. Não há benchmark ou telemetria de duração verificada nesta auditoria.
+
+### Próxima ação técnica aprovada para o bloco
+
+Não introduzir lock global, paralelismo Pix ou mudança de limite sem teste e medição. O próximo incremento deve adicionar uma suíte PostgreSQL de integração específica do domínio, reaproveitando o serviço de banco e fixtures existentes, com cenários:
+1. Duas chamadas simultâneas de sorteio para a mesma rodada: um único resultado e um único evento de sorteio.
+2. Duas liquidações simultâneas da mesma rodada: exatamente um crédito por linha premiada, ledger consistente e auditoria única.
+3. Falha/rollback durante liquidação seguida de retentativa: nenhum crédito parcial e conclusão posterior.
+4. Duas alocações simultâneas da mesma compra: uma única participação por rodada e compra confirmada uma única vez.
+5. Duas execuções simultâneas do scheduler: sem rodadas duplicadas, créditos duplicados ou perda permanente de itens da fila.
+
+Adicionar medição de duração por etapa (reconciliação Pix, alocação, fechamento/abertura, sorteio e liquidação) e teste com lote representativo antes de decidir se Pix deve ser limitado/particionado ou processado por worker. Qualquer limite de lote precisa preservar retomada e reconciliação eventual.
+
+Status permanece **PARCIAL**. Esta complementação é documental; nenhum código de produção foi modificado e nenhum teste foi executado nesta sessão. O CI configurado no GitHub foi inspecionado, mas seu resultado mais recente não foi consultado. Não houve deploy nem acesso/escrita em banco de produção.
