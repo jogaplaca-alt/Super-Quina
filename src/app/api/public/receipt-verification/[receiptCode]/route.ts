@@ -14,7 +14,6 @@ export async function GET(_request: NextRequest, context: RouteContext) {
       where: { receiptCode },
       select: {
         receiptCode: true, status: true, paymentMethod: true, totalCents: true, currency: true, confirmedAt: true,
-        cashier: { select: { username: true, fullName: true } },
         payment: { select: { status: true, confirmedAt: true } },
         participations: {
           where: { status: "CONFIRMED" }, orderBy: { round: { resultAt: "asc" } },
@@ -64,7 +63,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     return NextResponse.json({ valid: true, receiptCode: purchase.receiptCode, status: "CONFIRMED",
       paymentMethod: purchase.paymentMethod, totalCents: purchase.totalCents, currency: purchase.currency,
       confirmedAt: purchase.confirmedAt?.toISOString() ?? null,
-      cashierLabel: purchase.cashier ? (purchase.cashier.fullName?.trim() || purchase.cashier.username) : null, rounds,
+      rounds,
       message: "Recibo registrado e pagamento confirmado no sistema oficial." }, { headers });
   } catch {
     return NextResponse.json({ valid: false, message: "Não foi possível verificar agora. Tente novamente." }, { status: 500, headers });
