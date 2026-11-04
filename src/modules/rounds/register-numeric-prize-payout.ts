@@ -44,7 +44,7 @@ export async function registerNumericPrizePayout(
   const purchase = line.participation.purchase;
   const isCashierTicket = Boolean(purchase.cashierId) && purchase.playerId === null;
   if (
-    !isCashierTicket ||
+    (input.channel === "CASHIER_CASH" && !isCashierTicket) ||
     purchase.status !== "CONFIRMED" ||
     !purchase.confirmedAt ||
     line.participation.status !== "CONFIRMED" ||
