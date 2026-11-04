@@ -73,9 +73,10 @@ export function AdminWithdrawalManager() {
         <div><strong>{item.username}</strong> · {money(item.amountCents)} · {labels[item.status]}</div>
         <p>Solicitado em {dateTime(item.createdAt)}</p>
         <p>Chave Pix para pagamento: <strong>{item.pixKey ?? item.pixKeyMasked}</strong></p>
+        <label>Motivo da recusa (obrigatório se recusar)<textarea value={rejectionReasons[item.id] ?? ""} onChange={(event) => setRejectionReasons((current) => ({ ...current, [item.id]: event.target.value }))} maxLength={500} rows={2} placeholder="Ex.: chave Pix inválida ou não localizada." /></label>
         <div className="round-options">
-          <button type="button" disabled={busy !== null} onClick={() => void act(item, "mark-paid")}>{busy === item.id ? "Registrando…" : "Pagar"}</button>
-          <button type="button" className="secondary-button" disabled={busy !== null} onClick={() => void act(item, "reject")}>Rejeitar</button>
+          <button type="button" disabled={busy !== null} onClick={() => void act(item, "mark-paid")}>{busy === item.id ? "Concluindo…" : "Aprovar e concluir"}</button>
+          <button type="button" className="secondary-button" disabled={busy !== null || (rejectionReasons[item.id]?.trim().length ?? 0) < 4} onClick={() => void act(item, "reject")}>Recusar e devolver saldo</button>
         </div>
       </article>)}
     </div>}
