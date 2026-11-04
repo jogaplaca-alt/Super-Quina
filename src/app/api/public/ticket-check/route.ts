@@ -5,9 +5,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "no-store, public, max-age=0" };
 
-function getLineStatus(line: { prizeCents: number | null; prizeCreditedAt: Date | null },
+function getLineStatus(line: { prizeCents: number | null; prizeCreditedAt: Date | null; prizePayout: { channel: string } | null },
   round: { status: RoundStatus; resultAt: Date }, manualClaimDeadlineApplies: boolean) {
-  if (line.prizeCents !== null && line.prizeCents > 0 && line.prizeCreditedAt) return "PREMIADA";
+  if (line.prizeCents !== null && line.prizeCents > 0 && (line.prizeCreditedAt || line.prizePayout)) return "PREMIADA";
   if (manualClaimDeadlineApplies && (line.prizeCents ?? 0) > 0 && Date.now() >= round.resultAt.getTime() + 7 * 86400000) return "PRAZO_EXPIRADO";
   if (round.status !== "COMPLETED") return "AGUARDANDO_RESULTADO";
   if (line.prizeCents === 0) return "NAO_PREMIADA";
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
           where: { status: "CONFIRMED" },
           select: {
             round: { select: { code: true, status: true, resultAt: true, resultNumber: true } },
-            numericLines: { select: { id: true, numberValue: true, prizeCents: true, prizeCreditedAt: true } },
+            numericLines: { select: { id: true, numberValue: true, prizeCents: true, prizeCreditedAt: true, prizePayout: { select: { channel: true, paidAt: true } } } },
           },
           orderBy: { round: { resultAt: "desc" } },
         },
@@ -39,7 +39,9 @@ export async function GET(request: NextRequest) {
       roundCode: part.round.code, resultAt: part.round.resultAt.toISOString(),
       roundStatus: part.round.status, resultNumber: part.round.resultNumber,
       status: getLineStatus(line, part.round, purchase.playerId === null),
-      prizeCents: line.prizeCreditedAt && (line.prizeCents ?? 0) > 0 ? line.prizeCents : null,
+      prizeCents: (line.prizeCreditedAt || line.prizePayout) && (line.prizeCents ?? 0) > 0 ? line.prizeCents : null,
+      payoutChannel: line.prizePayout?.channel ?? null,
+      paidAt: line.prizePayout?.paidAt.toISOString() ?? null,
     })));
     return NextResponse.json({ found: true, searchType: "RECIBO", results,
       message: results.length ? "Confira abaixo cada número e seu resultado." : "Este recibo não possui apostas numéricas confirmadas para consulta." }, { headers });
