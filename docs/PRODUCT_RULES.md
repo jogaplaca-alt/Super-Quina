@@ -84,7 +84,7 @@ A alocação de cada aposta entre unidade, dezena, centena, milhar e quina é um
 - O resumo financeiro apresenta cinco indicadores separados: valor total das vendas confirmadas, comissão acumulada em reais, vendas em dinheiro, vendas em Pix e quantidade de jogos realizados.
 - O resumo atualiza automaticamente a cada 30 segundos e considera o período desde o último acerto financeiro registrado pelo administrador. O histórico de vendas e acertos não é apagado.
 - Os resultados exibidos ao cambista são os publicados nas últimas 24 horas.
-- O recibo imprimível só fica disponível depois da confirmação do pagamento e da alocação completa de todas as repetições às rodadas.
+- O recibo imprimível só fica disponível depois da confirmação do pagamento e da alocação completa de todas as repetições às rodadas. Se uma venda em dinheiro ficar aguardando rodadas, a tela do cambista consulta o status até a alocação terminar e abre o recibo automaticamente; enquanto isso, bloqueia uma nova venda no mesmo formulário.
 
 ## 5. Sem reembolso automático
 
