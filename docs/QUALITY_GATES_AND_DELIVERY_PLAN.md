@@ -15,6 +15,16 @@ Atualizado em 2026-11-04. Documento consolidado a partir da auditoria da branch 
 ## 2. Gates obrigatórios antes da primeira liberação
 
 ### P0 — Bloqueadores
+
+### Contrato de validação do Pix (derivado de `docs/PRODUCT_RULES.md`)
+- [ ] Webhook intermediário, isoladamente, não efetiva nem cancela compra; validar assinatura e usar a notificação como gatilho de reconciliação.
+- [ ] A API do Mercado Pago é consultada para confirmar o estado atual, conferindo ID/referência, valor e moeda; não confiar na ordem de chegada das notificações.
+- [ ] Estado pendente, inconclusivo, divergente ou indisponibilidade da API não libera participações nem recibo; reconciliação retoma sem perda da intenção.
+- [ ] Webhook e consulta periódica convergem para um único serviço de confirmação/máquina de estados; não existem rotas ou workers paralelos aprovando/cancelando a mesma compra.
+- [ ] Transições finais são transacionais e idempotentes sob reentrega, concorrência e reinício; nenhuma participação, recibo, comissão ou crédito é duplicado.
+- [ ] Estados terminais e transições são mapeados conforme a documentação oficial vigente do Mercado Pago; reembolso/chargeback inesperado segue o tratamento de incidente já definido nas regras do produto.
+- [ ] Testes cobrem notificações intermediárias, duplicadas, atrasadas e fora de ordem; falha/timeout da API; consulta repetida; divergência de valor/referência; confirmação tardia; rejeição/cancelamento/expiração; concorrência webhook + scheduler.
+
 - [ ] Banco novo e vazio confirmado; nenhum dado, conta, senha, sessão ou histórico de outro projeto.
 - [ ] Primeiro ADMIN criado pelo provisionamento próprio, com troca obrigatória de senha; testar idempotência e falha por secrets ausentes em PostgreSQL descartável.
 - [ ] Matriz de permissões por papel (PLAYER, CASHIER, ADMIN) e testes negativos em todas as rotas sensíveis, inclusive propriedade dos recursos.
