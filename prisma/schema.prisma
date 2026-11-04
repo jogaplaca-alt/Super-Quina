@@ -175,6 +175,7 @@ model Purchase {
   @@index([cashierId, createdAt])
   @@index([customerId, createdAt])
   @@index([status, createdAt])
+  @@index([status, paymentMethod, id])
 }
 
 model NumericPurchaseIntent {
@@ -249,6 +250,7 @@ model Payment {
 
   @@unique([provider, providerPaymentId])
   @@index([status, createdAt])
+  @@index([provider, status, updatedAt, createdAt])
 }
 
 model WebhookEvent {
