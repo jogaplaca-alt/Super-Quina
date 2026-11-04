@@ -58,3 +58,37 @@ A branch recovery contém mudanças úteis como material de estudo, mas está di
 ## Limites respeitados
 
 Nenhum código funcional foi alterado. Nenhuma migration foi aplicada. Nenhum dado ou banco foi alterado. Nenhum merge/cherry-pick foi executado. A branch `main` não foi modificada.
+
+
+## Parecer final de valor — revisão aprofundada em 2026-11-04
+
+A branch `recovery/super-quina` foi avaliada com o critério de que a branch `setup/super-quina` já está em estágio avançado e só deve receber melhorias realmente relevantes.
+
+### Pontos que pareceram interessantes, mas não justificam integração
+
+1. **Validação explícita da intenção numérica:** a recovery valida versão, quantidade de participações e conteúdo de `numericIntent`. A setup já valida a intenção persistida, números, alocação, snapshot de regras e reconciliação do total com o pagamento. Não foi demonstrada uma lacuna exclusiva que justifique importar o fluxo recovery.
+2. **Bloqueio de rodadas na confirmação Pix:** a recovery comenta a necessidade de alinhar o protocolo de locks entre criação, confirmação e fechamento de rodada. A ideia é correta e importante. Porém, a setup já bloqueia pagamento/compra e rodadas dentro da transação serializável, usa ordenação determinística e valida a elegibilidade das rodadas com critérios mais específicos. A recovery não demonstrou superioridade suficiente para substituir essa implementação.
+3. **Tratamento de idempotência e repetição:** ambas as versões possuem tratamento de repetição e conflito de serialização. Não foi encontrada vantagem exclusiva e comprovada na recovery.
+
+### Vantagens observadas na setup em relação à recovery
+
+- A setup lê a configuração vigente de multiplicadores e cria snapshot das regras; a recovery usa diretamente os multiplicadores aprovados fixos no serviço de criação.
+- A setup preserva compra confirmada em dinheiro/carteira quando o scheduler está entre rodadas, registrando alocação pendente para reconciliação posterior; a recovery exige rodadas suficientes e falha a compra confirmada quando não encontra todas.
+- A confirmação Pix da setup bloqueia explicitamente os registros de compra e pagamento antes de decidir; a recovery apresentada não mantém o mesmo bloqueio explícito no início da transação.
+- A setup verifica consistência entre intenção, participações provisórias, valores e quantidade confirmada, mantendo compatibilidade com o modelo atual.
+
+### Decisão recomendada
+
+**Não integrar nenhuma alteração da recovery nesta fase.** O material avaliado não oferece ganho funcional suficientemente importante para justificar risco de regressão ou custo de revalidação perto do encerramento do projeto.
+
+A branch pode ser considerada candidata a arquivamento/exclusão, mas somente depois de:
+- confirmar que não há outros commits/arquivos exclusivos ainda não examinados com funcionalidade relevante;
+- concluir a varredura global de identidade/vestígios de projetos antigos;
+- confirmar CI e estado dos commits necessários para recuperação, se houver;
+- obter autorização explícita do responsável antes de excluir a branch.
+
+A branch `recovery/super-quina` não deve ser excluída automaticamente por esta auditoria.
+
+### Escopo da revisão
+
+A revisão aprofundada concentrou-se nos serviços de criação de compra numérica e confirmação de pagamento Pix, além das diferenças já listadas no primeiro bloco. Não equivale a auditoria integral de todos os arquivos exclusivos da recovery. Nenhum código funcional foi integrado ou modificado.
