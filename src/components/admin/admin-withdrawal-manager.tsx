@@ -41,10 +41,6 @@ export function AdminWithdrawalManager() {
       setError("Informe o motivo da recusa para registrar na auditoria e mostrar ao jogador.");
       return;
     }
-    const prompt = action === "mark-paid"
-      ? `Confirma que o Pix de ${money(item.amountCents)} para ${item.username} já foi transferido? Ao confirmar, o saque será marcado como pago e encerrado.`
-      : `Confirma recusar o saque de ${money(item.amountCents)} de ${item.username}? O saldo reservado será devolvido ao jogador.`;
-    if (!window.confirm(prompt)) return;
     setBusy(item.id); setError(""); setNotice("");
     try {
       const response = await fetch("/api/admin/withdrawals", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ withdrawalId: item.id, action, note }) });
