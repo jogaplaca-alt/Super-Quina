@@ -11,6 +11,8 @@ const mocks = vi.hoisted(() => ({
   closeRound: vi.fn(),
   openRound: vi.fn(),
   drawRoundResults: vi.fn(),
+  queryRaw: vi.fn(),
+  settleNumericRoundPrizes: vi.fn(),
   paymentFindMany: vi.fn(),
   paymentUpdateMany: vi.fn(),
   reconcilePixPaymentFromProvider: vi.fn(),
@@ -21,11 +23,13 @@ vi.mock("@/lib/auth/session", () => ({
     round: { findUnique: mocks.findUnique, findFirst: mocks.findFirst, findMany: mocks.findMany },
     payment: { findMany: mocks.paymentFindMany, updateMany: mocks.paymentUpdateMany },
     $transaction: mocks.transaction,
+    $queryRaw: mocks.queryRaw,
   },
 }));
 vi.mock("@/modules/rounds/close-round", () => ({ closeRound: mocks.closeRound }));
 vi.mock("@/modules/rounds/open-round", () => ({ openRound: mocks.openRound }));
 vi.mock("@/modules/rounds/draw-round-results", () => ({ drawRoundResults: mocks.drawRoundResults }));
+vi.mock("@/modules/rounds/settle-numeric-round-prizes", () => ({ settleNumericRoundPrizes: mocks.settleNumericRoundPrizes }));
 vi.mock("@/modules/payments/reconcile-pix-payment", () => ({ reconcilePixPaymentFromProvider: mocks.reconcilePixPaymentFromProvider }));
 vi.mock("@/modules/purchases/allocate-paid-purchases", () => ({ allocatePaidPurchases: mocks.allocatePaidPurchases }));
 
@@ -47,6 +51,8 @@ describe("POST /api/internal/round-scheduler", () => {
     mocks.createRound.mockResolvedValue({ id: "created-round" });
     mocks.createAuditEvent.mockResolvedValue({});
     mocks.paymentFindMany.mockResolvedValue([]);
+    mocks.queryRaw.mockResolvedValue([]);
+    mocks.settleNumericRoundPrizes.mockResolvedValue({ status: "settled", creditedLines: 0 });
     mocks.paymentUpdateMany.mockResolvedValue({ count: 1 });
     mocks.reconcilePixPaymentFromProvider.mockResolvedValue("still_pending");
     mocks.allocatePaidPurchases.mockResolvedValue({ checked: 0, allocated: 0, waiting: 0, failures: 0 });
@@ -113,12 +119,37 @@ describe("POST /api/internal/round-scheduler", () => {
     const response = await POST(request("Bearer test-secret-long-enough"));
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({
-      ok: true, created: 0, closed: 0, drawn: 0, failures: 0, timeZone: "Etc/GMT+3",
+      ok: true, created: 0, closed: 0, drawn: 0, prizesSettled: 0, failures: 0, timeZone: "Etc/GMT+3",
       pixChecked: 0, pixConfirmed: 0, pixNeedsReconciliation: 0,
       paidPurchasesChecked: 0, paidPurchasesAllocated: 0, paidPurchasesWaiting: 0,
     });
     expect(mocks.findMany).toHaveBeenCalledTimes(8);
     vi.useRealTimers();
+  });
+
+  it("automatically settles completed rounds and retries them through the scheduler", async () => {
+    mocks.queryRaw.mockResolvedValue([{ id: "completed-round-1" }]);
+    mocks.settleNumericRoundPrizes.mockResolvedValue({ status: "settled", creditedLines: 1 });
+
+    const response = await POST(request("Bearer test-secret-long-enough"));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.settleNumericRoundPrizes).toHaveBeenCalledTimes(1);
+    expect(mocks.settleNumericRoundPrizes).toHaveBeenCalledWith(expect.anything(), "completed-round-1");
+    expect(body).toMatchObject({ ok: true, prizesSettled: 1, failures: 0 });
+  });
+
+  it("reports a settlement failure so the next scheduler run can retry", async () => {
+    mocks.queryRaw.mockResolvedValue([{ id: "completed-round-retry" }]);
+    mocks.settleNumericRoundPrizes.mockRejectedValue(new Error("temporary settlement failure"));
+
+    const response = await POST(request("Bearer test-secret-long-enough"));
+    const body = await response.json();
+
+    expect(response.status).toBe(207);
+    expect(mocks.settleNumericRoundPrizes).toHaveBeenCalledWith(expect.anything(), "completed-round-retry");
+    expect(body).toMatchObject({ ok: false, prizesSettled: 0, failures: 1 });
   });
 
   it("reconciles pending Pix payments even when no browser is polling", async () => {
