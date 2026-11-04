@@ -95,17 +95,24 @@ export async function allocatePaidPurchases(
           const selected = selectNextValidRounds(rounds, count, decisionTime);
           if (selected.length !== count) return "waiting" as const;
 
-          const numbers = purchase.numericIntent.numbers as string[];
-          const allocation = purchase.numericIntent.allocation as {
+          const numbersValue: unknown = purchase.numericIntent.numbers;
+          const allocationValue: unknown = purchase.numericIntent.allocation;
+          if (!Array.isArray(numbersValue) || numbersValue.length === 0 ||
+              !allocationValue || typeof allocationValue !== "object" || Array.isArray(allocationValue)) {
+            throw new Error("Paid numeric purchase intent failed integrity validation");
+          }
+          const numbers = numbersValue as string[];
+          const allocation = allocationValue as {
             unitCents: number; tensCents: number; hundredsCents: number; thousandsCents: number; quinaCents: number;
           };
           const snapshot = purchase.numericIntent.ruleSnapshot as Prisma.InputJsonValue;
           const allocationValues = [allocation.unitCents, allocation.tensCents, allocation.hundredsCents, allocation.thousandsCents, allocation.quinaCents];
           const stakePerNumber = allocationValues.reduce((sum, value) => sum + value, 0);
           const perRoundCents = numbers.length * stakePerNumber;
-          if (!Array.isArray(numbers) || !numbers.length || numbers.some((value) => typeof value !== "string" || !/^\\d{5}$/.test(value))
-            || allocationValues.some((value) => !Number.isSafeInteger(value) || value < 0)
-            || stakePerNumber < 100 || !Number.isSafeInteger(perRoundCents) || perRoundCents * count !== purchase.totalCents) {
+          if (numbers.some((value) => typeof value !== "string" || !/^\\d{5}$/.test(value)) ||
+              allocationValues.some((value) => !Number.isSafeInteger(value) || value < 0) ||
+              stakePerNumber < 100 || !Number.isSafeInteger(perRoundCents) ||
+              !Number.isSafeInteger(perRoundCents * count) || perRoundCents * count !== purchase.totalCents) {
             throw new Error("Paid numeric purchase intent failed integrity validation");
           }
 
