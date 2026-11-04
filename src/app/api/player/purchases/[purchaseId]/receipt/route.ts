@@ -35,8 +35,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       },
     });
     const ownsPurchase = user.role === "ADMIN" ||
-      (user.role === "PLAYER" && purchase?.playerId === user.id) ||
-      (user.role === "CASHIER" && purchase?.cashierId === user.id);
+(user.role === "CASHIER" && purchase?.cashierId === user.id);
     if (!purchase || !ownsPurchase) return NextResponse.json({ error: "Compra não encontrada." }, { status: 404, headers });
     if (Date.now() >= purchase.createdAt.getTime() + 7 * 86400000) return NextResponse.json({ error: "O prazo de validade de 7 dias deste recibo terminou. Não é mais possível consultá-lo ou imprimi-lo." }, { status: 410, headers });
     const isCashSale = purchase.paymentMethod === "CASH";
