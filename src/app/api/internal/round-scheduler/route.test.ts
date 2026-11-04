@@ -131,6 +131,21 @@ describe("POST /api/internal/round-scheduler", () => {
     vi.useRealTimers();
   });
 
+  it("keeps 48 future rounds when the current slot cutoff has just passed", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-25T15:29:30.000Z")); // 12:29:30 in Brasília; 12:30 cutoff has passed
+    const response = await POST(request("Bearer test-secret-long-enough"));
+    expect(response.status).toBe(200);
+    const scheduledResults = mocks.createRound.mock.calls.map((call) =>
+      (call[0] as { data: { resultAt: Date } }).data.resultAt.getTime(),
+    );
+    expect(scheduledResults).toHaveLength(48);
+    expect(scheduledResults[0]).toBe(new Date("2026-10-25T16:00:00.000Z").getTime());
+    expect(scheduledResults.at(-1)).toBe(new Date("2026-10-26T15:30:00.000Z").getTime());
+    expect(scheduledResults.every((time, index) => index === 0 || time - scheduledResults[index - 1]! === 30 * 60_000)).toBe(true);
+    vi.useRealTimers();
+  });
+
   it("automatically settles completed rounds and retries them through the scheduler", async () => {
     mocks.queryRaw.mockResolvedValue([{ id: "completed-round-1" }]);
     mocks.settleNumericRoundPrizes.mockResolvedValue({ status: "settled", creditedLines: 1 });
