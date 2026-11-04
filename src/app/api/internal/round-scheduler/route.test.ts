@@ -113,7 +113,11 @@ describe("POST /api/internal/round-scheduler", () => {
     const scheduledResults = mocks.createRound.mock.calls.map((call) => ({
       resultAt: (call[0] as { data: { resultAt: Date } }).data.resultAt,
     }));
-    expect(scheduledResults).toHaveLength(10);
+    expect(scheduledResults).toHaveLength(48);
+    const resultTimes = scheduledResults.map(({ resultAt }) => resultAt.getTime());
+    expect(resultTimes[0]).toBe(new Date("2026-10-25T15:30:00.000Z").getTime());
+    expect(resultTimes.at(-1)).toBe(new Date("2026-10-26T15:00:00.000Z").getTime());
+    expect(resultTimes.every((time, index) => index === 0 || time - resultTimes[index - 1]! === 30 * 60_000)).toBe(true);
 
     mocks.findMany.mockResolvedValueOnce(scheduledResults);
     const response = await POST(request("Bearer test-secret-long-enough"));
