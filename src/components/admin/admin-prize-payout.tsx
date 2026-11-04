@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
 type PrizeLine = {
   id: string; numberValue: string; roundCode: string; roundCompleted: boolean;
@@ -16,17 +16,32 @@ export function AdminPrizePayout() {
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const lookupController = useRef<AbortController | null>(null);
+
+  useEffect(() => () => lookupController.current?.abort(), []);
 
   async function lookup(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setLoading(true); setError(""); setNotice(""); setLines([]);
+    event.preventDefault();
+    lookupController.current?.abort();
+    const controller = new AbortController();
+    lookupController.current = controller;
+    setLoading(true); setError(""); setNotice(""); setLines([]);
     try {
-      const response = await fetch("/api/admin/prizes/lookup?q=" + encodeURIComponent(receiptCode), { cache: "no-store" });
+      const response = await fetch("/api/admin/prizes/lookup?q=" + encodeURIComponent(receiptCode), { cache: "no-store", signal: controller.signal });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "Não foi possível consultar o recibo.");
+      if (lookupController.current !== controller) return;
       setLines(body.lines as PrizeLine[]);
       setNotice(body.lines.length ? "Confira o recibo físico e confirme a transferência Pix antes de registrar." : "Este recibo não possui participações numéricas confirmadas.");
-    } catch (reason) { setError(reason instanceof Error ? reason.message : "Falha ao consultar o recibo."); }
-    finally { setLoading(false); }
+    } catch (reason) {
+      if (controller.signal.aborted || lookupController.current !== controller) return;
+      setError(reason instanceof Error ? reason.message : "Falha ao consultar o recibo.");
+    } finally {
+      if (lookupController.current === controller) {
+        lookupController.current = null;
+        setLoading(false);
+      }
+    }
   }
 
   async function pay(line: PrizeLine) {
