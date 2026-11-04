@@ -23,6 +23,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     where: { id: purchaseId, cashierId: user.id },
     select: {
       status: true,
+      paymentMethod: true,
       receiptCode: true,
       confirmedAt: true,
       payment: { select: { id: true, status: true, provider: true, providerPaymentId: true, providerStatus: true, providerStatusDetail: true, confirmedAt: true, updatedAt: true } },
@@ -58,6 +59,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       where: { id: purchaseId, cashierId: user.id },
       select: {
         status: true,
+        paymentMethod: true,
         receiptCode: true,
         confirmedAt: true,
         payment: { select: { id: true, status: true, provider: true, providerPaymentId: true, providerStatus: true, providerStatusDetail: true, confirmedAt: true, updatedAt: true } },
@@ -68,8 +70,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
   if (!purchase) return NextResponse.json({ error: "Compra não encontrada." }, { status: 404, headers });
 
   const confirmed = purchase.status === "CONFIRMED"
-    && purchase.payment?.status === "CONFIRMED"
-    && Boolean(purchase.receiptCode && purchase.confirmedAt && purchase.payment.confirmedAt);
+    && Boolean(purchase.receiptCode && purchase.confirmedAt)
+    && (purchase.paymentMethod === "CASH"
+      || (purchase.payment?.status === "CONFIRMED" && Boolean(purchase.payment.confirmedAt)));
 
   const reconciliationRequired = purchase.status === "PENDING_PAYMENT"
     && purchase.payment?.status === "PENDING"
