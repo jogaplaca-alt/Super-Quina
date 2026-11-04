@@ -9,7 +9,7 @@ type PrizeLine = {
   roundCompleted: boolean;
   prizeCents: number;
   paid: boolean;
-  payoutChannel: "PLATFORM_PIX" | "CASHIER_CASH" | null;
+  payoutChannel: "PLATFORM_PIX" | "CASHIER_CASH" | "WALLET" | null;
   paidAt: string | null;
 };
 
@@ -79,7 +79,7 @@ export function CashierPrizePayout() {
           <strong>Número {line.numberValue}</strong>
           <p>Rodada {line.roundCode}</p>
           {!line.roundCompleted ? <span>Aguardando resultado</span> : line.prizeCents > 0 ? <span>Prêmio: {money(line.prizeCents)}</span> : <span>Não premiado</span>}
-          {line.paid && <p><strong>PRÊMIO JÁ PAGO</strong> — {line.payoutChannel === "CASHIER_CASH" ? "dinheiro pelo cambista" : "Pix pela plataforma"}</p>}
+          {line.paid && <p><strong>PRÊMIO JÁ PAGO</strong> — {line.payoutChannel === "CASHIER_CASH" ? "dinheiro pelo cambista" : line.payoutChannel === "WALLET" ? "crédito na carteira do jogador" : "Pix pela plataforma"}</p>}
         </div>
         {line.roundCompleted && line.prizeCents > 0 && !line.paid && <button type="button" onClick={() => void pay(line.id)} disabled={Boolean(busyLine)}>{busyLine === line.id ? "Registrando…" : "Registrar dinheiro entregue"}</button>}
       </article>)}
