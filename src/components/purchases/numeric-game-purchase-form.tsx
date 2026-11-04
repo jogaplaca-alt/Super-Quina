@@ -49,11 +49,19 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
   useEffect(() => {
     if (mode !== "PLAYER") return;
     let active = true;
+    const updateBalance = (event: Event) => {
+      const detail = (event as CustomEvent<{ availableCents: number }>).detail;
+      if (typeof detail?.availableCents === "number") setWalletBalanceCents(detail.availableCents);
+    };
+    window.addEventListener("superquina:player-wallet-updated", updateBalance);
     fetch("/api/player/withdrawals", { cache: "no-store" })
       .then((response) => response.json())
       .then((body) => { if (active && typeof body.availableCents === "number") setWalletBalanceCents(body.availableCents); })
       .catch(() => { if (active) setWalletBalanceCents(null); });
-    return () => { active = false; };
+    return () => {
+      active = false;
+      window.removeEventListener("superquina:player-wallet-updated", updateBalance);
+    };
   }, [mode]);
 
   useEffect(() => {
@@ -169,7 +177,9 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
         setReconciliationRequired(false);
       }
       if (mode === "PLAYER" && paymentMethod === "WALLET" && walletBalanceCents !== null) {
-        setWalletBalanceCents(walletBalanceCents - totalEstimate);
+        const nextBalance = walletBalanceCents - totalEstimate;
+        setWalletBalanceCents(nextBalance);
+        window.dispatchEvent(new CustomEvent("superquina:player-wallet-updated", { detail: { availableCents: nextBalance } }));
       }
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Não foi possível concluir a compra.");
