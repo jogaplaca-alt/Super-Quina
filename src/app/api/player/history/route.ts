@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     const purchases = await authPrisma.purchase.findMany({
       where: { playerId: user.id, createdAt: { gte: since } },
       select: {
-        id: true, receiptCode: true, status: true, createdAt: true, totalCents: true,
+        id: true, status: true, createdAt: true, totalCents: true,
         participations: {
           select: {
             id: true, status: true, totalCents: true,
@@ -33,8 +33,7 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: "desc" }, take: 100,
     });
     const history = purchases.map((purchase) => ({
-      id: purchase.id, receiptCode: purchase.status === "CONFIRMED" ? purchase.receiptCode : null,
-      purchaseStatus: purchase.status, createdAt: purchase.createdAt.toISOString(), totalCents: purchase.totalCents,
+      id: purchase.id, purchaseStatus: purchase.status, createdAt: purchase.createdAt.toISOString(), totalCents: purchase.totalCents,
       participations: purchase.participations.map((part) => ({
         id: part.id, status: part.status, totalCents: part.totalCents, roundCode: part.round.code,
         roundStatus: part.round.status, resultAt: part.round.resultAt.toISOString(),
