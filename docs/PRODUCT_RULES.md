@@ -30,6 +30,18 @@ A alocação de cada aposta entre unidade, dezena, centena, milhar e quina é um
 - O recibo oficial só pode ser emitido depois que o pagamento estiver confirmado e todas as repetições estiverem vinculadas às rodadas correspondentes.
 - Se ocorrer falha técnica depois de o pagamento ter sido recebido, a compra deve permanecer registrada para tratamento administrativo auditável. Não se deve cancelar a aposta paga nem gerar reembolso automático. O recibo oficial só é criado depois da alocação completa; enquanto isso, a interface informa que o valor foi recebido e que a alocação está em processamento.
 
+
+### 3.1 Confirmação definitiva do Pix — decisão obrigatória
+
+- Notificações intermediárias do webhook do Mercado Pago são apenas sinais para iniciar/verificar a reconciliação. Elas não podem, isoladamente, efetivar nem cancelar uma compra.
+- A compra só pode avançar para um estado financeiro final quando o sistema consultar o pagamento diretamente na API do Mercado Pago e validar o estado atual retornado pelo provedor, além de conferir identificação/referência, valor e moeda esperados.
+- A decisão deve considerar o estado canônico atual do pagamento no provedor, não simplesmente a mensagem mais recente que chegou ao servidor: webhooks podem ser repetidos, atrasados ou entregues fora de ordem.
+- Enquanto a API retornar estado pendente, não conclusivo, indisponível ou divergente, a compra permanece sem confirmação final e não pode gerar participações nem recibo oficial. A reconciliação deve tentar novamente de forma segura.
+- Webhook e consulta periódica/direta são mecanismos complementares de detecção e recuperação, não dois fluxos independentes de aprovação. Ambos devem convergir para um único serviço central de confirmação e uma única máquina de estados do pagamento.
+- A transição final precisa ser transacional e idempotente. Reentrega de webhook, consulta repetida, concorrência ou reinício não podem duplicar cobrança, participações, recibo, comissão ou crédito.
+- Estados finais aceitos, transições permitidas e tratamento de rejeição/cancelamento/expiração devem ser mapeados explicitamente a partir dos estados oficiais do Mercado Pago durante a implementação. Reembolso/chargeback inesperado continua seguindo a regra de incidente financeiro da seção 4; não reverte automaticamente compra, participações, prêmios ou comissões.
+- Antes de implementar ou importar qualquer mecanismo, auditar os serviços, rotas, webhooks, scheduler e estados já existentes. Se já houver uma função equivalente, corrigir ou ampliar a implementação atual; não criar uma segunda rota, worker, máquina de estados ou mecanismo paralelo para a mesma responsabilidade.
+
 ## 4. Sem reembolso automático
 
 Não existe reembolso no fluxo comercial normal do jogo. Qualquer notificação externa inesperada de estorno/reembolso deve ser tratada como incidente financeiro para análise administrativa, sem desfazer automaticamente uma compra já confirmada, suas participações, prêmios ou comissões.
