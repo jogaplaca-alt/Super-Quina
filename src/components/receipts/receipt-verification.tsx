@@ -21,7 +21,6 @@ type VerifiedReceipt = {
   totalCents?: number;
   currency?: string;
   confirmedAt?: string | null;
-  cashierLabel?: string | null;
   rounds?: VerifiedRound[];
   message: string;
 };
@@ -99,7 +98,6 @@ export function ReceiptVerification({ receiptCode }: { receiptCode: string }) {
       </div>
       {!data.valid && <p role="alert" style={{ color: "#991b1b", fontWeight: 700 }}>{data.message}</p>}
       <p style={{ margin: "0 0 8px", fontSize: 16, color: "#111827" }}><strong>Recibo:</strong> {data.receiptCode ?? receiptCode.toUpperCase()}</p>
-      {data.valid && data.cashierLabel && <p style={{ margin: "0 0 16px", fontSize: 16, color: "#111827" }}><strong>Cambista:</strong> {data.cashierLabel}</p>}
 
       {data.valid && (
         <>
