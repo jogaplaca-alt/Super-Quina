@@ -38,7 +38,6 @@ export function AdminRoundManager() {
       if (!controller.signal.aborted) setData(body as Dashboard);
     } catch (reason) {
       if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Falha ao carregar o painel.");
-    } finally { setLoading(false); }
     } finally {
       if (loadController.current === controller) { loadController.current = null; setLoading(false); }
     }
