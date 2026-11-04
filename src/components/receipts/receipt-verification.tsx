@@ -25,7 +25,7 @@ type VerifiedReceipt = {
   message: string;
 };
 
-const roundStatusLabels: Record<VerifiedRound["status"], string> = {
+const prizeSupportWhatsapp = (process.env.NEXT_PUBLIC_PRIZE_SUPPORT_WHATSAPP || "5577991601217").replace(/\D/g, "");\nconst prizeSupportUrl = `https://wa.me/${prizeSupportWhatsapp}`;\n\nconst roundStatusLabels: Record<VerifiedRound["status"], string> = {
   SORTEIO_AGUARDANDO: "Aguardando sorteio",
   AGUARDANDO_RESULTADO_OFICIAL: "Aguardando resultado",
   RESULTADO_PUBLICADO: "Publicado",
