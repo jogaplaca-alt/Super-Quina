@@ -92,3 +92,17 @@ A branch `recovery/super-quina` não deve ser excluída automaticamente por esta
 ### Escopo da revisão
 
 A revisão aprofundada concentrou-se nos serviços de criação de compra numérica e confirmação de pagamento Pix, além das diferenças já listadas no primeiro bloco. Não equivale a auditoria integral de todos os arquivos exclusivos da recovery. Nenhum código funcional foi integrado ou modificado.
+
+
+## Encerramento da avaliação da branch — 2026-11-04
+
+Decisão do responsável pelo projeto: encerrar o trabalho de avaliação da branch `recovery/super-quina` e deixá-la separada, marcada como candidata à exclusão.
+
+- Não aproveitar código da branch nesta fase.
+- Não realizar merge ou cherry-pick.
+- Não continuar novas auditorias nela, salvo se surgir uma necessidade concreta.
+- Preservar a branch temporariamente como referência recuperável até a exclusão autorizada.
+- A branch `setup/super-quina` permanece como única base ativa de desenvolvimento.
+- A exclusão remota da branch recovery **não foi executada** neste encerramento; permanece pendente de ação/autorização específica.
+
+Status: **AVALIAÇÃO ENCERRADA — AGUARDANDO EXCLUSÃO**.
