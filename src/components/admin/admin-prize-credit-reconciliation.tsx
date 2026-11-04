@@ -38,7 +38,7 @@ export function AdminPrizeCreditReconciliation() {
       const response = await fetch("/api/admin/prize-credit-reconciliation", { cache: "no-store", signal: controller.signal });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "Não foi possível consultar os créditos pendentes.");
-      setItems(body.items as PendingCredit[]);
+      if (!controller.signal.aborted) setItems(body.items as PendingCredit[]);
     } catch (reason) {
       if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Falha ao carregar os créditos pendentes.");
     } finally {
@@ -48,7 +48,7 @@ export function AdminPrizeCreditReconciliation() {
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void load(); }, 0);
-    return () => window.clearTimeout(timer);
+    return () => { window.clearTimeout(timer); loadController.current?.abort(); };
   }, [load]);
 
   async function repair(item: PendingCredit) {
