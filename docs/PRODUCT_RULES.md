@@ -2,6 +2,17 @@
 
 Este documento é a fonte de referência das regras comerciais e da terminologia do jogo. Deve ser atualizado junto com as implementações e servirá de base para o futuro manual técnico.
 
+
+## 0. Estrutura do site e navegação — decisão de produto
+
+- O site possui quatro áreas principais distintas: (1) página pública de apresentação/início; (2) área do jogador; (3) área do cambista; e (4) área do administrador. A página de apresentação é a entrada pública padrão do domínio e não substitui nem absorve as três áreas autenticadas.
+- Ao acessar o domínio pela raiz `/`, a pessoa deve chegar à página pública de apresentação do Super Quina, com explicação clara de como funciona e caminhos para entrar ou criar conta. Não encaminhar automaticamente visitantes não autenticados para o login, salvo quando tentarem acessar uma área protegida.
+- As áreas de jogador, cambista e administrador continuam separadas, com permissões e funcionalidades próprias. O trabalho em uma delas não elimina nem substitui as outras.
+- Termos de uso e verificação de recibo são páginas públicas complementares, não novas áreas principais de operação. Os caminhos existentes `/termos-de-uso` e `/verificar-recibo/[receiptCode]` devem ser mantidos e integrados à navegação pública.
+- QR Code de pagamento Pix e recibo oficial devem ser apresentados no próprio fluxo/tela em que a pessoa iniciou a compra ou venda, sem redirecionamento desnecessário para uma nova página. O QR Pix deve permanecer junto do estado da cobrança e da confirmação; após pagamento confirmado e alocação concluída, o recibo deve aparecer na mesma tela, substituindo ou sucedendo o QR conforme o estado.
+- A exigência de manter o fluxo na mesma tela não elimina a página pública própria de verificação do recibo: quando alguém escanear o QR impresso do recibo, deve abrir a rota pública existente de verificação daquele recibo.
+- Não criar novas rotas ou páginas para duplicar telas/funcionalidades já existentes. Antes de qualquer alteração de navegação, conferir os caminhos atuais e preservar o fluxo em andamento.
+
 ## 1. Conceitos oficiais
 
 - **Jogo** e **jogada** são sinônimos: representam uma compra completa formada pela escolha de um conjunto de números e sua contratação/pagamento.
