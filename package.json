@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma validate && prisma generate && next build",
-    "start": "prisma migrate deploy && next start",
+    "start": "prisma migrate deploy && npm run admin:provision && next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -18,7 +18,6 @@
     "db:studio": "prisma studio",
     "test:postgres": "vitest run src/lib/auth/login-rate-limit.postgres.integration.test.ts",
     "admin:provision": "npx --yes tsx@4.20.6 scripts/provision-admin.mjs",
-    "admin:import-existing": "npx --yes tsx@4.20.6 scripts/import-existing-admin.mjs",
     "admin:recover": "node scripts/recover-admin.mjs"
   },
   "dependencies": {
