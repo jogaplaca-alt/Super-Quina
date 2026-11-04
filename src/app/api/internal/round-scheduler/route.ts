@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
   }
 
   const now = new Date();
-  const horizon = new Date(now.getTime() + MAX_FUTURE_ROUNDS * HALF_HOUR_MS);
+  const horizon = new Date(now.getTime() + (MAX_FUTURE_ROUNDS + 1) * HALF_HOUR_MS);
   let created = 0;
   let closed = 0;
   let drawn = 0;
