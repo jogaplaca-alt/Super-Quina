@@ -82,3 +82,13 @@ Branch de trabalho: `setup/super-quina`.
 - Falhas permanecem sem auditoria de sucesso; a próxima execução do scheduler tenta novamente. A seleção é limitada a 100 rodadas por execução.
 - A liquidação automática não cria um segundo mecanismo financeiro: reutiliza o serviço central existente, o bloqueio da rodada, o ledger e a chave idempotente por linha. A auditoria automática é gravada uma única vez após liquidação bem-sucedida.
 - Foram adicionados testes de rota para sucesso automático e falha recuperável. Execução real de CI ainda precisa ser confirmada; nenhuma homologação ou deploy foi realizado.
+
+
+## Plano de prêmio de bilhete de cambista — 2026-11-03
+- Decisão detalhada registrada em `docs/PRODUCT_RULES.md` e roteiro de auditoria/implementação criado em `docs/CASHIER_TICKET_PRIZE_PAYOUT_PLAN.md`.
+- Auditoria inicial confirmou: recibo aceita cliente opcional e rótulo de cambista; QR de recibo é gerado localmente; consulta pública já possui página/API; scheduler chama a apuração central; serviço marca prêmios sem jogador ou de venda por cambista como `pendingManualPayouts`.
+- A reconciliação ADMIN existente é para crédito de prêmio em carteira de jogador, não para pagamento externo de bilhete de cambista. O modelo atual não registra ator/data/status de pagamento Pix externo por linha premiada.
+- Ainda não foi confirmado se o rótulo `cashierLabel` identifica o ponto de venda correto, nem se a consulta pública já apresenta estados de prêmio ou contato WhatsApp. Esses pontos estão marcados para rastreamento no plano.
+- Implementação pendente: persistência da baixa externa, ação ADMIN após Pix efetivo, atualização da consulta QR para `NÃO PREMIADO` / `PRÊMIO DISPONÍVEL` + WhatsApp / `PRÊMIO PAGO`, configuração central do WhatsApp e testes de idempotência/concorrência/permissões.
+- Nenhum código, schema, migration, rota, interface ou deploy foi alterado nesta etapa; foram feitas somente atualizações documentais na branch `setup/super-quina`.
+- Commits: plano `b3a0d0e1a7ec2f21a1d866c1b86680a0c80095cf`; regras de produto `69606bca4a406866414ea9906553b04d5ee13437`.
