@@ -18,7 +18,7 @@ export default async function AdminCashierDetailPage({ params }: { params: Promi
   if (!cashier) notFound();
   const latestSettlement = await authPrisma.cashierSettlement.findFirst({ where: { cashierId }, orderBy: { settledAt: "desc" }, select: { settledAt: true } });
   const since = latestSettlement?.settledAt ?? new Date(0);
-  const [purchases, settlements, cashNow, pixNow, commissionNow, gamesNow] = await Promise.all([
+  const [purchases, settlements, cashNow, pixNow, commissionNow, gamesNow, cashPrizePayouts] = await Promise.all([
     authPrisma.purchase.findMany({
       where: { cashierId }, orderBy: [{ createdAt: "desc" }],
       select: {
@@ -31,12 +31,13 @@ export default async function AdminCashierDetailPage({ params }: { params: Promi
     }),
     authPrisma.cashierSettlement.findMany({
       where: { cashierId }, orderBy: { settledAt: "desc" },
-      select: { id: true, settledAt: true, cashSalesCents: true, pixSalesCents: true, totalSalesCents: true, salesCount: true, gamesCount: true, commissionCents: true, admin: { select: { username: true } } },
+      select: { id: true, settledAt: true, cashSalesCents: true, pixSalesCents: true, totalSalesCents: true, salesCount: true, gamesCount: true, commissionCents: true, cashPrizePayoutCount: true, cashPrizePayoutCents: true, admin: { select: { username: true } } },
     }),
     authPrisma.purchase.aggregate({ where: { cashierId, status: "CONFIRMED", paymentMethod: "CASH", confirmedAt: { gt: since } }, _sum: { totalCents: true }, _count: { _all: true } }),
     authPrisma.purchase.aggregate({ where: { cashierId, status: "CONFIRMED", paymentMethod: "PIX", confirmedAt: { gt: since }, payment: { is: { status: "CONFIRMED" } } }, _sum: { totalCents: true }, _count: { _all: true } }),
     authPrisma.cashierCommission.aggregate({ where: { cashierId, createdAt: { gt: since }, purchase: { is: { status: "CONFIRMED" } } }, _sum: { amountCents: true } }),
     authPrisma.numericParticipationLine.count({ where: { participation: { is: { status: "CONFIRMED", purchase: { is: { cashierId, status: "CONFIRMED", confirmedAt: { gt: since } } } } } } }),
+    authPrisma.numericPrizePayout.aggregate({ where: { cashierId, channel: "CASHIER_CASH", settlementId: null, paidAt: { gt: since } }, _sum: { amountCents: true }, _count: { _all: true } }),
   ]);
   const cashTotal = cashNow._sum.totalCents ?? 0;
   const pixTotal = pixNow._sum.totalCents ?? 0;
@@ -52,6 +53,7 @@ export default async function AdminCashierDetailPage({ params }: { params: Promi
           <article className="cashier-summary-tile"><span>Valor total das vendas</span><strong>{money(cashTotal + pixTotal)}</strong></article>
           <article className="cashier-summary-tile"><span>Vendas em dinheiro</span><strong>{money(cashTotal)}</strong></article>
           <article className="cashier-summary-tile"><span>Vendas em Pix confirmado</span><strong>{money(pixTotal)}</strong></article>
+          <article className="cashier-summary-tile"><span>Prêmios pagos pelo cambista ({cashPrizePayouts._count._all})</span><strong>{money(cashPrizePayouts._sum.amountCents ?? 0)}</strong></article>
         </div>
         <p>Vendas confirmadas: {cashNow._count._all + pixNow._count._all} · Jogos realizados: {gamesNow}</p>
         <p>Contagem iniciada em: {latestSettlement ? latestSettlement.settledAt.toLocaleString("pt-BR") : "início das vendas"}</p>
@@ -83,8 +85,8 @@ export default async function AdminCashierDetailPage({ params }: { params: Promi
       <section className="feature-card admin-cashier-history">
         <h2>Histórico de acertos</h2>
         {settlements.length === 0 ? <p>Nenhum acerto registrado.</p> : <div className="admin-cashier-table-wrap"><table className="admin-cashier-table">
-          <thead><tr><th>Data</th><th>Dinheiro</th><th>Pix</th><th>Total</th><th>Vendas</th><th>Jogos</th><th>Comissão</th><th>Responsável</th></tr></thead>
-          <tbody>{settlements.map((item) => <tr key={item.id}><td>{item.settledAt.toLocaleString("pt-BR")}</td><td>{money(item.cashSalesCents)}</td><td>{money(item.pixSalesCents)}</td><td>{money(item.totalSalesCents)}</td><td>{item.salesCount}</td><td>{item.gamesCount}</td><td>{money(item.commissionCents)}</td><td>{item.admin.username}</td></tr>)}</tbody>
+          <thead><tr><th>Data</th><th>Dinheiro</th><th>Pix</th><th>Total</th><th>Vendas</th><th>Jogos</th><th>Comissão</th><th>Prêmios pagos em dinheiro</th><th>Responsável</th></tr></thead>
+          <tbody>{settlements.map((item) => <tr key={item.id}><td>{item.settledAt.toLocaleString("pt-BR")}</td><td>{money(item.cashSalesCents)}</td><td>{money(item.pixSalesCents)}</td><td>{money(item.totalSalesCents)}</td><td>{item.salesCount}</td><td>{item.gamesCount}</td><td>{money(item.commissionCents)}</td><td>{item.cashPrizePayoutCount} · {money(item.cashPrizePayoutCents)}</td><td>{item.admin.username}</td></tr>)}</tbody>
         </table></div>}
       </section>
     </div>
