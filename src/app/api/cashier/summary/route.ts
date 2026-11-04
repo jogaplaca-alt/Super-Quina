@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     const [cash, pix, commission, profile, games] = await Promise.all([
       authPrisma.purchase.aggregate({
         where: { ...common, paymentMethod: "CASH" },
-        _sum: { totalCents: true }, _count: { _all: true },
+        _sum: { totalCents: true },
       }),
       authPrisma.purchase.aggregate({
         where: { ...common, paymentMethod: "PIX", payment: { is: { status: "CONFIRMED" } } },
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     const pixSalesCents = pix._sum.totalCents ?? 0;
     return NextResponse.json({
       cashSalesCents, pixSalesCents, totalSalesCents: cashSalesCents + pixSalesCents,
-      confirmedSalesCount: cash._count._all + pix._count._all, gamesCount: games,
+      gamesCount: games,
       commissionCents: commission._sum.amountCents ?? 0,
       commissionRateBasisPoints: profile?.commissionRateBasisPoints ?? 0,
       lastSettlementAt: lastSettlement?.settledAt.toISOString() ?? null,
