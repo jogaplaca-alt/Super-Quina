@@ -17,19 +17,19 @@ The platform runs frequent draws. Performance is a correctness and availability 
 
 ## Current optimizations recorded
 
-- Allocation retries now read at most 50 purchase IDs per batch and process that batch before fetching the next one. The worker no longer accumulates every pending purchase ID in memory.
-- Added PostgreSQL indexes for the CASH/WALLET allocation queue and the pending Mercado Pago reconciliation queue.
+- CASH/WALLET allocation now processes at most 100 purchases per scheduler execution, in batches of at most 50. A cursor stored in the existing `Setting` table resumes the next execution after the last processed ID; when the queue end is reached it wraps to the beginning, so a failed purchase remains eligible without starving later rows. Cursor writes happen after each processed batch.
+- Added PostgreSQL indexes for the CASH/WALLET allocation queue and the pending Mercado Pago reconciliation queue. The allocation worker and Pix confirmation lock only the earliest required number of eligible rounds, rather than locking every future round.
 - The public landing page no longer forces request-time rendering.
 - The header and landing infographic use Next.js image delivery with AVIF/WebP negotiation, responsive sizing, and long-lived optimization caching.
 
 ## Known asset work
 
-The current source PNGs are large: header 1,507,890 bytes, icon 1,743,132 bytes, and landing infographic 2,067,204 bytes. The header and landing image are now delivered through the image optimizer, but the source files still need a proper lossless/visual review and optimized replacement. The icon is still referenced directly in metadata and should be replaced with a properly sized lightweight favicon/apple-touch asset after validating the brand appearance.
+The source PNGs remain large: header 1,507,890 bytes, icon 1,743,132 bytes, and landing infographic 2,067,204 bytes. Header and landing infographic are served through the Next.js image optimizer with responsive dimensions and AVIF/WebP negotiation. Favicon and Apple touch metadata also use the optimizer. The PWA manifest still references the original PNG icon; replacing it safely requires producing and visually checking a smaller static icon asset. This source-asset task remains open and must not be described as complete.
 
 ## Validation requirements
 
 - Run typecheck, lint, unit tests, PostgreSQL integration tests, and production build after performance changes.
 - Inspect generated image responses and browser network transfer sizes; do not claim an optimization is effective based only on source code.
-- Exercise scheduler behavior with a large pending queue and verify bounded memory, continued pagination after a failed item, and retry on the next execution.
+- Unit tests verify the 100-purchase execution cap, persistent cursor advancement after failures, cursor wraparound, and bounded `LIMIT`/`FOR UPDATE` round locking in Pix confirmation. A PostgreSQL load test with a large queue is still required before production promotion.
 - Measure representative public, player, cashier, and admin routes on mobile and desktop. Track LCP, INP, CLS, server response time, database query count, and memory under load.
 - Do not merge or deploy performance changes until CI passes and the target hosting environment has been measured.
