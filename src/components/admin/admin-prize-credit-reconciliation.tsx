@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type PendingCredit = {
   lineId: string;
@@ -27,17 +27,23 @@ export function AdminPrizeCreditReconciliation() {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const loadController = useRef<AbortController | null>(null);
 
   const load = useCallback(async () => {
+    loadController.current?.abort();
+    const controller = new AbortController();
+    loadController.current = controller;
     setError("");
     try {
-      const response = await fetch("/api/admin/prize-credit-reconciliation", { cache: "no-store" });
+      const response = await fetch("/api/admin/prize-credit-reconciliation", { cache: "no-store", signal: controller.signal });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "Não foi possível consultar os créditos pendentes.");
       setItems(body.items as PendingCredit[]);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Falha ao carregar os créditos pendentes.");
-    } finally { setLoading(false); }
+      if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Falha ao carregar os créditos pendentes.");
+    } finally {
+      if (loadController.current === controller) { loadController.current = null; setLoading(false); }
+    }
   }, []);
 
   useEffect(() => {
