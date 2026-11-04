@@ -137,3 +137,35 @@ Não introduzir lock global, paralelismo Pix ou mudança de limite sem teste e m
 Adicionar medição de duração por etapa (reconciliação Pix, alocação, fechamento/abertura, sorteio e liquidação) e teste com lote representativo antes de decidir se Pix deve ser limitado/particionado ou processado por worker. Qualquer limite de lote precisa preservar retomada e reconciliação eventual.
 
 Status permanece **PARCIAL**. Esta complementação é documental; nenhum código de produção foi modificado e nenhum teste foi executado nesta sessão. O CI configurado no GitHub foi inspecionado, mas seu resultado mais recente não foi consultado. Não houve deploy nem acesso/escrita em banco de produção.
+
+## 8. Auditoria incremental — Bloco 2: área do cambista (2026-11-04)
+
+Escopo inicial: tela do cambista, criação de vendas CASH/PIX, resumo financeiro e superfícies administrativas de cadastro/acerto/histórico. Branch: `setup/super-quina`.
+
+### Funcionalidades já identificadas no código
+
+- `src/app/cashier/page.tsx`: área autenticada de cambista; apresenta formulário de venda, últimos resultados e resumo financeiro no rodapé.
+- `src/components/purchases/numeric-game-purchase-form.tsx`: formulário compartilhado PLAYER/CASHIER; permite números de cinco algarismos, valor por número, 1–10 repetições, CASH ou PIX para cambista, chave de idempotência no cliente e consulta de status Pix. Para CASH, apresenta recibo; para PIX, aguarda confirmação e só abre recibo quando a API informa que está pronto.
+- `src/app/api/cashier/purchases/cash/route.ts` e `create/route.ts`: exigem sessão CASHIER sem troca de senha pendente, validam origem e payload e chamam o serviço central `createNumericPurchase`. A rota CASH confirma a venda e registra comissão; a rota PIX cria/recupera a ordem do Mercado Pago e mantém a compra sem recibo até confirmação.
+- `src/app/api/cashier/purchases/[purchaseId]/status/route.ts`: restringe a consulta à compra do próprio cambista e limita a reconciliação direta do provedor por claim de 10 segundos.
+- `src/app/api/cashier/summary/route.ts` e `src/components/cashier/cashier-sales-summary.tsx`: exibem comissão, vendas totais, dinheiro, Pix confirmado, quantidade de vendas/jogos e último acerto; atualizam a cada 30 segundos.
+- Área administrativa já permite cadastrar/editar/bloquear cambistas, definir comissão individual, consultar vendas e acertos e registrar acerto somente pelo ADMIN. A comissão é armazenada por venda com taxa snapshot; o cálculo usa centavos inteiros.
+- A venda anônima sem cadastro de cliente está alinhada à regra de produto para bilhetes vendidos por cambista.
+
+### Lacunas concretas identificadas
+
+1. `GET /api/admin/cashiers` usa `take: 500`, enquanto a tela trata o resultado como lista completa. Acima de 500 cambistas, o administrador não consegue listar/selecionar todos. A correção deve introduzir paginação real (com ordenação estável e total/cursor), sem simplesmente remover o limite e devolver quantidade ilimitada.
+2. `src/app/admin/cashiers/[cashierId]/page.tsx` carrega todas as compras do cambista com `findMany`, sem limite ou paginação. O histórico cresce indefinidamente; implementar paginação antes de volume operacional relevante, preservando filtros/status e ordenação estável.
+3. A leitura dos caminhos de teste junto às rotas de cambista e de acerto não encontrou testes colocados ao lado dessas rotas. Isso não prova ausência de cobertura em outros arquivos; localizar a cobertura efetiva e acrescentar testes de autorização, propriedade da compra, idempotência, comissão, reconciliação Pix e acerto concorrente antes de declarar a área homologada.
+4. A área do cambista atualmente apresenta venda, resumo financeiro e últimos resultados; o histórico detalhado de vendas está na área ADMIN. Confirmar se o escopo de produto exige que o próprio cambista consulte o histórico detalhado, ou se o resumo atual é suficiente. Não criar uma nova tela sem fechar esse requisito.
+5. O acerto usa bloqueio da linha do cambista e transação serializável, mas ainda precisa de teste PostgreSQL concorrente para provar que duas solicitações simultâneas não fecham o mesmo período nem duplicam valores.
+
+### Próxima ação
+
+- Antes de alterar o fluxo de venda, localizar a cobertura de testes existente e conferir o contrato do recibo para identificação obrigatória do ponto de venda.
+- Planejar e implementar paginação no diretório de cambistas e no histórico administrativo, com testes de ordenação, navegação, ausência de duplicidade e acesso ADMIN.
+- Definir se o cambista precisa de histórico detalhado próprio.
+- Testar em PostgreSQL: duas vendas simultâneas com a mesma chave, vendas concorrentes com chaves distintas, comissão snapshot, Pix confirmado/pendente e dois acertos simultâneos.
+- Não alterar regras de pagamento nesta etapa; a auditoria completa das rotas de pagamento continua reservada ao bloco correspondente.
+
+Status do Bloco 2: **EM AUDITORIA — funcionalidades-base identificadas; paginação, cobertura de testes e requisito de histórico próprio ainda pendentes**. Nenhum teste foi executado nesta sessão. Nenhuma migration, alteração de banco, secret, deploy ou produção foi tocada.
