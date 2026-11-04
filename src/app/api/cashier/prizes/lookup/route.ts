@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
           select: {
             round: { select: { code: true, status: true } },
             numericLines: {
-              select: { id: true, numberValue: true, prizeCents: true, prizePayout: { select: { channel: true, amountCents: true, paidAt: true } } },
+              select: { id: true, numberValue: true, prizeCents: true, prizeCreditedAt: true, prizePayout: { select: { channel: true, amountCents: true, paidAt: true } } },
             },
           },
         },
@@ -37,8 +37,8 @@ export async function GET(request: NextRequest) {
       roundCode: participation.round.code,
       roundCompleted: participation.round.status === "COMPLETED",
       prizeCents: participation.round.status === "COMPLETED" && (line.prizeCents ?? 0) > 0 ? line.prizeCents : 0,
-      paid: Boolean(line.prizePayout),
-      payoutChannel: line.prizePayout?.channel ?? null,
+      paid: Boolean(line.prizeCreditedAt || line.prizePayout),
+      payoutChannel: line.prizePayout?.channel ?? (line.prizeCreditedAt ? "WALLET" : null),
       paidAt: line.prizePayout?.paidAt.toISOString() ?? null,
     })));
     return NextResponse.json({ receiptCode: purchase.receiptCode, lines }, { headers });
