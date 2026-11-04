@@ -43,6 +43,14 @@ A alocação de cada aposta entre unidade, dezena, centena, milhar e quina é um
 - Antes de implementar ou importar qualquer mecanismo, auditar os serviços, rotas, webhooks, scheduler e estados já existentes. Se já houver uma função equivalente, corrigir ou ampliar a implementação atual; não criar uma segunda rota, worker, máquina de estados ou mecanismo paralelo para a mesma responsabilidade.
 
 
+## 4.0 Experiência e histórico do jogador
+
+- A área do jogador oferece o formulário de jogo, resultados recentes, histórico próprio de apostas e carteira digital em seções recolhíveis.
+- O histórico do jogador consulta somente compras vinculadas à conta autenticada e apresenta números, rodadas, resultados e prêmios. A implementação atual limita a consulta aos últimos 7 dias e às 100 compras mais recentes.
+- O jogador não recebe nem imprime recibo oficial. O recibo imprimível é reservado às vendas realizadas por cambistas e às consultas administrativas autorizadas.
+- Os métodos de pagamento do jogador são Pix e saldo da própria carteira. Dinheiro é exclusivo do fluxo de cambista.
+- Alterações no saldo causadas por compras com carteira ou solicitações de saque devem refletir nos componentes de jogo e carteira sem exigir recarga manual da página.
+
 ## 4.1 Prêmios de bilhetes vendidos por cambistas — decisão de produto
 
 - A venda feita pelo cambista é anônima para o comprador: não exige cadastro de jogador nem coleta de nome, telefone ou identificação pessoal. O recibo contém os dados da aposta, pagamento, código/QR de consulta e identificação do ponto de venda/cambista responsável.
