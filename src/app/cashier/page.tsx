@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth/require-role";
 import { CashierSaleForm } from "@/components/cashier/cashier-sale-form";
 import { PlayerRecentResults } from "@/components/player/player-recent-results";
 import { CashierSalesSummary } from "@/components/cashier/cashier-sales-summary";
+import { CashierPrizePayout } from "@/components/cashier/cashier-prize-payout";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,7 @@ export default async function CashierPage() {
   return (
     <AreaShell title="Área do cambista" username={user.username} compact footerContent={<CashierSalesSummary />}>
       <CashierSaleForm />
+      <CashierPrizePayout />
       <details className="player-collapsible-section">
         <summary>
           <span className="player-collapsible-label">Resultados</span>
