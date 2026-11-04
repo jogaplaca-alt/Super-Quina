@@ -92,3 +92,6 @@ Branch de trabalho: `setup/super-quina`.
 - Implementação pendente: persistência da baixa externa, ação ADMIN após Pix efetivo, atualização da consulta QR para `NÃO PREMIADO` / `PRÊMIO DISPONÍVEL` + WhatsApp / `PRÊMIO PAGO`, configuração central do WhatsApp e testes de idempotência/concorrência/permissões.
 - Nenhum código, schema, migration, rota, interface ou deploy foi alterado nesta etapa; foram feitas somente atualizações documentais na branch `setup/super-quina`.
 - Commits: plano `b3a0d0e1a7ec2f21a1d866c1b86680a0c80095cf`; regras de produto `69606bca4a406866414ea9906553b04d5ee13437`.
+
+- Auditoria adicional da consulta pública: `receipt-verification` e `ticket-check` usam `prizeCreditedAt` como indicador de prêmio pago/premiado. Esse campo representa crédito na carteira e não pode ser reutilizado para baixa de Pix externo de cambista. A API de recibo exibe `cashier.fullName` ou `username`; falta confirmar que isso corresponde à identificação comercial do ponto de venda. A API `ticket-check` também aplica janela de 7 dias, regra que deve ser avaliada para não conflitar com a consulta QR do recibo.
+- Plano atualizado com essas divergências no commit `0c3ee07b76962b9d476eb2f4b2134955a83eb369`.
