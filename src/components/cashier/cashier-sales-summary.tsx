@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Summary = {
   cashSalesCents: number;
@@ -18,22 +18,44 @@ const money = (cents: number) => new Intl.NumberFormat("pt-BR", { style: "curren
 export function CashierSalesSummary() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [error, setError] = useState("");
+  const loadingRef = useRef(false);
+  const requestRef = useRef<AbortController | null>(null);
 
   const load = useCallback(async () => {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
+    const controller = new AbortController();
+    requestRef.current = controller;
     try {
-      const response = await fetch("/api/cashier/summary", { cache: "no-store" });
+      const response = await fetch("/api/cashier/summary", { cache: "no-store", signal: controller.signal });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "Não foi possível consultar o resumo.");
-      setSummary(body as Summary); setError("");
+      if (!controller.signal.aborted && requestRef.current === controller) {
+        setSummary(body as Summary);
+        setError("");
+      }
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Falha ao consultar o resumo.");
+      if (!controller.signal.aborted && requestRef.current === controller) {
+        setError(reason instanceof Error ? reason.message : "Falha ao consultar o resumo.");
+      }
+    } finally {
+      if (requestRef.current === controller) {
+        requestRef.current = null;
+        loadingRef.current = false;
+      }
     }
   }, []);
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void load(); }, 0);
     const interval = window.setInterval(() => { void load(); }, 30000);
-    return () => { window.clearTimeout(timer); window.clearInterval(interval); };
+    return () => {
+      window.clearTimeout(timer);
+      window.clearInterval(interval);
+      requestRef.current?.abort();
+      requestRef.current = null;
+      loadingRef.current = false;
+    };
   }, [load]);
 
   return <details className="player-collapsible-section cashier-summary-menu">
