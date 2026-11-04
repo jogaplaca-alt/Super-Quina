@@ -1,0 +1,60 @@
+# Auditoria seletiva — recovery/super-quina
+
+Data da comparação: 2026-11-04
+Repositório: `jpveiculos/Super-Quina`
+Branch de destino/base protegida: `setup/super-quina`
+Branch sob avaliação: `recovery/super-quina`
+
+## Regra de identidade e aproveitamento
+
+A branch de recuperação é apenas fonte de ideias e código genérico. É proibido importar identidade, marca, textos, imagens, rotas, regras de negócio ou qualquer vestígio de outros jogos/sites. Não copiar arquivos inteiros nem fazer merge/cherry-pick da branch. Toda lógica candidata deve ser adaptada à arquitetura e às regras vigentes da Super Quina e passar por busca de referências históricas antes de aprovação.
+
+## Resultado estrutural da comparação
+
+Comparação GitHub: `setup/super-quina...recovery/super-quina`.
+
+- Estado: `diverged`.
+- `recovery/super-quina` está 11 commits à frente e 144 commits atrás de `setup/super-quina`.
+- A comparação retornou 11 arquivos alterados.
+- Isso representa 11 commits exclusivos em relação ao ancestral comum, não o total histórico de commits da branch.
+- Não fazer merge. A diferença de 144 commits atrás indica que a recuperação não é uma atualização linear da branch de trabalho.
+
+## Arquivos alterados e avaliação preliminar
+
+| Arquivo | Alteração observada | Avaliação |
+|---|---|---|
+| `.github/workflows/quality.yml` | Inclui a branch recovery nos eventos de CI. | Ideia operacional simples; não é necessário importar para setup sem motivo. |
+| `prisma/migrations/20261102000000_pix_purchase_intent/migration.sql` | Adiciona `Purchase.numericIntent JSONB`. O arquivo não existe na branch setup com esse caminho. | Não aplicar isoladamente. Reconciliar com o schema e o histórico completo de migrations antes de qualquer decisão. |
+| `prisma/schema.prisma` | Divergência estrutural; arquivo recovery tem 372 linhas e setup tem 405. | Risco alto de regressão por diferença de modelo. Comparar modelos e relações individualmente. |
+| `src/app/admin/page.tsx` | Recovery remove a seção administrativa de regras/multiplicadores e altera texto que descrevia resultados independentes para resultado numérico único. | Não importar. A remoção pode eliminar funcionalidade existente na setup. |
+| `src/app/api/cashier/purchases/cash/route.ts` | Troca `repetitionCount` por `participationCount` no contrato de compra. | Mudança de contrato; precisa ser comparada com UI, serviço, testes e regras atuais antes de qualquer adaptação. |
+| `src/app/api/cashier/purchases/create/route.ts` | Mesma alteração de contrato e fluxo de criação/checkout Pix. | Não copiar isoladamente; exige compatibilidade ponta a ponta. |
+| `src/app/api/player/purchases/route.test.ts` | Remove dados simulados de `numericIntent` e altera expectativas dos testes. | Não importar sem alinhar os testes com o comportamento vigente da setup. |
+| `src/app/api/player/purchases/route.ts` | Altera contrato de participação e fluxo de resposta da compra. | Exige análise conjunta com serviço, banco e formulário. |
+| `src/components/purchases/numeric-game-purchase-form.tsx` | Recovery remove geração aleatória e reduz/alterar partes do fluxo de compra; setup mantém recursos adicionais, inclusive geração aleatória e fluxo de várias entradas. | Não importar; aparenta regressão de experiência/funcionalidade. |
+| `src/modules/payments/confirm-payment.ts` | Implementa estratégia diferente para bloqueio e alocação das rodadas; recovery não apresenta o mesmo bloqueio explícito inicial de compra/pagamento existente na setup e usa validações/estado de intenção diferentes. | Alto risco financeiro e de concorrência. Não copiar sem revisão transacional e testes concorrentes. |
+| `src/modules/purchases/create-numeric-purchase.ts` | Alterações extensas no fluxo de criação, intenção e alocação da compra. | Alto risco. Exige diff integral e testes de idempotência, reserva de rodada, pagamento e consistência de valores. |
+
+## Busca preliminar por vestígios históricos
+
+Nos conteúdos dos arquivos alterados que foram inspecionados nesta etapa, não foram identificadas referências explícitas às marcas/termos proibidos dos projetos anteriores. Esta verificação é limitada aos arquivos alterados e não certifica o repositório inteiro. Antes de qualquer reaproveitamento, executar busca global na branch candidata e no patch adaptado.
+
+## Conclusão deste bloco
+
+**Nenhum código foi aprovado para integração nesta etapa.**
+
+A branch recovery contém mudanças úteis como material de estudo, mas está divergente e substancialmente atrás da setup. Há diferenças que podem remover funcionalidades atuais e diferenças no fluxo financeiro que exigem cautela. A comparação preliminar recomenda não fazer merge, cherry-pick ou substituição de arquivos.
+
+## Próximas verificações
+
+- [ ] Obter e revisar o diff integral de `create-numeric-purchase.ts` entre as duas branches.
+- [ ] Revisar o diff integral de `confirm-payment.ts`, incluindo locks, idempotência, alocação e estados de pagamento.
+- [ ] Comparar todos os modelos/enumerações do `schema.prisma` e a cadeia de migrations, sem aplicar migrations.
+- [ ] Verificar se o contrato `participationCount` é compatível com as regras aprovadas na setup ou se é apenas uma nomenclatura diferente.
+- [ ] Verificar CI/testes do HEAD de ambas as branches; comparação de código não comprova build verde.
+- [ ] Fazer varredura global por marcas, nomes, textos, assets, rotas e regras de jogos antigos.
+- [ ] Só então classificar cada ideia como reaproveitável, descartada ou dependente de adaptação.
+
+## Limites respeitados
+
+Nenhum código funcional foi alterado. Nenhuma migration foi aplicada. Nenhum dado ou banco foi alterado. Nenhum merge/cherry-pick foi executado. A branch `main` não foi modificada.
