@@ -18,6 +18,10 @@ export async function registerNumericPrizePayout(
     reference?: string | null;
   },
 ) {
+  if (input.channel === "CASHIER_CASH" && input.cashierId) {
+    const cashierRows = await tx.$queryRaw<Array<{ id: string }>>`SELECT "id" FROM "User" WHERE "id" = ${input.cashierId} AND "role" = 'CASHIER' FOR UPDATE`;
+    if (cashierRows.length === 0) throw new NumericPrizePayoutError("NOT_OWNED");
+  }
   await tx.$queryRaw`SELECT "id" FROM "NumericParticipationLine" WHERE "id" = ${input.lineId} FOR UPDATE`;
   const line = await tx.numericParticipationLine.findUnique({
     where: { id: input.lineId },
