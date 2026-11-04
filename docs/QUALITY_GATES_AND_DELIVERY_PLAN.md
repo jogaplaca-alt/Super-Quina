@@ -172,19 +172,19 @@ Status do Bloco 2: **EM AUDITORIA — funcionalidades-base identificadas; pagina
 
 ### 8.1 Requisitos confirmados pelo usuário para a área do cambista (2026-11-04)
 
-A área deve ser enxuta e conter somente o formulário da jogada, últimos resultados e financeiro. O histórico detalhado de jogos fica exclusivo da área ADMIN.
+A área do CASHIER deve ser enxuta e conter somente o formulário da jogada, últimos resultados e financeiro. O histórico detalhado de jogos do cambista fica exclusivo da área ADMIN. O PLAYER, por sua vez, tem seu próprio histórico de jogos na área dele.
 
 **Formulário da jogada — requisito funcional, ainda sujeito à aprovação visual do usuário**
 - Um campo para digitar uma sequência de exatamente cinco algarismos.
 - Ação explícita para adicionar cada número à mesma jogada; permitir vários números antes de finalizar.
 - Seletor de repetições/rodadas consecutivas, de 1 a 10, com 1 pré-selecionada. O cambista não escolhe rodadas específicas.
-- O formulário do PLAYER e do CASHIER deve ser visual e funcionalmente idêntico em todos os aspectos: mesma estrutura, ordem, campos, espaçamentos, componentes, textos e comportamento.
+- O formulário do PLAYER e do CASHIER deve ser visual e funcionalmente idêntico em todos os aspectos: mesma estrutura, ordem, campos, espaçamentos, componentes, textos e comportamento. Exceções de experiência fora do formulário: o CASHIER possui recibo impresso; o PLAYER possui histórico próprio e crédito automático de prêmio na carteira.
 - A única diferença permitida é a opção de pagamento: PLAYER = Pix ou saldo da conta; CASHIER = Pix ou dinheiro.
 - Não exibir dinheiro como opção para PLAYER nem saldo da conta como opção para CASHIER.
 - Ação final para fechar/finalizar a jogada e registrar o pagamento.
-- Manter validação de números, cálculo do total, idempotência e recibo oficial após confirmação/alocação.
+- Manter validação de números, cálculo do total e idempotência. O recibo impresso é exclusivo do CASHIER e só pode ser emitido após confirmação/alocação. PLAYER não tem recibo impresso: acompanha a aposta no histórico próprio.
 - Não acrescentar recursos extras à área sem necessidade ou aprovação.
-- O formulário atual é compartilhado entre PLAYER e CASHIER. A regra aprovada é manter a mesma interface nos dois papéis, variando exclusivamente a segunda opção de pagamento: saldo da conta para PLAYER e dinheiro para CASHIER; Pix aparece para ambos. Não criar diferenças de layout ou fluxo entre os papéis.
+- O formulário atual é compartilhado entre PLAYER e CASHIER. A regra aprovada é manter a mesma interface nos dois papéis, variando exclusivamente a segunda opção de pagamento: saldo da conta para PLAYER e dinheiro para CASHIER; Pix aparece para ambos. Não criar diferenças no formulário além da segunda forma de pagamento. As diferenças de recibo/histórico/carteira são regras próprias de cada papel, fora da apresentação do formulário.
 
 **Financeiro — menu recolhível com seta**
 Exibir cinco indicadores separados:
