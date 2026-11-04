@@ -76,6 +76,16 @@ A alocação de cada aposta entre unidade, dezena, centena, milhar e quina é um
 - Aprovação e recusa só são permitidas enquanto a solicitação estiver `PENDING`. Bloqueio da linha, transação serializável e restrições de idempotência impedem dupla conclusão ou dupla devolução por concorrência/reenvio.
 - O sistema não envia Pix automaticamente. O clique de aprovação representa a declaração do administrador de que a transferência externa já foi realizada e conferida.
 
+
+## 4.3 Experiência e financeiro do cambista
+
+- A área do cambista mantém a operação enxuta: formulário de venda, resultados recentes recolhidos e resumo financeiro recolhido. Não oferece histórico detalhado de apostas; consultas históricas são feitas pelo administrador.
+- O formulário de venda é compartilhado com o jogador e mantém a mesma estrutura, ordem, campos e comportamento. A única diferença interna é o segundo meio de pagamento: saldo da carteira para jogador e dinheiro para cambista; Pix está disponível para ambos.
+- O resumo financeiro apresenta cinco indicadores separados: valor total das vendas confirmadas, comissão acumulada em reais, vendas em dinheiro, vendas em Pix e quantidade de jogos realizados.
+- O resumo atualiza automaticamente a cada 30 segundos e considera o período desde o último acerto financeiro registrado pelo administrador. O histórico de vendas e acertos não é apagado.
+- Os resultados exibidos ao cambista são os publicados nas últimas 24 horas.
+- O recibo imprimível só fica disponível depois da confirmação do pagamento e da alocação completa de todas as repetições às rodadas.
+
 ## 5. Sem reembolso automático
 
 Não existe reembolso no fluxo comercial normal do jogo. Qualquer notificação externa inesperada de estorno/reembolso deve ser tratada como incidente financeiro para análise administrativa, sem desfazer automaticamente uma compra já confirmada, suas participações, prêmios ou comissões.
