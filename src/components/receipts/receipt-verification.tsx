@@ -53,20 +53,21 @@ export function ReceiptVerification({ receiptCode }: { receiptCode: string }) {
 
     async function verify() {
       requestController?.abort();
-      requestController = new AbortController();
+      const controller = new AbortController();
+      requestController = controller;
       try {
         const response = await fetch(
           `/api/public/receipt-verification/${encodeURIComponent(receiptCode)}`,
-          { cache: "no-store", signal: requestController.signal },
+          { cache: "no-store", signal: controller.signal },
         );
         const body = await response.json() as VerifiedReceipt;
-        if (active) setData(body);
+        if (active && !controller.signal.aborted) setData(body);
       } catch {
-        if (active && !requestController.signal.aborted) {
+        if (active && !controller.signal.aborted) {
           setData({ valid: false, message: "Não foi possível consultar. Tente novamente." });
         }
       } finally {
-        if (active) setLoading(false);
+        if (active && !controller.signal.aborted) setLoading(false);
       }
     }
 
