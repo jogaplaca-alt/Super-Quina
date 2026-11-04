@@ -6,7 +6,6 @@ type Summary = {
   cashSalesCents: number;
   pixSalesCents: number;
   totalSalesCents: number;
-  confirmedSalesCount: number;
   gamesCount: number;
   commissionCents: number;
   lastSettlementAt: string | null;
