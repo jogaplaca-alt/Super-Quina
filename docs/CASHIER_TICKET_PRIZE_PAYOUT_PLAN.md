@@ -26,13 +26,13 @@
 |---|---|---|
 | Recibo | `src/components/receipts/thermal-receipt.tsx` aceita `customerLabel` opcional e `cashierLabel`; imprime Cambista quando informado | Parcial: confirmar origem do label e se é o nome/identificação do ponto |
 | QR Code do recibo | `src/components/receipts/receipt-qr.ts` gera imagem local com `qrcode-generator` | Implementado; sem serviço remoto |
-| Consulta pública | Página `src/app/verificar-recibo/[receiptCode]/page.tsx`; API `src/app/api/public/receipt-verification/[receiptCode]` | Existe; auditar payload e estados |
-| Outra consulta | API `src/app/api/public/ticket-check/route.ts` | Existe; comparar finalidade e chamadas antes de alterar, evitar duplicidade |
+| Consulta pública | Página `src/app/verificar-recibo/[receiptCode]/page.tsx`; API `src/app/api/public/receipt-verification/[receiptCode]/route.ts` | Existe; API calcula prêmio, mas `prizePaid` usa somente `prizeCreditedAt`, que não representa Pix externo de cambista |
+| Outra consulta | API `src/app/api/public/ticket-check/route.ts` | Existe e tem regra própria de validade de 7 dias; `PREMIADA` também depende de `prizeCreditedAt`. Comparar chamadas e finalidade antes de alterar, evitando dois estados públicos divergentes |
 | Apuração | `src/modules/rounds/settle-numeric-round-prizes.ts` | Automática para jogador; prêmio sem jogador ou com venda de cambista incrementa `pendingManualPayouts` |
 | Scheduler | `src/app/api/internal/round-scheduler/route.ts` | Já chama o serviço central de apuração após o sorteio |
 | Reconciliação ADMIN | `src/app/api/admin/prize-credit-reconciliation/route.ts` e componente correspondente | É apenas para corrigir crédito de carteira de jogador; não atende prêmio de cambista |
 | Modelo de dados | `NumericParticipationLine` tem `prizeCents` e `prizeCreditedAt`, sem estado/data/ator de pagamento manual | Falta persistir a baixa externa do prêmio de cambista |
-| Recibo / ponto | O componente imprime `Cambista: {cashierLabel}` quando recebe o valor | Não prova ainda que a identificação é o ponto de venda correto e imutável |
+| Recibo / ponto | O componente imprime `Cambista: {cashierLabel}`; a API pública deriva o label de `cashier.fullName` ou `username` | Não há evidência de que isso seja um identificador próprio do ponto de venda; confirmar regra e origem. A API pública também expõe esse label, sem necessidade de dados pessoais do comprador |
 
 **Importante:** auditoria estática parcial. A existência de páginas e arquivos não prova que o fluxo completo esteja funcional. Não marcar item como concluído sem ler API, página, componentes chamadores, origem dos dados e testes.
 
@@ -44,6 +44,7 @@
 - [ ] Ler criação de compra do cambista, schema de `Purchase`, modelos `User` e `Customer`; confirmar que a venda anônima não cria cliente implicitamente.
 - [ ] Identificar configuração existente do WhatsApp oficial (setting/env/configuração). Se não existir, definir uma única configuração administrável; não espalhar número em componentes.
 - [ ] Rastrear todos os usos de `pendingManualPayouts`, ações manuais de apuração e APIs de prêmio para separar pagamento externo de crédito em carteira.
+- [ ] Corrigir a semântica pública: `prizeCreditedAt` significa crédito em carteira, não Pix externo. A API de recibo hoje devolve `prizePaid` a partir desse campo; a API `ticket-check` usa o mesmo campo para classificar `PREMIADA`. Ambas precisam ler o estado específico de baixa externa quando o bilhete for de cambista.
 - [ ] Mapear chamadas da área ADMIN e permissões. Não remover ferramentas de auditoria/reconciliação de jogador que tenham finalidade válida.
 
 ### Etapa B — modelar a baixa de prêmio externo
@@ -111,3 +112,4 @@
 
 - 2026-11-03: regras de prêmio de cambista e baixa pós-Pix documentadas em `docs/PRODUCT_RULES.md`.
 - 2026-11-03: este plano criado como roteiro de auditoria e implementação. Nenhuma alteração de código, schema, migration ou interface foi realizada nesta etapa.
+- Auditoria ampliada: a API pública de verificação calcula o prêmio no retorno e marca `prizePaid` apenas com `prizeCreditedAt`; a API `ticket-check` também usa `prizeCreditedAt` para estado premiado e aplica validade pública de 7 dias. A API de recibo mostra `cashier.fullName` ou `username` como `cashierLabel`; isso ainda não comprova identificação correta do ponto de venda.
