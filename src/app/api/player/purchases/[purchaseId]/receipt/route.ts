@@ -9,6 +9,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const user = await getSessionUser(request.cookies.get(SESSION_COOKIE)?.value);
   if (!user) return NextResponse.json({ error: "É necessário entrar na conta." }, { status: 401, headers });
   if (user.mustChangePassword) return NextResponse.json({ error: "Altere sua senha antes de continuar." }, { status: 403, headers });
+  if (user.role !== "ADMIN" && user.role !== "CASHIER") return NextResponse.json({ error: "Acesso não permitido." }, { status: 403, headers });
   const { purchaseId } = await context.params;
   if (!/^[a-zA-Z0-9_-]{8,100}$/.test(purchaseId)) return NextResponse.json({ error: "Compra não encontrada." }, { status: 404, headers });
   try {
