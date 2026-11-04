@@ -8,8 +8,11 @@ import { selectNextValidRounds } from "@/modules/payments/select-next-valid-roun
  * the wallet or creates a cashier commission again.
  */
 export async function allocatePaidPurchases(prisma: PrismaClient, take = 50): Promise<{ checked: number; allocated: number; waiting: number; failures: number }> {
-  const pending: Array<{ id: string }> = [];
   let cursorId: string | undefined;
+  let checked = 0;
+  let allocated = 0;
+  let waiting = 0;
+  let failures = 0;
   while (true) {
     const batch = await prisma.purchase.findMany({
       where: {
@@ -23,15 +26,10 @@ export async function allocatePaidPurchases(prisma: PrismaClient, take = 50): Pr
       take,
       ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
     });
-    pending.push(...batch);
-    if (batch.length < take) break;
-    cursorId = batch[batch.length - 1]!.id;
-  }
-  let allocated = 0;
-  let waiting = 0;
-  let failures = 0;
+    if (batch.length === 0) break;
+    checked += batch.length;
 
-  for (const item of pending) {
+    for (const item of batch) {
     try {
       const outcome = await prisma.$transaction(async (tx) => {
         await tx.$queryRaw`SELECT "id" FROM "Purchase" WHERE "id" = ${item.id} FOR UPDATE`;
@@ -114,6 +112,9 @@ export async function allocatePaidPurchases(prisma: PrismaClient, take = 50): Pr
       // the next scheduler execution retries this item without losing it.
       failures += 1;
     }
+
+    if (batch.length < take) break;
+    cursorId = batch[batch.length - 1]!.id;
   }
-  return { checked: pending.length, allocated, waiting, failures };
+  return { checked, allocated, waiting, failures };
 }
