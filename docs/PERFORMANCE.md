@@ -18,7 +18,7 @@ The platform runs frequent draws. Performance is a correctness and availability 
 ## Current optimizations recorded
 
 - CASH/WALLET allocation now processes at most 100 purchases per scheduler execution, in batches of at most 50. A cursor stored in the existing `Setting` table resumes the next execution after the last processed ID; when the queue end is reached it wraps to the beginning, so a failed purchase remains eligible without starving later rows. Cursor writes happen after each processed batch.
-- Added PostgreSQL indexes for the CASH/WALLET allocation queue and the pending Mercado Pago reconciliation queue. The allocation worker and Pix confirmation lock only the earliest required number of eligible rounds, rather than locking every future round.
+- Added PostgreSQL indexes for the CASH/WALLET allocation queue and the pending Mercado Pago reconciliation queue. Purchase creation, the CASH/WALLET allocation worker, and Pix confirmation lock only the earliest required number of eligible rounds, rather than locking every future round. All three paths filter invalid or expired round windows before locking.
 - The public landing page no longer forces request-time rendering.
 - The header and landing infographic use Next.js image delivery with AVIF/WebP negotiation, responsive sizing, and long-lived optimization caching.
 
@@ -30,6 +30,6 @@ The source PNGs remain large: header 1,507,890 bytes, icon 1,743,132 bytes, and 
 
 - Run typecheck, lint, unit tests, PostgreSQL integration tests, and production build after performance changes.
 - Inspect generated image responses and browser network transfer sizes; do not claim an optimization is effective based only on source code.
-- Unit tests verify the 100-purchase execution cap, persistent cursor advancement after failures, cursor wraparound, and bounded `LIMIT`/`FOR UPDATE` round locking in Pix confirmation. A PostgreSQL load test with a large queue is still required before production promotion.
+- Unit tests verify the 100-purchase execution cap, persistent cursor advancement after failures, cursor wraparound, and bounded `LIMIT`/`FOR UPDATE` round locking in purchase creation and Pix confirmation. A PostgreSQL load test with a large queue is still required before production promotion.
 - Measure representative public, player, cashier, and admin routes on mobile and desktop. Track LCP, INP, CLS, server response time, database query count, and memory under load.
 - Do not merge or deploy performance changes until CI passes and the target hosting environment has been measured.
