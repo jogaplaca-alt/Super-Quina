@@ -67,3 +67,11 @@ Branch de trabalho: `setup/super-quina`.
 - Não foram copiados: autenticação ou migration da V2, código Android esqueleto, migrations históricas, parâmetros de hash, dados de outro projeto ou regras comerciais não confirmadas.
 - Nenhuma alteração em `main`, banco, secrets, DNS, hospedagem ou deploy.
 - Commit desta integração documental: `fe86db3dbe812053a01d59b0f26e2d01c0541516`.
+
+
+## Decisões registradas para implementação futura — 2026-11-03
+- Política de confirmação Pix documentada em `docs/PRODUCT_RULES.md`: notificações intermediárias do webhook não efetivam nem cancelam compras; a decisão final depende da consulta do estado atual na API do Mercado Pago e da validação dos dados do pagamento.
+- Webhook e consulta periódica/direta são complementares e devem convergir para um único serviço central e uma única máquina de estados. Não criar rotas, workers ou fluxos paralelos para a mesma confirmação.
+- Eventos duplicados, atrasados ou fora de ordem não podem reverter indevidamente o estado nem duplicar cobrança, participações, recibo, comissão ou crédito. Enquanto houver estado pendente, inconclusivo, divergente ou indisponibilidade da API, não liberar participações nem recibo.
+- Os testes obrigatórios dessa política foram adicionados aos gates P0 em `docs/QUALITY_GATES_AND_DELIVERY_PLAN.md`.
+- Esta mudança é documental: não implementa nem altera código, rotas, webhook, scheduler, banco, secrets ou integração real. A implementação fica para a etapa de pagamentos, após auditoria do que já existe, para ampliar/corrigir o fluxo atual sem duplicidade.
