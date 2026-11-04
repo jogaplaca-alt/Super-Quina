@@ -6,21 +6,29 @@ import { requireRole } from "@/lib/auth/require-role";
 import { authPrisma } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
+const PAGE_SIZE = 25;
+const pageNumber = (value: string | string[] | undefined) => {
+  const parsed = Number(Array.isArray(value) ? value[0] : value);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : 1;
+};
 const money = (cents: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
 
-export default async function AdminCashierDetailPage({ params }: { params: Promise<{ cashierId: string }> }) {
+export default async function AdminCashierDetailPage({ params, searchParams }: { params: Promise<{ cashierId: string }>; searchParams: Promise<{ salesPage?: string | string[]; settlementsPage?: string | string[] }> }) {
   const admin = await requireRole("ADMIN");
   const { cashierId } = await params;
+  const query = await searchParams;
+  const salesPage = pageNumber(query.salesPage);
+  const settlementsPage = pageNumber(query.settlementsPage);
   const cashier = await authPrisma.user.findFirst({
     where: { id: cashierId, role: "CASHIER" },
     select: { id: true, username: true, fullName: true, whatsapp: true, status: true, commissionRateBasisPoints: true, createdAt: true },
   });
   if (!cashier) notFound();
-  const latestSettlement = await authPrisma.cashierSettlement.findFirst({ where: { cashierId }, orderBy: { settledAt: "desc" }, select: { settledAt: true } });
+  const latestSettlement = await authPrisma.cashierSettlement.findFirst({ where: { cashierId }, orderBy: [{ settledAt: "desc" }, { id: "desc" }], skip: (settlementsPage - 1) * PAGE_SIZE, take: PAGE_SIZE, select: { settledAt: true } });
   const since = latestSettlement?.settledAt ?? new Date(0);
-  const [purchases, settlements, cashNow, pixNow, commissionNow, gamesNow, cashPrizePayouts] = await Promise.all([
+  const [purchases, settlements, purchaseCount, settlementCount, cashNow, pixNow, commissionNow, gamesNow, cashPrizePayouts] = await Promise.all([
     authPrisma.purchase.findMany({
-      where: { cashierId }, orderBy: [{ createdAt: "desc" }],
+      where: { cashierId }, orderBy: [{ createdAt: "desc" }, { id: "desc" }], skip: (salesPage - 1) * PAGE_SIZE, take: PAGE_SIZE,
       select: {
         id: true, receiptCode: true, status: true, paymentMethod: true, totalCents: true, createdAt: true, confirmedAt: true,
         customer: { select: { name: true, phone: true } },
@@ -54,6 +62,8 @@ export default async function AdminCashierDetailPage({ params }: { params: Promi
         admin: { select: { username: true } },
       },
     }),
+    authPrisma.purchase.count({ where: { cashierId } }),
+    authPrisma.cashierSettlement.count({ where: { cashierId } }),
     authPrisma.purchase.aggregate({ where: { cashierId, status: "CONFIRMED", paymentMethod: "CASH", confirmedAt: { gt: since } }, _sum: { totalCents: true }, _count: { _all: true } }),
     authPrisma.purchase.aggregate({ where: { cashierId, status: "CONFIRMED", paymentMethod: "PIX", confirmedAt: { gt: since }, payment: { is: { status: "CONFIRMED" } } }, _sum: { totalCents: true }, _count: { _all: true } }),
     authPrisma.cashierCommission.aggregate({ where: { cashierId, createdAt: { gt: since }, purchase: { is: { status: "CONFIRMED" } } }, _sum: { amountCents: true } }),
@@ -102,6 +112,7 @@ export default async function AdminCashierDetailPage({ params }: { params: Promi
             <td>{sale.participations.reduce((total, participation) => total + participation.numericLines.length, 0)}</td>
           </tr>)}</tbody>
         </table></div>}
+        <p className="admin-cashier-pagination">Página {salesPage} de {Math.max(1, Math.ceil(purchaseCount / PAGE_SIZE))} · {purchaseCount} vendas · {salesPage > 1 && <Link href={`?salesPage=${salesPage - 1}&settlementsPage=${settlementsPage}`}>Anterior</Link>} {salesPage * PAGE_SIZE < purchaseCount && <Link href={`?salesPage=${salesPage + 1}&settlementsPage=${settlementsPage}`}>Próxima</Link>}</p>
       </section>
       <section className="feature-card admin-cashier-history">
         <h2>Histórico de acertos</h2>
@@ -109,6 +120,7 @@ export default async function AdminCashierDetailPage({ params }: { params: Promi
           <thead><tr><th>Data</th><th>Dinheiro</th><th>Pix</th><th>Total</th><th>Vendas</th><th>Jogos</th><th>Comissão</th><th>Prêmios pagos em dinheiro</th><th>Responsável</th></tr></thead>
           <tbody>{settlements.map((item) => <tr key={item.id}><td>{item.settledAt.toLocaleString("pt-BR")}</td><td>{money(item.cashSalesCents)}</td><td>{money(item.pixSalesCents)}</td><td>{money(item.totalSalesCents)}</td><td>{item.salesCount}</td><td>{item.gamesCount}</td><td>{money(item.commissionCents)}</td><td>{item.cashPrizePayoutCount} · {money(item.cashPrizePayoutCents)}{item.cashPrizePayouts.length > 0 && <details><summary>Ver detalhes</summary><ul>{item.cashPrizePayouts.map((payout) => <li key={payout.id}>{payout.participationLine.numberValue} · {payout.participationLine.participation.round.code} · {money(payout.amountCents)} · {payout.paidAt.toLocaleString("pt-BR")} · Recibo {payout.participationLine.participation.purchase.receiptCode || "—"}{payout.reference ? " · Ref. " + payout.reference : ""}</li>)}</ul></details>}</td><td>{item.admin.username}</td></tr>)}</tbody>
         </table></div>}
+        <p className="admin-cashier-pagination">Página {settlementsPage} de {Math.max(1, Math.ceil(settlementCount / PAGE_SIZE))} · {settlementCount} acertos · {settlementsPage > 1 && <Link href={`?salesPage=${salesPage}&settlementsPage=${settlementsPage - 1}`}>Anterior</Link>} {settlementsPage * PAGE_SIZE < settlementCount && <Link href={`?salesPage=${salesPage}&settlementsPage=${settlementsPage + 1}`}>Próxima</Link>}</p>
       </section>
     </div>
   </AreaShell>;
