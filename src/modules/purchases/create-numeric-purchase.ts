@@ -96,8 +96,14 @@ export async function createNumericPurchase(prisma: PrismaClient, input: Numeric
         if (isConfirmed) {
           const lockedRows = await tx.$queryRaw<Array<{ id: string }>>`
             SELECT "id" FROM "Round"
-            WHERE "status" IN ('OPEN', 'SCHEDULED') AND "cutoffAt" > clock_timestamp()
-            ORDER BY "id" FOR UPDATE
+            WHERE "status" IN ('OPEN', 'SCHEDULED')
+              AND "startsAt" < "cutoffAt"
+              AND "cutoffAt" < "resultAt"
+              AND "cutoffAt" > clock_timestamp()
+              AND "resultAt" > clock_timestamp()
+            ORDER BY "resultAt" ASC, "id" ASC
+            LIMIT ${roundCount}
+            FOR UPDATE
           `;
           decisionTime = decisionTimeOverride ?? (await tx.$queryRaw<Array<{ decisionTime: Date }>>`
             SELECT clock_timestamp() AS "decisionTime"
