@@ -32,11 +32,12 @@ export async function POST(request: NextRequest, context: { params: Promise<{ ca
       const settledAt = await tx.$queryRaw<Array<{ now: Date }>>`SELECT clock_timestamp() AS now`;
       const cutoff = settledAt[0]!.now;
       const eligible = { cashierId, status: "CONFIRMED" as const, confirmedAt: { gt: since, lte: cutoff } };
-      const [cash, pix, commissions, games] = await Promise.all([
+      const [cash, pix, commissions, games, cashPrizePayouts] = await Promise.all([
         tx.purchase.aggregate({ where: { ...eligible, paymentMethod: "CASH" }, _sum: { totalCents: true }, _count: { _all: true } }),
         tx.purchase.aggregate({ where: { ...eligible, paymentMethod: "PIX", payment: { is: { status: "CONFIRMED" } } }, _sum: { totalCents: true }, _count: { _all: true } }),
         tx.cashierCommission.aggregate({ where: { cashierId, createdAt: { gt: since, lte: cutoff }, purchase: { is: { status: "CONFIRMED" } } }, _sum: { amountCents: true } }),
         tx.numericParticipationLine.count({ where: { participation: { is: { status: "CONFIRMED", purchase: { is: { cashierId, status: "CONFIRMED", confirmedAt: { gt: since, lte: cutoff } } } } } } }),
+        tx.numericPrizePayout.aggregate({ where: { cashierId, channel: "CASHIER_CASH", settlementId: null, paidAt: { gt: since, lte: cutoff } }, _sum: { amountCents: true }, _count: { _all: true } }),
       ]);
       const cashSalesCents = cash._sum.totalCents ?? 0;
       const pixSalesCents = pix._sum.totalCents ?? 0;
@@ -45,10 +46,13 @@ export async function POST(request: NextRequest, context: { params: Promise<{ ca
         cashSalesCents, pixSalesCents, totalSalesCents: cashSalesCents + pixSalesCents,
         salesCount: cash._count._all + pix._count._all, gamesCount: games,
         commissionCents: commissions._sum.amountCents ?? 0,
+        cashPrizePayoutCount: cashPrizePayouts._count._all,
+        cashPrizePayoutCents: cashPrizePayouts._sum.amountCents ?? 0,
       } });
+      await tx.numericPrizePayout.updateMany({ where: { cashierId, channel: "CASHIER_CASH", settlementId: null, paidAt: { gt: since, lte: cutoff } }, data: { settlementId: snapshot.id } });
       await tx.auditEvent.create({ data: {
         actorId: admin.id, action: "CASHIER_SETTLEMENT_RECORDED", entityType: "CashierSettlement", entityId: snapshot.id,
-        metadata: { cashierId, cashSalesCents, pixSalesCents, totalSalesCents: snapshot.totalSalesCents, salesCount: snapshot.salesCount, gamesCount: snapshot.gamesCount, commissionCents: snapshot.commissionCents, settledAt: snapshot.settledAt.toISOString() },
+        metadata: { cashierId, cashSalesCents, pixSalesCents, totalSalesCents: snapshot.totalSalesCents, salesCount: snapshot.salesCount, gamesCount: snapshot.gamesCount, commissionCents: snapshot.commissionCents, cashPrizePayoutCount: snapshot.cashPrizePayoutCount, cashPrizePayoutCents: snapshot.cashPrizePayoutCents, settledAt: snapshot.settledAt.toISOString() },
       } });
       return snapshot;
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
