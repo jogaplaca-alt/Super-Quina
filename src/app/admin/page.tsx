@@ -1,5 +1,6 @@
 import { AreaShell } from "@/components/area-shell";
 import { AdminPrizeCreditReconciliation } from "@/components/admin/admin-prize-credit-reconciliation";
+import { AdminPrizePayout } from "@/components/admin/admin-prize-payout";
 import { AdminWithdrawalManager } from "@/components/admin/admin-withdrawal-manager";
 import { AdminCashierManager } from "@/components/admin/admin-cashier-manager";
 import { AdminPrizeRules } from "@/components/admin/admin-prize-rules";
@@ -22,7 +23,7 @@ export default async function AdminPage() {
       </details>
       <details className="admin-accordion">
         <summary><span>Prêmios e carteira digital</span><span className="admin-accordion-description">Conferência e reconciliação de créditos</span></summary>
-        <div className="admin-accordion-content"><AdminPrizeCreditReconciliation /></div>
+        <div className="admin-accordion-content"><AdminPrizePayout /><AdminPrizeCreditReconciliation /></div>
       </details>
       <details className="admin-accordion">
         <summary><span>Multiplicadores de prêmios</span><span className="admin-accordion-description">Alterar e salvar os valores usados nas novas apostas</span></summary>
