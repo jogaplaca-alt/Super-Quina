@@ -8,17 +8,25 @@ import { selectNextValidRounds } from "@/modules/payments/select-next-valid-roun
  * the wallet or creates a cashier commission again.
  */
 export async function allocatePaidPurchases(prisma: PrismaClient, take = 50): Promise<{ checked: number; allocated: number; waiting: number; failures: number }> {
-  const pending = await prisma.purchase.findMany({
-    where: {
-      status: "PENDING_PAYMENT",
-      paymentMethod: { in: ["CASH", "WALLET"] },
-      payment: { is: null },
-      numericIntent: { isNot: null },
-    },
-    select: { id: true },
-    orderBy: [{ updatedAt: "asc" }, { createdAt: "asc" }, { id: "asc" }],
-    take,
-  });
+  const pending: Array<{ id: string }> = [];
+  let cursorId: string | undefined;
+  while (true) {
+    const batch = await prisma.purchase.findMany({
+      where: {
+        status: "PENDING_PAYMENT",
+        paymentMethod: { in: ["CASH", "WALLET"] },
+        payment: { is: null },
+        numericIntent: { isNot: null },
+      },
+      select: { id: true },
+      orderBy: { id: "asc" },
+      take,
+      ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
+    });
+    pending.push(...batch);
+    if (batch.length < take) break;
+    cursorId = batch[batch.length - 1]!.id;
+  }
   let allocated = 0;
   let waiting = 0;
   let failures = 0;
@@ -102,17 +110,9 @@ export async function allocatePaidPurchases(prisma: PrismaClient, take = 50): Pr
       if (outcome === "allocated") allocated += 1;
       if (outcome === "waiting") waiting += 1;
     } catch {
+      // Keep the purchase pending. Pagination continues to later records, and
+      // the next scheduler execution retries this item without losing it.
       failures += 1;
-      // Move a repeatedly failing item behind untouched work so a transient
-      // technical fault cannot monopolize the first batch forever.
-      try {
-        await prisma.purchase.updateMany({
-          where: { id: item.id, status: "PENDING_PAYMENT" },
-          data: { updatedAt: new Date() },
-        });
-      } catch {
-        // The next scheduler run will retry it even if this fairness marker fails.
-      }
     }
   }
   return { checked: pending.length, allocated, waiting, failures };
