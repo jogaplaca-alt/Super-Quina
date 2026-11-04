@@ -111,18 +111,26 @@ export async function confirmPixPayment(
         }
 
         if (intent) {
-          const numbers = intent.numbers as string[];
-          const allocation = intent.allocation as { unitCents: number; tensCents: number; hundredsCents: number; thousandsCents: number; quinaCents: number };
+          const numbersValue: unknown = intent.numbers;
+          const allocationValue: unknown = intent.allocation;
+          if (!Array.isArray(numbersValue) || numbersValue.length === 0 ||
+              !allocationValue || typeof allocationValue !== "object" || Array.isArray(allocationValue)) {
+            throw new Error("Persisted numeric purchase intent is invalid");
+          }
+          const numbers = numbersValue as string[];
+          const allocation = allocationValue as { unitCents: number; tensCents: number; hundredsCents: number; thousandsCents: number; quinaCents: number };
           const ruleSnapshot = intent.ruleSnapshot as Prisma.InputJsonValue;
           const allocationValues = [allocation.unitCents, allocation.tensCents, allocation.hundredsCents, allocation.thousandsCents, allocation.quinaCents];
-          if (!Array.isArray(numbers) || !numbers.length ||
-              numbers.some((number) => typeof number !== "string" || !/^\d{5}$/.test(number)) ||
+          if (numbers.some((number) => typeof number !== "string" || !/^\\d{5}$/.test(number)) ||
               allocationValues.some((value) => !Number.isSafeInteger(value) || value < 0) ||
               allocationValues.reduce((sum, value) => sum + value, 0) < 100) {
             throw new Error("Persisted numeric purchase intent is invalid");
           }
-          const perRoundCents = numbers.length * (allocation.unitCents + allocation.tensCents + allocation.hundredsCents + allocation.thousandsCents + allocation.quinaCents);
-          if (perRoundCents * requiredCount !== paymentRow.purchase.totalCents) throw new Error("Persisted numeric purchase intent total does not match payment");
+          const perRoundCents = numbers.length * allocationValues.reduce((sum, value) => sum + value, 0);
+          if (!Number.isSafeInteger(perRoundCents) || !Number.isSafeInteger(perRoundCents * requiredCount) ||
+              perRoundCents * requiredCount !== paymentRow.purchase.totalCents) {
+            throw new Error("Persisted numeric purchase intent total does not match payment");
+          }
           for (const round of targetRounds) {
             await tx.purchaseParticipation.create({
               data: {
