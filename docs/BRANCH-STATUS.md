@@ -6,8 +6,10 @@ Branch de trabalho: `setup/super-quina`.
 ## Limites de segurança e operação
 - `main` permanece sem alterações nesta rotina.
 - Não fazer merge, deploy, alteração de DNS/infraestrutura ou migração em banco de produção sem autorização explícita.
-- O Super Quina usa banco novo e vazio. A única herança permitida do sistema anterior é a identidade/hash da conta ADMIN já existente, sem copiar usuários, apostas, pagamentos, saldos, sorteios, resultados ou histórico financeiro.
-- Não provisionar um segundo administrador se a conta existente puder ser preservada. O procedimento deve ser validado antes de qualquer execução no banco novo.
+- O Super Quina usará um banco novo e vazio, sem importar absolutamente nenhum dado, usuário, ADMIN, aposta, pagamento, saldo, rodada, resultado ou histórico do sistema anterior.
+- As migrations são permitidas exclusivamente para criar a estrutura do banco numérico novo.
+- O primeiro ADMIN será criado no próprio ambiente Super Quina pelo script `scripts/provision-admin.mjs`, executado automaticamente após `prisma migrate deploy` na inicialização. As variáveis `ADMIN_USERNAME`, `ADMIN_INITIAL_PASSWORD` e `CONFIRM_ADMIN_PROVISIONING=CREATE_FIRST_ADMIN` devem ser configuradas como secrets no servidor. A conta nasce com `mustChangePassword=true`.
+- O provisionamento é idempotente: se já existir ADMIN, não cria outro nem altera a conta. Se não houver credenciais/confirmador válidos, a inicialização falha explicitamente para permitir correção com suporte técnico; não há credenciais padrão.
 
 ## Estado técnico confirmado
 - Produto exclusivamente numérico: palpites de cinco algarismos, de `00000` a `99999`.
@@ -27,7 +29,7 @@ Branch de trabalho: `setup/super-quina`.
 ## Bloqueios antes de liberar o site
 1. **Reconciliação de branches:** na comparação atual, `setup/super-quina` está divergente de `main` (309 commits à frente e 9 atrás) e de `foundation/super-quina-v2` (309 commits à frente e 45 atrás). Revisar individualmente os commits ausentes e o diff antes de qualquer integração. Não mesclar automaticamente.
 2. **Baseline do banco:** a cadeia histórica de migrations começa com tabelas do jogo de placas e depois faz a limpeza numérica. Antes do banco novo, construir e validar uma baseline numérica limpa em PostgreSQL descartável; não apagar nem reordenar migrations existentes.
-3. **Conta ADMIN:** revisar o script de provisionamento e definir um procedimento seguro de preservação da identidade/hash do ADMIN existente. Não executar no banco de produção.
+3. **Conta ADMIN:** configurar as três variáveis privadas de provisionamento no Hydro e confirmar nos logs a criação do primeiro ADMIN após a migration. Se o processo falhar, acionar o suporte técnico do servidor com o erro dos logs, sem compartilhar senhas.
 4. **Hydro / scheduler:** confirmar configuração de execução do endpoint `POST /api/internal/round-scheduler` a cada minuto, com `Authorization: Bearer <ROUND_SCHEDULER_SECRET>`. Verificar logs, último sucesso e tratamento de falhas sem revelar segredo.
 5. **Variáveis e integração Pix:** conferir no ambiente correto a presença e consistência de `DATABASE_URL`, `AUTH_SECRET`, `APP_BASE_URL`, `ROUND_SCHEDULER_SECRET`, `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_WEBHOOK_SECRET` e `WALLET_PIX_ENCRYPTION_KEY`. Nunca copiar valores secretos para Git ou chat.
 6. **Auditoria financeira:** testar ponta a ponta Pix aprovado/rejeitado/cancelado/expirado/reembolsado, reentregas de webhook, confirmação tardia, idempotência, comissões, estornos e acerto de cambista. Confirmar também como tratar estorno ocorrido depois de um acerto já fechado.
@@ -53,5 +55,5 @@ Branch de trabalho: `setup/super-quina`.
 - A fundação também possui utilitários de identidade próprios e parâmetros scrypt diferentes (`N=32768`), enquanto o código atual usa `N=16384`. Não importar esses arquivos nem assumir compatibilidade de hashes sem conversão/verificação explícita. O importador atual aceita apenas `scrypt$16384$8$1`, salt de 16 bytes e digest de 64 bytes.
 - A cadeia atual contém 14 migrations SQL, da inicial `20261023000000_init` até `20261103010000_performance_queue_indexes`. O CI anterior executou migrations em PostgreSQL descartável e testes de integração com sucesso. Portanto, para o banco novo, a estratégia segura neste momento é aplicar a cadeia existente em ordem com `prisma migrate deploy`; não criar baseline paralela, não editar/reordenar migrations já aplicadas e não executar contra produção nesta etapa.
 - A migration `20261101020000_numeric_only_cleanup` elimina `ParticipationLine` e os campos/tipos específicos de placas. Ela é deliberadamente destrutiva e reforça que a cadeia histórica não deve ser aplicada sobre uma base antiga com dados de placas sem plano de migração e backup próprios.
-- O importador ADMIN está protegido contra destino com ADMIN existente, colisões de ID/usuário e hashes fora do formato aceito. Ainda falta validar em homologação se o hash real da conta antiga corresponde exatamente ao formato e se o username atende à regra de letras minúsculas/números/ponto/sublinhado/hífen. Nenhum dado foi importado.
+- O fluxo de importação de ADMIN do sistema antigo foi descartado. Não existe transferência de conta, hash, usuário ou qualquer outro dado legado. O provisionamento cria uma identidade nova no Super Quina.
 - Nenhuma alteração foi feita em `main`, na branch de fundação, no banco ou na infraestrutura. Nenhuma integração de branch foi executada.
