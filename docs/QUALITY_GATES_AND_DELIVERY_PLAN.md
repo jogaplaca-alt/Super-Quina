@@ -73,12 +73,13 @@ Atualizado em 2026-11-04. Documento consolidado a partir da auditoria da branch 
 
 ## 5. Ordem prática de execução
 
-1. Fechar P0 de scheduler, liquidação automática, concorrência e provisionamento ADMIN.
-2. Completar testes financeiros/Pix e E2E de ponta a ponta.
-3. Auditar as telas e ações reais de PLAYER, CASHIER e ADMIN, registrando cada item como implementado, parcial, ausente ou validado.
-4. Homologar impressão/recibos e fluxos de prêmio/saque/cambista.
-5. Preparar documentação operacional, backup/restore e observabilidade.
-6. Só depois abrir etapa Android/ESC-POS e preparar release.
+1. Fechar a experiência PLAYER: formulário, pagamento Pix/saldo, carteira, histórico próprio, resultados e crédito automático de prêmios.
+2. Fechar a experiência CASHIER: formulário visualmente idêntico ao PLAYER, variando apenas Pix/dinheiro, recibo impresso, resultados e financeiro.
+3. Auditar e concluir a área ADMIN, que tem escopo mais amplo, incluindo gestão, histórico, acertos e controles.
+4. Fechar os gates P0 de scheduler, liquidação automática, concorrência e provisionamento ADMIN, além dos testes financeiros/Pix e E2E.
+5. Homologar impressão/recibos, saques e os fluxos completos dos três papéis.
+6. Preparar documentação operacional, backup/restore e observabilidade.
+7. Só depois abrir etapa Android/ESC-POS e preparar release.
 
 ## 6. Limites
 
@@ -215,3 +216,25 @@ Os valores devem refletir o período corrente desde o último acerto administrat
 - Não foram encontrados termos ou componentes de placas no formulário numérico atual consultado. Isso não substitui uma varredura global de histórico/artefatos e não autoriza reaproveitar código específico do sistema antigo.
 
 Status: requisitos funcionais registrados; formulário existente identificado, mas desenho final ainda não aprovado; histórico próprio descartado por decisão do usuário; falta apenas confirmar/aprovar a apresentação visual do formulário e ajustar o indicador de quantidade no Financeiro, se necessário. Nenhuma alteração de código, banco ou interface foi feita neste subbloco.
+
+
+### 8.3 Reordenação do trabalho e pontos de atenção — PLAYER antes de CASHIER e ADMIN (2026-11-04)
+
+O usuário definiu a ordem de conclusão: primeiro PLAYER, depois CASHIER e somente então ADMIN. Não iniciar a auditoria extensa da área ADMIN antes de fechar as duas áreas menores.
+
+Leitura inicial da implementação PLAYER:
+- `src/app/player/page.tsx` já reúne formulário, carteira/saques, histórico próprio e resultados, todos em seções recolhíveis exceto o formulário.
+- `src/app/api/player/history/route.ts` limita o histórico aos últimos sete dias, filtra por `playerId` da sessão e limita a 100 compras. O histórico exibe números, rodadas, estados de apuração e prêmio creditado.
+- `src/modules/rounds/settle-numeric-round-prizes.ts` calcula o prêmio e cria lançamento `PRIZE_CREDIT` idempotente para compra de PLAYER (`playerId` presente e `cashierId` ausente), dentro da transação de liquidação da rodada. A implementação do crédito automático está presente; falta demonstrar por testes PostgreSQL/E2E que o fluxo completo é executado e o saldo atualizado é refletido na carteira.
+- `src/app/api/player/withdrawals/route.ts` consulta o ledger para saldo disponível e permite solicitar saque integral mediante chave Pix; reserva o saldo transacionalmente e grava auditoria. A tela apresenta o histórico de saques.
+- `src/app/api/player/results/route.ts` filtra sorteios concluídos publicados nas últimas 24 horas.
+
+Divergência que precisa ser corrigida na área PLAYER:
+- `src/components/player/player-bet-history.tsx` renderiza `PlayerPurchaseReceipt` para cada compra confirmada. O usuário definiu que PLAYER não tem recibo impresso; o recibo impresso é exclusivo de CASHIER. Remover a apresentação do recibo do histórico do jogador, preservando os dados da aposta no histórico.
+
+Divergência que precisa ser corrigida no formulário compartilhado:
+- `src/components/purchases/numeric-game-purchase-form.tsx` atualmente muda textos de identificação/título e texto do botão final conforme o papel, além da forma de pagamento. O requisito é que o formulário seja visualmente idêntico; somente a segunda forma de pagamento muda (PLAYER: saldo da conta; CASHIER: dinheiro), com Pix comum aos dois. Padronizar os elementos visuais e a nomenclatura do formulário, sem alterar as rotas/regras financeiras específicas de cada papel.
+
+Próximas verificações PLAYER: examinar rotas/testes de histórico, carteira, crédito de prêmio e compras; verificar estados pendentes/confirmados, atualização do saldo após crédito e saque; conferir se não há recibo/QR de impressão no PLAYER; executar testes focados antes de declarar concluído. Em seguida, concluir CASHIER e só então iniciar ADMIN.
+
+Esta seção registra auditoria estática inicial. Nenhum código ou banco foi alterado nesta etapa; não foram executados testes nem deploy.
