@@ -172,7 +172,7 @@ Status do Bloco 2: **EM AUDITORIA — funcionalidades-base identificadas; pagina
 
 ### 8.1 Requisitos confirmados pelo usuário para a área do cambista (2026-11-04)
 
-A área deve ser enxuta e conter somente o formulário da jogada, últimos resultados, financeiro e histórico das apostas feitas pelo próprio cambista.
+A área deve ser enxuta e conter somente o formulário da jogada, últimos resultados e financeiro. O histórico detalhado de jogos fica exclusivo da área ADMIN.
 
 **Formulário da jogada — requisito funcional, ainda sujeito à aprovação visual do usuário**
 - Um campo para digitar uma sequência de exatamente cinco algarismos.
@@ -197,12 +197,11 @@ Os valores devem refletir o período corrente desde o último acerto administrat
 - Mostrar somente resultados publicados nas últimas 24 horas.
 - Resultados anteriores a essa janela deixam de aparecer na lista.
 
-**Histórico do cambista**
-- Criar consulta restrita às vendas/apostas do próprio cambista, tanto em dinheiro quanto em Pix.
-- Exibir somente os últimos sete dias.
-- Não confundir histórico de apostas com histórico financeiro de acertos.
-- Pix pendente, cancelado ou não confirmado deve ter status claro e não aparecer como venda confirmada.
-- Paginação/limite e ordenação estável são necessários para evitar consultas ilimitadas.
+**Histórico de jogos**
+- Não exibir histórico detalhado na área do cambista.
+- O histórico completo fica disponível somente na área ADMIN.
+- Se o cambista precisar consultar jogos anteriores, deverá solicitar ao administrador, que disponibilizará as informações.
+- O cambista acompanha a quantidade de jogos realizados pelo indicador do Financeiro (ícone/contador), sem acesso à listagem detalhada.
 
 ### 8.2 Comparação com o código atual
 
@@ -210,7 +209,7 @@ Os valores devem refletir o período corrente desde o último acerto administrat
 - A opção “Gerar número” e a entrada separada de valor por número também estão presentes; confirmar se permanecem no desenho final, pois o usuário pediu uma interface simples e ainda vai aprovar o formulário.
 - Financeiro: já é um menu `details` recolhível e mostra quatro cartões monetários (total, comissão em reais, dinheiro, Pix) e a quantidade de vendas/jogos em texto agregado. Precisa apresentar a quantidade de jogos como quinto indicador separado. O resumo atual considera somente vendas confirmadas e acumula desde o último acerto.
 - Resultados: já são recolhíveis; a API filtra rodadas concluídas/publicadas com `resultAt` nas últimas 24 horas e a interface mostra até dez resultados.
-- Histórico próprio: não está presente na página do cambista nem foi encontrada rota `/api/cashier/purchases` no diretório consultado. É uma funcionalidade pendente, com janela de sete dias.
+- Histórico próprio: não será implementado na área do cambista por decisão explícita do usuário. O histórico detalhado permanece exclusivo do ADMIN; consultas solicitadas pelo cambista serão atendidas pelo administrador. O cambista acompanha apenas a quantidade pelo indicador do Financeiro.
 - Não foram encontrados termos ou componentes de placas no formulário numérico atual consultado. Isso não substitui uma varredura global de histórico/artefatos e não autoriza reaproveitar código específico do sistema antigo.
 
-Status: requisitos funcionais registrados; formulário existente identificado, mas desenho final ainda não aprovado; histórico de sete dias e quinto cartão financeiro pendentes. Nenhuma alteração de código, banco ou interface foi feita neste subbloco.
+Status: requisitos funcionais registrados; formulário existente identificado, mas desenho final ainda não aprovado; histórico próprio descartado por decisão do usuário; falta apenas confirmar/aprovar a apresentação visual do formulário e ajustar o indicador de quantidade no Financeiro, se necessário. Nenhuma alteração de código, banco ou interface foi feita neste subbloco.
