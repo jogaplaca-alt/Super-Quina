@@ -68,6 +68,8 @@ describe("confirmPixPayment next-valid-round allocation", () => {
     });
 
     expect(result).toMatchObject({ outcome: "confirmed", receiptCode: expect.stringMatching(/^SQ-[A-F0-9]{16}$/) });
+    expect(mocks.tx.$queryRaw.mock.calls[1]![0].join(" ")).toContain("LIMIT");
+    expect(mocks.tx.$queryRaw.mock.calls[1]![0].join(" ")).toContain("FOR UPDATE");
     expect(mocks.participationUpdate).toHaveBeenCalledWith({
       where: { id: "participation-1" },
       data: { roundId: "round-next", totalCents: 200 },
