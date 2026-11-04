@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-type VerifiedNumber = { numberValue: string; resultStatus: "AGUARDANDO" | "PREMIADA" | "NAO_PREMIADA" | "AGUARDANDO_APURACAO"; prizeCents: number | null; prizePaid: boolean };
+type VerifiedNumber = { numberValue: string; resultStatus: "AGUARDANDO" | "PREMIADA" | "NAO_PREMIADA" | "AGUARDANDO_APURACAO"; prizeCents: number | null; prizePaid: boolean; payoutChannel?: "PLATFORM_PIX" | "CASHIER_CASH" | null };
 
 type VerifiedRound = {
   resultNumber: string | null;
@@ -130,7 +130,7 @@ export function ReceiptVerification({ receiptCode }: { receiptCode: string }) {
                   <strong style={{ display: "block", color: "#111827", marginBottom: 6 }}>Seus números</strong>
                   <div style={{ display: "grid", gap: 6 }}>
                     {round.numbers.map((number, index) => {
-                      const status = number.resultStatus === "PREMIADA" ? (number.prizePaid ? "Prêmio pago" : "Premiada")
+                      const status = number.resultStatus === "PREMIADA" ? (number.prizePaid ? number.payoutChannel === "CASHIER_CASH" ? "PRÊMIO PAGO — dinheiro pelo cambista" : number.payoutChannel === "PLATFORM_PIX" ? "PRÊMIO PAGO — Pix pela plataforma" : "Prêmio creditado na carteira" : "Premiada")
                         : number.resultStatus === "NAO_PREMIADA" ? "Não premiada"
                           : number.resultStatus === "AGUARDANDO_APURACAO" ? "Aguardando apuração"
                             : round.status === "RODADA_CANCELADA" ? "Rodada cancelada" : round.status === "SORTEIO_AGUARDANDO" ? "Aguardando sorteio" : "Aguardando resultado";
