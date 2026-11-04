@@ -27,12 +27,13 @@ export async function registerNumericPrizePayout(
     where: { id: input.lineId },
     select: {
       id: true,
+      numberValue: true,
       prizeCents: true,
       prizeCreditedAt: true,
       participation: {
         select: {
           status: true,
-          purchase: { select: { id: true, cashierId: true, playerId: true, status: true, confirmedAt: true } },
+          purchase: { select: { id: true, receiptCode: true, cashierId: true, playerId: true, status: true, confirmedAt: true } },
           round: { select: { id: true, code: true, status: true } },
         },
       },
@@ -85,6 +86,8 @@ export async function registerNumericPrizePayout(
       entityId: payout.id,
       metadata: {
         participationLineId: line.id,
+        numberValue: line.numberValue,
+        receiptCode: purchase.receiptCode,
         purchaseId: purchase.id,
         roundId: line.participation.round.id,
         roundCode: line.participation.round.code,
