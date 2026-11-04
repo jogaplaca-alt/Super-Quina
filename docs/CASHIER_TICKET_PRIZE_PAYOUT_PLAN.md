@@ -113,3 +113,46 @@
 - 2026-11-03: regras de prêmio de cambista e baixa pós-Pix documentadas em `docs/PRODUCT_RULES.md`.
 - 2026-11-03: este plano criado como roteiro de auditoria e implementação. Nenhuma alteração de código, schema, migration ou interface foi realizada nesta etapa.
 - Auditoria ampliada: a API pública de verificação calcula o prêmio no retorno e marca `prizePaid` apenas com `prizeCreditedAt`; a API `ticket-check` também usa `prizeCreditedAt` para estado premiado e aplica validade pública de 7 dias. A API de recibo mostra `cashier.fullName` ou `username` como `cashierLabel`; isso ainda não comprova identificação correta do ponto de venda.
+
+
+## 6. Decisão adicional — pagamento presencial em dinheiro pelo cambista
+
+A regra original de pagamento exclusivamente pela plataforma foi ampliada. Para bilhetes de cambista, o ganhador escolhe livremente entre os dois canais abaixo:
+
+1. **Pix da plataforma:** contato pelo WhatsApp oficial; a equipe confere o recibo e a apuração, realiza o Pix externamente e só depois um ADMIN registra a baixa.
+2. **Dinheiro no ponto de venda:** o ganhador entrega o recibo físico ao cambista, que confere o bilhete, retém o recibo como comprovante e entrega o dinheiro em mãos. Só depois da entrega efetiva, o cambista autenticado registra a baixa no painel.
+
+Regras obrigatórias do canal presencial:
+
+- O cambista só pode registrar pagamento em dinheiro para prêmio de bilhete vendido pelo próprio `cashierId`.
+- O cambista não pode pagar por Pix, iniciar transferência Pix ou ter campo/ação de Pix para prêmio.
+- A ação do painel deve ser identificada como **Registrar prêmio pago em dinheiro** e representar apenas a declaração de que o dinheiro já foi entregue.
+- A baixa ADMIN por Pix e a baixa CASHIER em dinheiro compartilham o mesmo registro persistido por linha premiada. A restrição única e a transação/lock garantem que somente o primeiro canal válido conclua; o outro recebe conflito de prêmio já pago.
+- A consulta QR exibe **PRÊMIO PAGO** e identifica a origem como plataforma (Pix) ou ponto de venda (dinheiro), sem revelar dados pessoais. Depois da baixa, nenhuma opção de pagamento permanece visível.
+- A auditoria registra canal, ator, cambista/ponto quando aplicável, data/hora, recibo, compra, participação/linha, rodada, valor e referência/observação opcional.
+- O valor pago em dinheiro pelo cambista é adiantamento de caixa da plataforma devido ao cambista. Não é comissão, venda nem despesa própria do cambista.
+- O financeiro do cambista ganha um sexto indicador: quantidade e total em reais de **Prêmios pagos pelo cambista**, acumulados desde o último acerto.
+- O acerto ADMIN apresenta o detalhamento dos prêmios pagos em dinheiro e seus totais para conferência dos recibos físicos e reposição/compensação do caixa do cambista. O registro individual permanece no histórico após o acerto; o corte do período é transacional para não contar duas vezes nem omitir pagamento.
+- O pagamento em dinheiro não gera crédito de carteira, comissão ou transferência automática. Só é registrado após a entrega física do dinheiro.
+
+## 7. Escopo técnico revisado
+
+- Criar um único modelo/registro de baixa externa por `NumericParticipationLine`, com canal `PLATFORM_PIX` ou `CASHIER_CASH`, ator, cambista opcional, valor e data/hora. Manter `prizeCreditedAt` exclusivamente para crédito em carteira.
+- Implementar as duas ações de baixa sobre o mesmo serviço transacional e a mesma restrição de unicidade.
+- Estender as APIs públicas existentes de consulta do recibo e ticket; não criar consulta paralela.
+- Adicionar a ação de dinheiro no painel do cambista e a ação Pix já prevista no ADMIN, com autorização por papel e propriedade do bilhete.
+- Estender resumo financeiro e acerto ADMIN com quantidade/valor de prêmios pagos em dinheiro, detalhamento e vínculo de corte/auditoria.
+- O cálculo de saldo líquido do acerto deve respeitar a regra contábil já existente do produto. Até essa fórmula ser verificada no código e formalmente documentada, apresentar o adiantamento como linha separada de crédito/reembolso devido ao cambista; não inventar um desconto líquido silencioso.
+
+## 8. Casos de teste adicionais obrigatórios
+
+- Cambista A não consegue pagar bilhete de cambista B.
+- Cambista não consegue registrar Pix nem acessar qualquer ação/campo de Pix para prêmio.
+- O canal CASHIER_CASH só aceita prêmio positivo de compra confirmada, participação confirmada e rodada concluída.
+- O recibo físico é retido pelo procedimento operacional; o sistema registra ator e horário após a entrega em dinheiro.
+- ADMIN Pix e CASHIER cash concorrentes para a mesma linha geram uma única baixa; o perdedor recebe estado já pago.
+- Pagamento em dinheiro atualiza QR e sexto indicador; pagamento Pix não aparece no indicador de dinheiro do cambista.
+- Um recibo com várias linhas premiadas permite baixa individual sem duplicidade.
+- Acerto ADMIN inclui cada baixa em dinheiro uma única vez no período e preserva detalhes e histórico após o corte.
+- Requisição concorrente de baixa durante o acerto não pode ser omitida nem aparecer em dois períodos.
+- A liquidação não altera comissão, vendas, carteira do jogador nem saldo de prêmio já calculado.
