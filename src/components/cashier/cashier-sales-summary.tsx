@@ -53,7 +53,7 @@ export function CashierSalesSummary() {
         <article className="cashier-summary-tile"><span>Prêmios pagos pelo cambista</span><strong>{summary ? money(summary.cashPrizePayoutCents) : "Carregando…"}</strong><small>{summary ? summary.cashPrizePayoutCount.toLocaleString("pt-BR") + " pagamentos" : ""}</small></article>
       </div>
       {summary?.lastSettlementAt && <p className="note-inline">Último acerto: {new Date(summary.lastSettlementAt).toLocaleString("pt-BR")}</p>}
-      <p className="note-inline">Somente vendas confirmadas entram nos valores. O resumo acumula desde o último acerto registrado pelo administrador.</p>
+      <p className="note-inline">Somente vendas confirmadas entram nos valores. O resumo acumula desde o último acerto registrado pelo administrador. Prêmios pagos em dinheiro são adiantamentos da plataforma, não comissão nem despesa do cambista; entram no acerto para reposição do caixa.</p>
     </section>
   </details>;
 }
