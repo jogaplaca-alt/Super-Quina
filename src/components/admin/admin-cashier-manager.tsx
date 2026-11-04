@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Cashier = {
   id: string;
@@ -37,11 +37,15 @@ export function AdminCashierManager() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const loadController = useRef<AbortController | null>(null);
 
   const load = useCallback(async () => {
+    loadController.current?.abort();
+    const controller = new AbortController();
+    loadController.current = controller;
     setError("");
     try {
-      const response = await fetch("/api/admin/cashiers", { cache: "no-store" });
+      const response = await fetch("/api/admin/cashiers", { cache: "no-store", signal: controller.signal });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "Não foi possível carregar os cambistas.");
       setCashiers(body.cashiers as Cashier[]);
