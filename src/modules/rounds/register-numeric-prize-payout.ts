@@ -28,6 +28,7 @@ export async function registerNumericPrizePayout(
     select: {
       id: true,
       prizeCents: true,
+      prizeCreditedAt: true,
       participation: {
         select: {
           status: true,
@@ -39,7 +40,7 @@ export async function registerNumericPrizePayout(
     },
   });
   if (!line) throw new NumericPrizePayoutError("LINE_NOT_FOUND");
-  if (line.prizePayout) throw new NumericPrizePayoutError("ALREADY_PAID");
+  if (line.prizePayout || line.prizeCreditedAt) throw new NumericPrizePayoutError("ALREADY_PAID");
 
   const purchase = line.participation.purchase;
   const isCashierTicket = Boolean(purchase.cashierId) && purchase.playerId === null;
