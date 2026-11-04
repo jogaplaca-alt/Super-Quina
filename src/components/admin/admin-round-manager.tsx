@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Round = {
   id: string; code: string; startsAt: string; cutoffAt: string; resultAt: string;
@@ -24,22 +24,29 @@ export function AdminRoundManager() {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const loadController = useRef<AbortController | null>(null);
 
   const load = useCallback(async () => {
+    loadController.current?.abort();
+    const controller = new AbortController();
+    loadController.current = controller;
     setError("");
     try {
-      const response = await fetch("/api/admin/rounds", { cache: "no-store" });
+      const response = await fetch("/api/admin/rounds", { cache: "no-store", signal: controller.signal });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "Não foi possível carregar as rodadas.");
-      setData(body as Dashboard);
+      if (!controller.signal.aborted) setData(body as Dashboard);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Falha ao carregar o painel.");
+      if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Falha ao carregar o painel.");
     } finally { setLoading(false); }
+    } finally {
+      if (loadController.current === controller) { loadController.current = null; setLoading(false); }
+    }
   }, []);
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void load(); }, 0);
-    return () => window.clearTimeout(timer);
+    return () => { window.clearTimeout(timer); loadController.current?.abort(); };
   }, [load]);
 
   async function perform(round: Round, action: "close" | "draw" | "settle") {
