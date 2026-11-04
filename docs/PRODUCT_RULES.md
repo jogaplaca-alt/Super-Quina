@@ -56,6 +56,18 @@ A alocação de cada aposta entre unidade, dezena, centena, milhar e quina é um
 - O pagamento manual externo de prêmio não deve ser confundido com crédito de carteira nem com liquidação da rodada. A apuração continua automática; a área administrativa apenas registra a liquidação externa após a conferência e o Pix.
 - Antes de implementar, auditar consulta pública, recibo, configuração do WhatsApp, modelo de prêmio, permissões ADMIN e reconciliação atual. Estender o que já existe; não criar segunda apuração, segundo ledger de carteira ou rota paralela de consulta.
 
+### 4.2 Saques da carteira do jogador
+
+- O jogador pode solicitar saque somente do saldo total disponível. Não informa nem escolhe um valor parcial.
+- Ao solicitar, o sistema reserva integralmente o saldo disponível por meio de lançamento negativo no ledger. A solicitação, a reserva, o histórico de estado e a auditoria devem ser gravados na mesma transação.
+- A chave Pix é armazenada criptografada. A área do administrador pode consultá-la para realizar o pagamento; a área do jogador não recebe a chave armazenada nem dados internos da auditoria.
+- O administrador confere a chave e realiza a transferência Pix manualmente, fora da plataforma. Somente depois de realizar e conferir a transferência, clica em **Aprovar e concluir**. Essa única ação marca o saque como `PAID`, registra a baixa/auditoria e encerra definitivamente a solicitação. Não existe etapa posterior de aprovação, processamento ou confirmação do pagamento.
+- A aprovação não apaga nem altera lançamentos anteriores do ledger: a reserva negativa permanece como registro contábil, e um lançamento de valor zero registra a liquidação externa. O saldo já foi debitado da disponibilidade quando reservado.
+- Se a chave Pix estiver inválida ou houver outro motivo para não pagar, o administrador informa obrigatoriamente o motivo e clica em **Recusar e devolver saldo**. Na mesma transação, a solicitação passa para `REJECTED`, o valor integral reservado é creditado de volta ao ledger e o motivo fica no histórico e na auditoria.
+- O jogador visualiza o motivo da recusa e pode fazer uma nova solicitação com a chave Pix corrigida.
+- Aprovação e recusa só são permitidas enquanto a solicitação estiver `PENDING`. Bloqueio da linha, transação serializável e restrições de idempotência impedem dupla conclusão ou dupla devolução por concorrência/reenvio.
+- O sistema não envia Pix automaticamente. O clique de aprovação representa a declaração do administrador de que a transferência externa já foi realizada e conferida.
+
 ## 5. Sem reembolso automático
 
 Não existe reembolso no fluxo comercial normal do jogo. Qualquer notificação externa inesperada de estorno/reembolso deve ser tratada como incidente financeiro para análise administrativa, sem desfazer automaticamente uma compra já confirmada, suas participações, prêmios ou comissões.
