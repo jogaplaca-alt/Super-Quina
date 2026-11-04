@@ -9,7 +9,7 @@ function isSerializationConflict(error: unknown): boolean {
 }
 
 /** Settle only confirmed numeric lines and credit player prizes idempotently in the same transaction. */
-export async function settleNumericRoundPrizes(prisma: PrismaClient, roundId: string, actorId: string) {
+export async function settleNumericRoundPrizes(prisma: PrismaClient, roundId: string, actorId?: string) {
   for (let attempt = 0; ; attempt += 1) {
     try {
       return await prisma.$transaction(async (tx) => {
@@ -101,15 +101,24 @@ export async function settleNumericRoundPrizes(prisma: PrismaClient, roundId: st
           creditedLines += 1;
         }
 
-        await tx.auditEvent.create({
-          data: {
-            actorId,
-            action: "NUMERIC_ROUND_PRIZES_SETTLED",
-            entityType: "Round",
-            entityId: roundId,
-            metadata: { eligibleLines: lines.length, creditedLines, pendingManualPayouts, totalPrizeCents },
-          },
+        const settlementAction = actorId
+          ? "NUMERIC_ROUND_PRIZES_SETTLED"
+          : "NUMERIC_ROUND_PRIZES_SETTLED_AUTOMATICALLY";
+        const priorSettlementAudit = await tx.auditEvent.findFirst({
+          where: { action: settlementAction, entityType: "Round", entityId: roundId },
+          select: { id: true },
         });
+        if (!priorSettlementAudit) {
+          await tx.auditEvent.create({
+            data: {
+              ...(actorId ? { actorId } : {}),
+              action: settlementAction,
+              entityType: "Round",
+              entityId: roundId,
+              metadata: { eligibleLines: lines.length, creditedLines, pendingManualPayouts, totalPrizeCents },
+            },
+          });
+        }
 
         return {
           roundId,
