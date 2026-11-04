@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       }),
       authPrisma.purchase.aggregate({
         where: { ...common, paymentMethod: "PIX", payment: { is: { status: "CONFIRMED" } } },
-        _sum: { totalCents: true }, _count: { _all: true },
+        _sum: { totalCents: true },
       }),
       authPrisma.cashierCommission.aggregate({
         where: { cashierId: user.id, createdAt: { gt: since }, purchase: { is: { status: "CONFIRMED" } } },
