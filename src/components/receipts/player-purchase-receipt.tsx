@@ -65,10 +65,9 @@ export function PlayerPurchaseReceipt({ purchaseId, autoOpen = false, onClose }:
   }
 
   useEffect(() => {
-    if (!autoOpen) return;
-    const timer = window.setTimeout(() => { void loadReceipt(); }, 0);
+    const timer = autoOpen ? window.setTimeout(() => { void loadReceipt(); }, 0) : null;
     return () => {
-      window.clearTimeout(timer);
+      if (timer !== null) window.clearTimeout(timer);
       requestRef.current?.abort();
       requestRef.current = null;
       loadingRef.current = false;
