@@ -47,7 +47,11 @@ export async function confirmPixPayment(
           ? await tx.$queryRaw<Array<{ id: string }>>`
               WITH target_rounds AS (
                 SELECT "id" FROM "Round"
-                WHERE "status" IN ('OPEN', 'SCHEDULED') AND "cutoffAt" > clock_timestamp()
+                WHERE "status" IN ('OPEN', 'SCHEDULED')
+                  AND "startsAt" < "cutoffAt"
+                  AND "cutoffAt" < "resultAt"
+                  AND "cutoffAt" > clock_timestamp()
+                  AND "resultAt" > clock_timestamp()
                 ORDER BY "resultAt" ASC, "id" ASC
                 LIMIT ${requiredCount}
               ),
@@ -64,7 +68,11 @@ export async function confirmPixPayment(
             `
           : await tx.$queryRaw<Array<{ id: string }>>`
               SELECT "id" FROM "Round"
-              WHERE "status" IN ('OPEN', 'SCHEDULED') AND "cutoffAt" > clock_timestamp()
+              WHERE "status" IN ('OPEN', 'SCHEDULED')
+                AND "startsAt" < "cutoffAt"
+                AND "cutoffAt" < "resultAt"
+                AND "cutoffAt" > clock_timestamp()
+                AND "resultAt" > clock_timestamp()
               ORDER BY "resultAt" ASC, "id" ASC
               LIMIT ${requiredCount}
               FOR UPDATE
