@@ -220,7 +220,7 @@ export async function POST(request: NextRequest) {
         SELECT 1 FROM "AuditEvent" a
         WHERE a."entityType" = 'Round'
           AND a."entityId" = r."id"
-          AND a."action" = 'NUMERIC_ROUND_PRIZES_SETTLED_AUTOMATICALLY'
+          AND a."action" IN ('NUMERIC_ROUND_PRIZES_SETTLED', 'NUMERIC_ROUND_PRIZES_SETTLED_AUTOMATICALLY')
       )
     ORDER BY r."resultAt" ASC, r."id" ASC
     LIMIT 100
