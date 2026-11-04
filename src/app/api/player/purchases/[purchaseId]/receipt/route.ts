@@ -16,7 +16,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const purchase = await authPrisma.purchase.findUnique({
       where: { id: purchaseId },
       select: {
-        id: true, createdAt: true, playerId: true, cashierId: true, status: true,
+        id: true, createdAt: true, cashierId: true, status: true,
         paymentMethod: true, totalCents: true, currency: true, receiptCode: true, confirmedAt: true,
         customer: { select: { name: true } },
         cashier: { select: { username: true, fullName: true } },
