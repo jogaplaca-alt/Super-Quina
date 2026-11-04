@@ -57,3 +57,13 @@ Branch de trabalho: `setup/super-quina`.
 - A migration `20261101020000_numeric_only_cleanup` elimina `ParticipationLine` e os campos/tipos específicos de placas. Ela é deliberadamente destrutiva e reforça que a cadeia histórica não deve ser aplicada sobre uma base antiga com dados de placas sem plano de migração e backup próprios.
 - O fluxo de importação de ADMIN do sistema antigo foi descartado. Não existe transferência de conta, hash, usuário ou qualquer outro dado legado. O provisionamento cria uma identidade nova no Super Quina.
 - Nenhuma alteração foi feita em `main`, na branch de fundação, no banco ou na infraestrutura. Nenhuma integração de branch foi executada.
+
+
+## Integração seletiva das branches — 2026-11-04
+- Criado `docs/QUALITY_GATES_AND_DELIVERY_PLAN.md`, consolidando critérios de qualidade da `foundation/super-quina-v2` e a matriz operacional da `rebuild/super-quina-clean`, sem importar código ou migrations incompatíveis.
+- Incorporados como critérios: monólito modular, servidor como autoridade, centavos inteiros, ledger por compensação, idempotência ponta a ponta, permissões testadas negativamente, diferença entre implementado/testado/homologado, segurança da API Android e impressão ESC/POS desacoplada.
+- A auditoria estática identificou um bloqueio a verificar antes da liberação: o scheduler chama o sorteio, enquanto o serviço `settleNumericRoundPrizes` está separado. É necessário provar e testar que o sorteio concluído dispara a liquidação/crédito automático, sem depender de ação manual.
+- Também ficaram registrados como gates: sobreposição de execuções do scheduler/cursor, limite de duração das consultas sequenciais Pix, bootstrap ADMIN em ambiente descartável, testes E2E das três áreas e homologação de recibos/financeiro.
+- Não foram copiados: autenticação ou migration da V2, código Android esqueleto, migrations históricas, parâmetros de hash, dados de outro projeto ou regras comerciais não confirmadas.
+- Nenhuma alteração em `main`, banco, secrets, DNS, hospedagem ou deploy.
+- Commit desta integração documental: `fe86db3dbe812053a01d59b0f26e2d01c0541516`.
