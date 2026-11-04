@@ -169,3 +169,48 @@ Escopo inicial: tela do cambista, criação de vendas CASH/PIX, resumo financeir
 - Não alterar regras de pagamento nesta etapa; a auditoria completa das rotas de pagamento continua reservada ao bloco correspondente.
 
 Status do Bloco 2: **EM AUDITORIA — funcionalidades-base identificadas; paginação, cobertura de testes e requisito de histórico próprio ainda pendentes**. Nenhum teste foi executado nesta sessão. Nenhuma migration, alteração de banco, secret, deploy ou produção foi tocada.
+
+### 8.1 Requisitos confirmados pelo usuário para a área do cambista (2026-11-04)
+
+A área deve ser enxuta e conter somente o formulário da jogada, últimos resultados, financeiro e histórico das apostas feitas pelo próprio cambista.
+
+**Formulário da jogada — requisito funcional, ainda sujeito à aprovação visual do usuário**
+- Um campo para digitar uma sequência de exatamente cinco algarismos.
+- Ação explícita para adicionar cada número à mesma jogada; permitir vários números antes de finalizar.
+- Seletor de repetições/rodadas consecutivas, de 1 a 10, com 1 pré-selecionada. O cambista não escolhe rodadas específicas.
+- Duas opções de pagamento: Pix e dinheiro.
+- Ação final para fechar/finalizar a jogada e registrar o pagamento.
+- Manter validação de números, cálculo do total, idempotência e recibo oficial após confirmação/alocação.
+- Não acrescentar recursos extras à área sem necessidade ou aprovação.
+- O formulário atual é compartilhado entre PLAYER e CASHIER; alterações devem preservar o comportamento do jogador ou separar componentes de apresentação sem duplicar regras de negócio.
+
+**Financeiro — menu recolhível com seta**
+Exibir cinco indicadores separados:
+1. Valor total das vendas confirmadas.
+2. Valor real acumulado da comissão em reais (não a taxa percentual).
+3. Total de vendas em dinheiro.
+4. Total de vendas em Pix confirmado.
+5. Quantidade de jogos realizados.
+Os valores devem refletir o período corrente desde o último acerto administrativo, conforme a regra financeira atual. Manter atualização automática.
+
+**Últimos resultados — menu recolhível com seta**
+- Mostrar somente resultados publicados nas últimas 24 horas.
+- Resultados anteriores a essa janela deixam de aparecer na lista.
+
+**Histórico do cambista**
+- Criar consulta restrita às vendas/apostas do próprio cambista, tanto em dinheiro quanto em Pix.
+- Exibir somente os últimos sete dias.
+- Não confundir histórico de apostas com histórico financeiro de acertos.
+- Pix pendente, cancelado ou não confirmado deve ter status claro e não aparecer como venda confirmada.
+- Paginação/limite e ordenação estável são necessários para evitar consultas ilimitadas.
+
+### 8.2 Comparação com o código atual
+
+- Formulário numérico existente: suporta vários números por compra (até 100), campo de cinco algarismos, botão atual “Adicionar”, remoção de números, valor por número, seletor de 1–10 repetições com 1 padrão, opções Pix/dinheiro e total estimado. A finalização atual é “Registrar venda”. Portanto, a mecânica de múltiplos números já existe, mas a apresentação e a nomenclatura ainda não correspondem integralmente ao requisito aprovado.
+- A opção “Gerar número” e a entrada separada de valor por número também estão presentes; confirmar se permanecem no desenho final, pois o usuário pediu uma interface simples e ainda vai aprovar o formulário.
+- Financeiro: já é um menu `details` recolhível e mostra quatro cartões monetários (total, comissão em reais, dinheiro, Pix) e a quantidade de vendas/jogos em texto agregado. Precisa apresentar a quantidade de jogos como quinto indicador separado. O resumo atual considera somente vendas confirmadas e acumula desde o último acerto.
+- Resultados: já são recolhíveis; a API filtra rodadas concluídas/publicadas com `resultAt` nas últimas 24 horas e a interface mostra até dez resultados.
+- Histórico próprio: não está presente na página do cambista nem foi encontrada rota `/api/cashier/purchases` no diretório consultado. É uma funcionalidade pendente, com janela de sete dias.
+- Não foram encontrados termos ou componentes de placas no formulário numérico atual consultado. Isso não substitui uma varredura global de histórico/artefatos e não autoriza reaproveitar código específico do sistema antigo.
+
+Status: requisitos funcionais registrados; formulário existente identificado, mas desenho final ainda não aprovado; histórico de sete dias e quinto cartão financeiro pendentes. Nenhuma alteração de código, banco ou interface foi feita neste subbloco.
