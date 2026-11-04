@@ -75,6 +75,9 @@ describe("createNumericPurchase paid allocation queue", () => {
       stakeCents: 100,
     });
 
+    const lockSql = tx.$queryRaw.mock.calls[0]![0].join(" ");
+    expect(lockSql).toContain("LIMIT");
+    expect(lockSql).toContain("FOR UPDATE");
     const data = purchaseCreate.mock.calls[0]![0].data;
     expect(data.status).toBe("PENDING_PAYMENT");
     expect(data.receiptCode).toBeNull();
