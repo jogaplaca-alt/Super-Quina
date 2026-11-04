@@ -27,9 +27,12 @@ const MAX_MANUAL_RETRIES = 2;
 
 export function PlayerPurchaseReceipt({ purchaseId, autoOpen = false, onClose }: { purchaseId: string; autoOpen?: boolean; onClose?: () => void }) {
   const [receipt, setReceipt] = useState<{ purchaseId: string; data: ReceiptData } | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [manualRetries, setManualRetries] = useState(0);
+  const [loadingState, setLoadingState] = useState<{ purchaseId: string; value: boolean } | null>(null);
+  const [errorState, setErrorState] = useState<{ purchaseId: string; value: string } | null>(null);
+  const [retryState, setRetryState] = useState<{ purchaseId: string; value: number } | null>(null);
+  const loading = loadingState?.purchaseId === purchaseId && loadingState.value;
+  const error = errorState?.purchaseId === purchaseId ? errorState.value : "";
+  const manualRetries = retryState?.purchaseId === purchaseId ? retryState.value : 0;
   const loadingRef = useRef(false);
   const requestRef = useRef<AbortController | null>(null);
 
@@ -38,8 +41,8 @@ export function PlayerPurchaseReceipt({ purchaseId, autoOpen = false, onClose }:
     loadingRef.current = true;
     const controller = new AbortController();
     requestRef.current = controller;
-    setLoading(true);
-    setError("");
+    setLoadingState({ purchaseId, value: true });
+    setErrorState({ purchaseId, value: "" });
     try {
       const response = await fetch(`/api/player/purchases/${encodeURIComponent(purchaseId)}/receipt`, {
         cache: "no-store",
@@ -52,23 +55,22 @@ export function PlayerPurchaseReceipt({ purchaseId, autoOpen = false, onClose }:
       if (!controller.signal.aborted && requestRef.current === controller) setReceipt({ purchaseId, data: body.receipt });
     } catch (reason) {
       if (!controller.signal.aborted && requestRef.current === controller) {
-        setError(reason instanceof Error ? reason.message : "Não foi possível carregar o recibo.");
-        if (isManualRetry) setManualRetries((count) => count + 1);
+        setErrorState({ purchaseId, value: reason instanceof Error ? reason.message : "Não foi possível carregar o recibo." });
+        if (isManualRetry) setRetryState((current) => ({
+          purchaseId,
+          value: (current?.purchaseId === purchaseId ? current.value : 0) + 1,
+        }));
       }
     } finally {
       if (requestRef.current === controller) {
         requestRef.current = null;
         loadingRef.current = false;
-        setLoading(false);
+        setLoadingState({ purchaseId, value: false });
       }
     }
   }
 
   useEffect(() => {
-    setReceipt(null);
-    setError("");
-    setManualRetries(0);
-    setLoading(false);
     const timer = autoOpen ? window.setTimeout(() => { void loadReceipt(); }, 0) : null;
     return () => {
       if (timer !== null) window.clearTimeout(timer);
