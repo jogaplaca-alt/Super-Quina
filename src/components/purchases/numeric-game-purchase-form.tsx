@@ -33,7 +33,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
   const [numberInput, setNumberInput] = useState("");
   const [numbers, setNumbers] = useState<string[]>([]);
   const [stake, setStake] = useState("1,00");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(mode === "PLAYER" ? "PIX" : "PIX");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("PIX");
   const [walletBalanceCents, setWalletBalanceCents] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -221,7 +221,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
         </fieldset> : <fieldset className="round-repeat-fieldset">
           <legend>Forma de pagamento</legend>
           <label><input type="radio" name="numeric-payment" checked={paymentMethod === "PIX"} onChange={() => setPaymentMethod("PIX")} /> Pix</label>
-          <label><input type="radio" name="cashier-numeric-payment" checked={paymentMethod === "CASH"} onChange={() => setPaymentMethod("CASH")} /> Dinheiro</label>
+          <label><input type="radio" name="numeric-payment" checked={paymentMethod === "CASH"} onChange={() => setPaymentMethod("CASH")} /> Dinheiro</label>
         </fieldset>}
 
         <p><strong>Total estimado: {money(totalEstimate)}</strong></p>
@@ -235,7 +235,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
       {purchase && pixModalOpen && <div className="modal-backdrop" role="presentation">
         <section className="modal-panel pix-modal" role="dialog" aria-modal="true" aria-labelledby="numeric-pix-heading">
           <h3 id="numeric-pix-heading">Pagamento Pix</h3>
-          <p>Status: {reconciliationRequired ? "pagamento confirmado; aguardando atualização do recibo" : "aguardando confirmação do pagamento"}</p>
+          <p>Status: {reconciliationRequired ? "pagamento confirmado; finalizando o registro da aposta" : "aguardando confirmação do pagamento"}</p>
           <p>{purchaseMessage}</p>
           <p>Total: <strong>{money(purchase.totalCents)}</strong></p>
           {purchase.numericIntent && <p>Repetições: {purchase.numericIntent.repetitionCount} {purchase.numericIntent.repetitionCount === 1 ? "vez" : "vezes"}</p>}
