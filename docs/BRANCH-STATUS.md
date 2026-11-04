@@ -75,3 +75,10 @@ Branch de trabalho: `setup/super-quina`.
 - Eventos duplicados, atrasados ou fora de ordem não podem reverter indevidamente o estado nem duplicar cobrança, participações, recibo, comissão ou crédito. Enquanto houver estado pendente, inconclusivo, divergente ou indisponibilidade da API, não liberar participações nem recibo.
 - Os testes obrigatórios dessa política foram adicionados aos gates P0 em `docs/QUALITY_GATES_AND_DELIVERY_PLAN.md`.
 - Esta mudança é documental: não implementa nem altera código, rotas, webhook, scheduler, banco, secrets ou integração real. A implementação fica para a etapa de pagamentos, após auditoria do que já existe, para ampliar/corrigir o fluxo atual sem duplicidade.
+
+
+## Liquidação automática de prêmios — implementação
+- O scheduler agora procura rodadas `COMPLETED` com resultado publicado e sem auditoria de liquidação bem-sucedida (manual ou automática), e chama o serviço existente `settleNumericRoundPrizes`.
+- Falhas permanecem sem auditoria de sucesso; a próxima execução do scheduler tenta novamente. A seleção é limitada a 100 rodadas por execução.
+- A liquidação automática não cria um segundo mecanismo financeiro: reutiliza o serviço central existente, o bloqueio da rodada, o ledger e a chave idempotente por linha. A auditoria automática é gravada uma única vez após liquidação bem-sucedida.
+- Foram adicionados testes de rota para sucesso automático e falha recuperável. Execução real de CI ainda precisa ser confirmada; nenhuma homologação ou deploy foi realizado.
