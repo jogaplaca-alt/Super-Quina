@@ -5,6 +5,7 @@ import { authPrisma } from "@/lib/auth/session";
 import { closeRound } from "@/modules/rounds/close-round";
 import { openRound } from "@/modules/rounds/open-round";
 import { drawRoundResults } from "@/modules/rounds/draw-round-results";
+import { settleNumericRoundPrizes } from "@/modules/rounds/settle-numeric-round-prizes";
 import { reconcilePixPaymentFromProvider } from "@/modules/payments/reconcile-pix-payment";
 import { allocatePaidPurchases } from "@/modules/purchases/allocate-paid-purchases";
 
@@ -89,6 +90,7 @@ export async function POST(request: NextRequest) {
   let created = 0;
   let closed = 0;
   let drawn = 0;
+  let prizesSettled = 0;
   let failures = 0;
   let pixChecked = 0;
   let pixConfirmed = 0;
@@ -206,8 +208,34 @@ export async function POST(request: NextRequest) {
     try { await drawRoundResults(authPrisma, round.id); drawn += 1; } catch { failures += 1; }
   }
 
+  // Retry every completed round without a successful automatic settlement audit.
+  // The settlement service locks the round and uses stable ledger idempotency keys.
+  const dueToSettle = await authPrisma.$queryRaw<Array<{ id: string }>>`
+    SELECT r."id"
+    FROM "Round" r
+    WHERE r."status" = 'COMPLETED'
+      AND r."resultNumber" IS NOT NULL
+      AND r."resultAt" <= ${now}
+      AND NOT EXISTS (
+        SELECT 1 FROM "AuditEvent" a
+        WHERE a."entityType" = 'Round'
+          AND a."entityId" = r."id"
+          AND a."action" = 'NUMERIC_ROUND_PRIZES_SETTLED_AUTOMATICALLY'
+      )
+    ORDER BY r."resultAt" ASC, r."id" ASC
+    LIMIT 100
+  `;
+  for (const round of dueToSettle) {
+    try {
+      await settleNumericRoundPrizes(authPrisma, round.id);
+      prizesSettled += 1;
+    } catch {
+      failures += 1;
+    }
+  }
+
   return NextResponse.json({
-    ok: failures === 0, created, closed, drawn, failures, timeZone: TIME_ZONE,
+    ok: failures === 0, created, closed, drawn, prizesSettled, failures, timeZone: TIME_ZONE,
     pixChecked, pixConfirmed, pixNeedsReconciliation,
     paidPurchasesChecked, paidPurchasesAllocated, paidPurchasesWaiting,
   }, {
