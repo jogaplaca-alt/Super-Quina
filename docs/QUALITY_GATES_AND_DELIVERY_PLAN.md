@@ -178,11 +178,13 @@ A área deve ser enxuta e conter somente o formulário da jogada, últimos resul
 - Um campo para digitar uma sequência de exatamente cinco algarismos.
 - Ação explícita para adicionar cada número à mesma jogada; permitir vários números antes de finalizar.
 - Seletor de repetições/rodadas consecutivas, de 1 a 10, com 1 pré-selecionada. O cambista não escolhe rodadas específicas.
-- Duas opções de pagamento: Pix e dinheiro.
+- O formulário do PLAYER e do CASHIER deve ser visual e funcionalmente idêntico em todos os aspectos: mesma estrutura, ordem, campos, espaçamentos, componentes, textos e comportamento.
+- A única diferença permitida é a opção de pagamento: PLAYER = Pix ou saldo da conta; CASHIER = Pix ou dinheiro.
+- Não exibir dinheiro como opção para PLAYER nem saldo da conta como opção para CASHIER.
 - Ação final para fechar/finalizar a jogada e registrar o pagamento.
 - Manter validação de números, cálculo do total, idempotência e recibo oficial após confirmação/alocação.
 - Não acrescentar recursos extras à área sem necessidade ou aprovação.
-- O formulário atual é compartilhado entre PLAYER e CASHIER; alterações devem preservar o comportamento do jogador ou separar componentes de apresentação sem duplicar regras de negócio.
+- O formulário atual é compartilhado entre PLAYER e CASHIER. A regra aprovada é manter a mesma interface nos dois papéis, variando exclusivamente a segunda opção de pagamento: saldo da conta para PLAYER e dinheiro para CASHIER; Pix aparece para ambos. Não criar diferenças de layout ou fluxo entre os papéis.
 
 **Financeiro — menu recolhível com seta**
 Exibir cinco indicadores separados:
@@ -205,7 +207,7 @@ Os valores devem refletir o período corrente desde o último acerto administrat
 
 ### 8.2 Comparação com o código atual
 
-- Formulário numérico existente: suporta vários números por compra (até 100), campo de cinco algarismos, botão atual “Adicionar”, remoção de números, valor por número, seletor de 1–10 repetições com 1 padrão, opções Pix/dinheiro e total estimado. A finalização atual é “Registrar venda”. Portanto, a mecânica de múltiplos números já existe, mas a apresentação e a nomenclatura ainda não correspondem integralmente ao requisito aprovado.
+- Formulário numérico existente: suporta vários números por compra (até 100), campo de cinco algarismos, botão atual “Adicionar”, remoção de números, valor por número, seletor de 1–10 repetições com 1 padrão, opções de pagamento Pix/dinheiro no modo CASHIER e Pix/saldo da conta no modo PLAYER (a equivalência visual integral entre os modos ainda precisa ser conferida). A finalização atual é “Registrar venda”. Portanto, a mecânica de múltiplos números já existe, mas a apresentação e a nomenclatura ainda não correspondem integralmente ao requisito aprovado.
 - A opção “Gerar número” e a entrada separada de valor por número também estão presentes; confirmar se permanecem no desenho final, pois o usuário pediu uma interface simples e ainda vai aprovar o formulário.
 - Financeiro: já é um menu `details` recolhível e mostra quatro cartões monetários (total, comissão em reais, dinheiro, Pix) e a quantidade de vendas/jogos em texto agregado. Precisa apresentar a quantidade de jogos como quinto indicador separado. O resumo atual considera somente vendas confirmadas e acumula desde o último acerto.
 - Resultados: já são recolhíveis; a API filtra rodadas concluídas/publicadas com `resultAt` nas últimas 24 horas e a interface mostra até dez resultados.
