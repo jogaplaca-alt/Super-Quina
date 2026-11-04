@@ -71,9 +71,16 @@ export async function allocatePaidPurchases(
           if (purchase.participations.length) throw new Error("Paid allocation intent unexpectedly has existing participations");
 
           const count = purchase.numericIntent.roundCount;
+          if (!Number.isInteger(count) || count < 1 || count > 10) {
+            throw new Error("Paid numeric purchase repetition count is invalid");
+          }
           const locked = await tx.$queryRaw<Array<{ id: string }>>`
             SELECT "id" FROM "Round"
-            WHERE "status" IN ('OPEN', 'SCHEDULED') AND "cutoffAt" > clock_timestamp()
+            WHERE "status" IN ('OPEN', 'SCHEDULED')
+              AND "startsAt" < "cutoffAt"
+              AND "cutoffAt" < "resultAt"
+              AND "cutoffAt" > clock_timestamp()
+              AND "resultAt" > clock_timestamp()
             ORDER BY "resultAt" ASC, "id" ASC
             LIMIT ${count}
             FOR UPDATE
@@ -93,10 +100,12 @@ export async function allocatePaidPurchases(
             unitCents: number; tensCents: number; hundredsCents: number; thousandsCents: number; quinaCents: number;
           };
           const snapshot = purchase.numericIntent.ruleSnapshot as Prisma.InputJsonValue;
-          const stakePerNumber = allocation.unitCents + allocation.tensCents + allocation.hundredsCents + allocation.thousandsCents + allocation.quinaCents;
+          const allocationValues = [allocation.unitCents, allocation.tensCents, allocation.hundredsCents, allocation.thousandsCents, allocation.quinaCents];
+          const stakePerNumber = allocationValues.reduce((sum, value) => sum + value, 0);
           const perRoundCents = numbers.length * stakePerNumber;
           if (!Array.isArray(numbers) || !numbers.length || numbers.some((value) => typeof value !== "string" || !/^\\d{5}$/.test(value))
-            || !Number.isSafeInteger(perRoundCents) || perRoundCents * count !== purchase.totalCents) {
+            || allocationValues.some((value) => !Number.isSafeInteger(value) || value < 0)
+            || stakePerNumber < 100 || !Number.isSafeInteger(perRoundCents) || perRoundCents * count !== purchase.totalCents) {
             throw new Error("Paid numeric purchase intent failed integrity validation");
           }
 
