@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     });
     const since = lastSettlement?.settledAt ?? new Date(0);
     const common = { cashierId: user.id, status: "CONFIRMED" as const, confirmedAt: { gt: since } };
-    const [cash, pix, commission, profile, games] = await Promise.all([
+    const [cash, pix, commission, profile, games, cashPrizePayouts] = await Promise.all([
       authPrisma.purchase.aggregate({
         where: { ...common, paymentMethod: "CASH" },
         _sum: { totalCents: true },
@@ -31,13 +31,13 @@ export async function GET(request: NextRequest) {
         _sum: { amountCents: true },
       }),
       authPrisma.user.findUnique({ where: { id: user.id }, select: { commissionRateBasisPoints: true } }),
-      authPrisma.numericParticipationLine.count({ where: { participation: { is: { status: "CONFIRMED", purchase: { is: { cashierId: user.id, status: "CONFIRMED", confirmedAt: { gt: since } } } } } } }),
+      authPrisma.numericParticipationLine.count({ where: { participation: { is: { status: "CONFIRMED", purchase: { is: { cashierId: user.id, status: "CONFIRMED", confirmedAt: { gt: since } } } } } } }),\n      authPrisma.numericPrizePayout.aggregate({ where: { cashierId: user.id, channel: "CASHIER_CASH", paidAt: { gt: since }, settlementId: null }, _sum: { amountCents: true }, _count: { _all: true } }),
     ]);
     const cashSalesCents = cash._sum.totalCents ?? 0;
     const pixSalesCents = pix._sum.totalCents ?? 0;
     return NextResponse.json({
       cashSalesCents, pixSalesCents, totalSalesCents: cashSalesCents + pixSalesCents,
-      gamesCount: games,
+      gamesCount: games,\n      cashPrizePayoutCents: cashPrizePayouts._sum.amountCents ?? 0,\n      cashPrizePayoutCount: cashPrizePayouts._count._all,
       commissionCents: commission._sum.amountCents ?? 0,
       commissionRateBasisPoints: profile?.commissionRateBasisPoints ?? 0,
       lastSettlementAt: lastSettlement?.settledAt.toISOString() ?? null,
