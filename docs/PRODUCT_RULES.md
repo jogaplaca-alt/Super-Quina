@@ -42,18 +42,32 @@ A alocação de cada aposta entre unidade, dezena, centena, milhar e quina é um
 - Estados finais aceitos, transições permitidas e tratamento de rejeição/cancelamento/expiração devem ser mapeados explicitamente a partir dos estados oficiais do Mercado Pago durante a implementação. Reembolso/chargeback inesperado continua seguindo a regra de incidente financeiro da seção 4; não reverte automaticamente compra, participações, prêmios ou comissões.
 - Antes de implementar ou importar qualquer mecanismo, auditar os serviços, rotas, webhooks, scheduler e estados já existentes. Se já houver uma função equivalente, corrigir ou ampliar a implementação atual; não criar uma segunda rota, worker, máquina de estados ou mecanismo paralelo para a mesma responsabilidade.
 
-## 4. Sem reembolso automático
+
+## 4.1 Prêmios de bilhetes vendidos por cambistas — decisão de produto
+
+- A venda feita pelo cambista é anônima para o comprador: não exige cadastro de jogador nem coleta de nome, telefone ou identificação pessoal. O recibo contém os dados da aposta, pagamento, código/QR de consulta e identificação do ponto de venda/cambista responsável.
+- A identificação do ponto de venda é obrigatória no recibo e deve vir do vínculo autenticado do cambista que registrou a venda; não pode ser digitada livremente nem omitida.
+- A apuração do sorteio continua automática e única. Para compras de jogador vinculadas a uma conta, o prêmio segue o crédito automático na carteira, com idempotência.
+- Para bilhetes vendidos por cambista sem conta de jogador, o prêmio não é creditado automaticamente em carteira. O ganhador consulta o bilhete pelo QR Code e, se premiado e ainda não pago, vê somente um destaque visual curto com botão de contato pelo WhatsApp oficial da plataforma. O contato deve estar associado ao prêmio disponível; evitar textos longos e não expor dados pessoais.
+- A solicitação pelo WhatsApp não confirma nem liquida o prêmio. A equipe confere o bilhete e o resultado na área administrativa e realiza o Pix ao ganhador fora do sistema.
+- Depois que o Pix tiver sido efetivamente realizado e conferido, um ADMIN registra a baixa do prêmio em uma ação específica na área administrativa. A ação deve exigir confirmação explícita, registrar administrador, data/hora, bilhete/linha premiada e referência/observação do pagamento quando disponível.
+- A baixa é definitiva e atômica: cada linha premiada de bilhete de cambista só pode ser marcada como paga uma vez. Repetições da ação, concorrência ou reenvio não podem gerar uma segunda baixa nem permitir novo pagamento.
+- A consulta pública do QR Code deve refletir imediatamente o estado: NÃO PREMIADO, PRÊMIO DISPONÍVEL (com WhatsApp) ou PRÊMIO PAGO. Depois da baixa, não mostrar novamente o prêmio como disponível nem o botão de solicitação.
+- O pagamento manual externo de prêmio não deve ser confundido com crédito de carteira nem com liquidação da rodada. A apuração continua automática; a área administrativa apenas registra a liquidação externa após a conferência e o Pix.
+- Antes de implementar, auditar consulta pública, recibo, configuração do WhatsApp, modelo de prêmio, permissões ADMIN e reconciliação atual. Estender o que já existe; não criar segunda apuração, segundo ledger de carteira ou rota paralela de consulta.
+
+## 5. Sem reembolso automático
 
 Não existe reembolso no fluxo comercial normal do jogo. Qualquer notificação externa inesperada de estorno/reembolso deve ser tratada como incidente financeiro para análise administrativa, sem desfazer automaticamente uma compra já confirmada, suas participações, prêmios ou comissões.
 
-## 5. Contrato técnico e compatibilidade
+## 6. Contrato técnico e compatibilidade
 
 - As APIs públicas de criação de compra usam o nome `repetitionCount`.
 - O campo legado `NumericPurchaseIntent.roundCount` no banco representa **quantidade de repetições**, e não quantidade de jogos nem uma escolha de rodadas pelo usuário. Sua manutenção temporária evita uma migração destrutiva de dados; o código deve tratá-lo com esse significado.
 - Uma repetição gera uma participação em uma rodada. Cada participação contém todos os números do jogo.
 - Mudanças de estado, pagamentos recebidos e alocações pendentes devem ser auditáveis e idempotentes. As retentativas devem continuar enquanto houver alocação pendente, sem limite de tentativas de negócio, sem nova cobrança e sem duplicar participações, recibos ou comissões.
 
-## 6. Exemplo de referência
+## 7. Exemplo de referência
 
 Jogador escolhe os números `12345`, `00007` e `98765`, define valor de R$ 1,00 por número em cada rodada e escolhe 4 repetições:
 
@@ -64,6 +78,6 @@ Jogador escolhe os números `12345`, `00007` e `98765`, define valor de R$ 1,00 
 - R$ 12,00 no total;
 - cada uma das quatro participações contém os mesmos três números.
 
-## 7. Manutenção deste documento
+## 8. Manutenção deste documento
 
 Quando uma regra comercial for alterada, atualizar este documento e os testes correspondentes no mesmo conjunto de mudanças. O futuro manual técnico deve refletir a implementação real, incluindo modelos de dados, estados, APIs, scheduler, pagamentos, auditoria e procedimentos de recuperação.
