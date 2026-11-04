@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 
-export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Super Quina | Jogo numérico",
   description: "Escolha cinco números e concorra a cinco categorias de premiação.",
@@ -15,12 +15,14 @@ export default function HomePage() {
       <main className="home-entry">
         <p className="home-eyebrow">Como funciona</p>
         <figure className="home-how-infographic numeric-game-infographic">
-          <img
+          <Image
             src="/images/brand/super-quina-inicio.PNG"
             alt="Como funciona o jogo Super Quina"
             className="home-how-infographic-image"
-            fetchPriority="high"
-            decoding="async"
+            width={1200}
+            height={1200}
+            priority
+            sizes="(max-width: 768px) 100vw, 1100px"
           />
         </figure>
         <nav className="home-entry-actions" aria-label="Acesso à conta">
