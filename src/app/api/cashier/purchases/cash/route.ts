@@ -52,7 +52,10 @@ export async function POST(request: NextRequest) {
     }
     if (purchase.status !== "CONFIRMED" || !purchase.receiptCode) {
       return NextResponse.json({
-        purchase: { id: purchase.id, status: purchase.status, totalCents: purchase.totalCents, currency: purchase.currency },
+        purchase: {
+          id: purchase.id, receiptCode: null, status: purchase.status, paymentMethod: purchase.paymentMethod,
+          totalCents: purchase.totalCents, currency: purchase.currency, confirmedAt: null, participations: [],
+        },
         receiptReady: false, allocationPending: true,
         message: "Valor recebido e venda registrada. O sistema está aguardando a próxima sequência de rodadas para concluir a alocação e liberar o recibo.",
       }, { status: 202, headers: { "Cache-Control": "no-store" } });
