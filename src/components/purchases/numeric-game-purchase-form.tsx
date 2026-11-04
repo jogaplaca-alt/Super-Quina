@@ -73,15 +73,13 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
           idempotency.current = null;
           setPurchase(null); setPixCheckout(null); setPurchaseMessage(""); setPixModalOpen(false); setReconciliationRequired(false);
           setNumbers([]); setNumberInput(""); setParticipationCount(1);
-          setNotice(mode === "CASHIER"
-            ? "Pagamento confirmado. O recibo oficial está na tela."
-            : "Pagamento confirmado. Sua aposta foi registrada.");
+          setNotice("Pagamento confirmado. Sua aposta foi registrada.");
         } else {
           setReconciliationRequired(Boolean(body.reconciliationRequired));
           if (["FAILED", "CANCELLED", "EXPIRED", "REFUNDED"].includes(body.paymentStatus ?? "")
             || ["CANCELLED", "REFUNDED"].includes(body.purchaseStatus ?? "")) {
             setPurchase(null); setPixCheckout(null); setPixModalOpen(false); setReconciliationRequired(false); setPurchaseMessage(""); idempotency.current = null;
-            setNotice("O pagamento não foi aprovado ou foi encerrado. Nenhum recibo foi emitido.");
+            setNotice("O pagamento não foi aprovado ou foi encerrado. Nenhuma aposta foi registrada.");
           }
         }
       } catch { /* A falha temporária de consulta não altera o estado financeiro. */ }
@@ -161,9 +159,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
           if (mode === "CASHIER") setReceiptPurchaseId(created.id);
           idempotency.current = null;
           setNumbers([]); setNumberInput(""); setParticipationCount(1);
-          setNotice(mode === "CASHIER"
-            ? "Venda confirmada. O recibo oficial está disponível."
-            : "Compra confirmada. Sua aposta foi registrada.");
+          setNotice("Compra confirmada. Sua aposta foi registrada.");
         }
       } else {
         setPurchase(created);
@@ -182,14 +178,14 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
 
   return (
     <section className="feature-card numeric-game-purchase">
-      <span className="feature-label">{mode === "PLAYER" ? "Jogo" : "Nova venda"}</span>
-      <h2>{mode === "PLAYER" ? "Jogue seu número" : "Registrar aposta numérica"}</h2>
+      <span className="feature-label">Jogo</span>
+      <h2>Jogue seu número</h2>
       <p>Monte seu jogo com um ou mais números de cinco algarismos, de 00000 a 99999. Os zeros à esquerda fazem parte do número.</p>
 
       <form onSubmit={submit}>
-        <label htmlFor={mode.toLowerCase() + "-number"}>Número (cinco algarismos)</label>
+        <label htmlFor="numeric-number">Número (cinco algarismos)</label>
         <div className="numeric-entry-row">
-          <input id={mode.toLowerCase() + "-number"} disabled={Boolean(purchase)} value={numberInput}
+          <input id="numeric-number" disabled={Boolean(purchase)} value={numberInput}
             onChange={(event) => setNumberInput(clearInput(event.target.value))}
             inputMode="numeric" pattern="[0-9]{5}" maxLength={5} placeholder="00000" autoComplete="off" />
           <button type="button" className="secondary-button" disabled={Boolean(purchase)} onClick={addNumber}>Adicionar</button>
@@ -204,8 +200,8 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
           </div>)}
         </div>}
 
-        <label htmlFor={mode.toLowerCase() + "-stake"}>Valor por número em cada rodada (R$)</label>
-        <input id={mode.toLowerCase() + "-stake"} disabled={Boolean(purchase)} value={stake} onChange={(event) => setStake(event.target.value)} inputMode="decimal" />
+        <label htmlFor="numeric-stake">Valor por número em cada rodada (R$)</label>
+        <input id="numeric-stake" disabled={Boolean(purchase)} value={stake} onChange={(event) => setStake(event.target.value)} inputMode="decimal" />
 
         <fieldset className="round-repeat-fieldset" disabled={Boolean(purchase)}>
           <legend>Repetições</legend>
@@ -224,7 +220,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
           {paymentMethod === "WALLET" && <p>Saldo disponível: {walletBalanceCents === null ? "indisponível" : money(walletBalanceCents)}</p>}
         </fieldset> : <fieldset className="round-repeat-fieldset">
           <legend>Forma de pagamento</legend>
-          <label><input type="radio" name="cashier-numeric-payment" checked={paymentMethod === "PIX"} onChange={() => setPaymentMethod("PIX")} /> Pix</label>
+          <label><input type="radio" name="numeric-payment" checked={paymentMethod === "PIX"} onChange={() => setPaymentMethod("PIX")} /> Pix</label>
           <label><input type="radio" name="cashier-numeric-payment" checked={paymentMethod === "CASH"} onChange={() => setPaymentMethod("CASH")} /> Dinheiro</label>
         </fieldset>}
 
@@ -232,7 +228,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
         {error && <p role="alert" className="note-inline form-feedback-error">{error}</p>}
         {notice && <p role="status" className="note-inline form-feedback-success">{notice}</p>}
         <button type="submit" disabled={submitting || Boolean(purchase) || !numbers.length}>
-          {submitting ? "Registrando…" : mode === "PLAYER" ? "Continuar para pagamento" : "Registrar venda"}
+          {submitting ? "Registrando…" : "Continuar"}
         </button>
       </form>
 
