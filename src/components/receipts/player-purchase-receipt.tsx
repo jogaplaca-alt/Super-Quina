@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ThermalReceipt } from "@/components/receipts/thermal-receipt";
 import type { ThermalReceiptEntry } from "@/components/receipts/thermal-receipt-types";
 
@@ -30,32 +30,49 @@ export function PlayerPurchaseReceipt({ purchaseId, autoOpen = false, onClose }:
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [manualRetries, setManualRetries] = useState(0);
+  const loadingRef = useRef(false);
+  const requestRef = useRef<AbortController | null>(null);
 
   async function loadReceipt(isManualRetry = false) {
-    if (loading) return;
+    if (loadingRef.current) return;
+    loadingRef.current = true;
+    const controller = new AbortController();
+    requestRef.current = controller;
     setLoading(true);
     setError("");
     try {
       const response = await fetch(`/api/player/purchases/${encodeURIComponent(purchaseId)}/receipt`, {
         cache: "no-store",
+        signal: controller.signal,
       });
       const body = await response.json() as { receipt?: ReceiptData; error?: string };
       if (!response.ok || !body.receipt) {
         throw new Error(body.error ?? "Não foi possível carregar o recibo.");
       }
-      setReceipt(body.receipt);
+      if (!controller.signal.aborted && requestRef.current === controller) setReceipt(body.receipt);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Não foi possível carregar o recibo.");
-      if (isManualRetry) setManualRetries((count) => count + 1);
+      if (!controller.signal.aborted && requestRef.current === controller) {
+        setError(reason instanceof Error ? reason.message : "Não foi possível carregar o recibo.");
+        if (isManualRetry) setManualRetries((count) => count + 1);
+      }
     } finally {
-      setLoading(false);
+      if (requestRef.current === controller) {
+        requestRef.current = null;
+        loadingRef.current = false;
+        setLoading(false);
+      }
     }
   }
 
   useEffect(() => {
     if (!autoOpen) return;
     const timer = window.setTimeout(() => { void loadReceipt(); }, 0);
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+      requestRef.current?.abort();
+      requestRef.current = null;
+      loadingRef.current = false;
+    };
     // The purchase ID is stable for this mounted receipt component.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoOpen, purchaseId]);
