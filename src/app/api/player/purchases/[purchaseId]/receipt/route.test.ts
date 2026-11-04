@@ -6,7 +6,7 @@ import { GET } from "./route";
 function request(token = "session-token") { return new NextRequest("https://example.test/api/player/purchases/purchase-12345678/receipt", { headers: token ? { cookie: "superquina_session=" + token } : {} }); }
 const context = { params: Promise.resolve({ purchaseId: "purchase-12345678" }) };
 const confirmedPurchase = () => ({
-  id: "purchase-12345678", createdAt: new Date(), playerId: "player-1", cashierId: null,
+  id: "purchase-12345678", createdAt: new Date(), playerId: null, cashierId: "cashier-1",
   status: "CONFIRMED", paymentMethod: "PIX", totalCents: 200, currency: "BRL",
   receiptCode: "SQ-12345678", confirmedAt: new Date("2026-10-25T12:00:00.000Z"),
   payment: { status: "CONFIRMED", confirmedAt: new Date("2026-10-25T12:00:00.000Z") },
@@ -21,8 +21,13 @@ const confirmedPurchase = () => ({
 describe("GET purchase receipt", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.getSessionUser.mockResolvedValue({ id: "player-1", username: "player", role: "PLAYER", status: "ACTIVE", mustChangePassword: false });
+    mocks.getSessionUser.mockResolvedValue({ id: "cashier-1", username: "cashier", role: "CASHIER", status: "ACTIVE", mustChangePassword: false });
     mocks.purchaseFindUnique.mockResolvedValue(confirmedPurchase());
+  });
+  it("does not expose a printable receipt to player accounts", async () => {
+    mocks.getSessionUser.mockResolvedValue({ id: "player-1", username: "player", role: "PLAYER", status: "ACTIVE", mustChangePassword: false });
+    expect((await GET(request(), context)).status).toBe(403);
+    expect(mocks.purchaseFindUnique).not.toHaveBeenCalled();
   });
   it("refuses receipt reprints after seven days", async () => {
     mocks.purchaseFindUnique.mockResolvedValue({ ...confirmedPurchase(), createdAt: new Date(Date.now() - 8 * 86400000) });
