@@ -31,7 +31,28 @@ export default async function AdminCashierDetailPage({ params }: { params: Promi
     }),
     authPrisma.cashierSettlement.findMany({
       where: { cashierId }, orderBy: { settledAt: "desc" },
-      select: { id: true, settledAt: true, cashSalesCents: true, pixSalesCents: true, totalSalesCents: true, salesCount: true, gamesCount: true, commissionCents: true, cashPrizePayoutCount: true, cashPrizePayoutCents: true, cashPrizePayouts: { select: { id: true, amountCents: true, paidAt: true, reference: true, participationLine: { select: { numberValue: true, participation: { select: { purchase: { select: { receiptCode: true } }, round: { select: { code: true } } } } } } }, admin: { select: { username: true } } },
+      select: {
+        id: true, settledAt: true, cashSalesCents: true, pixSalesCents: true,
+        totalSalesCents: true, salesCount: true, gamesCount: true,
+        commissionCents: true, cashPrizePayoutCount: true, cashPrizePayoutCents: true,
+        cashPrizePayouts: {
+          select: {
+            id: true, amountCents: true, paidAt: true, reference: true,
+            participationLine: {
+              select: {
+                numberValue: true,
+                participation: {
+                  select: {
+                    purchase: { select: { receiptCode: true } },
+                    round: { select: { code: true } },
+                  },
+                },
+              },
+            },
+          },
+        },
+        admin: { select: { username: true } },
+      },
     }),
     authPrisma.purchase.aggregate({ where: { cashierId, status: "CONFIRMED", paymentMethod: "CASH", confirmedAt: { gt: since } }, _sum: { totalCents: true }, _count: { _all: true } }),
     authPrisma.purchase.aggregate({ where: { cashierId, status: "CONFIRMED", paymentMethod: "PIX", confirmedAt: { gt: since }, payment: { is: { status: "CONFIRMED" } } }, _sum: { totalCents: true }, _count: { _all: true } }),
