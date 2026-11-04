@@ -109,7 +109,7 @@ export async function allocatePaidPurchases(
           const allocationValues = [allocation.unitCents, allocation.tensCents, allocation.hundredsCents, allocation.thousandsCents, allocation.quinaCents];
           const stakePerNumber = allocationValues.reduce((sum, value) => sum + value, 0);
           const perRoundCents = numbers.length * stakePerNumber;
-          if (numbers.some((value) => typeof value !== "string" || !/^\\d{5}$/.test(value)) ||
+          if (numbers.some((value) => typeof value !== "string" || !/^\d{5}$/.test(value)) ||
               allocationValues.some((value) => !Number.isSafeInteger(value) || value < 0) ||
               stakePerNumber < 100 || !Number.isSafeInteger(perRoundCents) ||
               !Number.isSafeInteger(perRoundCents * count) || perRoundCents * count !== purchase.totalCents) {
