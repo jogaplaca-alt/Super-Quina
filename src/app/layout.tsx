@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 const icon = "/images/brand/super-quina-icon.PNG";
+const favicon = "/_next/image?url=%2Fimages%2Fbrand%2Fsuper-quina-icon.PNG&w=64&q=75";
+const appleIcon = "/_next/image?url=%2Fimages%2Fbrand%2Fsuper-quina-icon.PNG&w=180&q=75";
 
 export const metadata: Metadata = {
   title: {
@@ -16,9 +18,9 @@ export const metadata: Metadata = {
     title: "Super Quina",
   },
   icons: {
-    icon: [{ url: icon, type: "image/png" }],
-    apple: [{ url: icon, type: "image/png" }],
-    shortcut: [{ url: icon, type: "image/png" }],
+    icon: [{ url: favicon, sizes: "64x64" }],
+    apple: [{ url: appleIcon, sizes: "180x180" }],
+    shortcut: [{ url: favicon, sizes: "64x64" }],
   },
   openGraph: {
     type: "website",
