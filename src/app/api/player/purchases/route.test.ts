@@ -110,7 +110,7 @@ describe("POST /api/player/purchases", () => {
     const body = await response.json();
     expect(body.purchase.totalCents).toBe(100);
     expect(body.purchase.participations).toEqual([]);
-    expect(body.purchase.numericIntent).toMatchObject({ roundCount: 1, numbers: ["01234"] });
+    expect(body.purchase.numericIntent).toMatchObject({ repetitionCount: 1, numbers: ["01234"] });
     expect(body.purchase.receiptCode).toBeNull();
     expect(body.message).toContain("Nenhum recibo foi emitido");
     expect(body.paymentActionRequired).toBe(true);
