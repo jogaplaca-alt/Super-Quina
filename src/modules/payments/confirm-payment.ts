@@ -45,15 +45,29 @@ export async function confirmPixPayment(
         const originalRoundIds = [...new Set(participations.map((item) => item.roundId))].sort();
         const lockedRoundRows = originalRoundIds.length
           ? await tx.$queryRaw<Array<{ id: string }>>`
-              SELECT "id" FROM "Round"
-              WHERE "id" IN (${Prisma.join(originalRoundIds)})
-                 OR ("status" IN ('OPEN', 'SCHEDULED') AND "cutoffAt" > clock_timestamp())
-              ORDER BY "id" FOR UPDATE
+              WITH target_rounds AS (
+                SELECT "id" FROM "Round"
+                WHERE "status" IN ('OPEN', 'SCHEDULED') AND "cutoffAt" > clock_timestamp()
+                ORDER BY "resultAt" ASC, "id" ASC
+                LIMIT ${requiredCount}
+              ),
+              original_rounds AS (
+                SELECT "id" FROM "Round" WHERE "id" IN (${Prisma.join(originalRoundIds)})
+              )
+              SELECT r."id" FROM "Round" r
+              WHERE r."id" IN (
+                SELECT "id" FROM target_rounds
+                UNION
+                SELECT "id" FROM original_rounds
+              )
+              ORDER BY r."id" FOR UPDATE OF r
             `
           : await tx.$queryRaw<Array<{ id: string }>>`
               SELECT "id" FROM "Round"
               WHERE "status" IN ('OPEN', 'SCHEDULED') AND "cutoffAt" > clock_timestamp()
-              ORDER BY "id" FOR UPDATE
+              ORDER BY "resultAt" ASC, "id" ASC
+              LIMIT ${requiredCount}
+              FOR UPDATE
             `;
         const lockedRoundIds = lockedRoundRows.map((round) => round.id);
         const decisionTime = (await tx.$queryRaw<Array<{ decisionTime: Date }>>`
