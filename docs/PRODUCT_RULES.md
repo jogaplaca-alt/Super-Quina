@@ -10,6 +10,7 @@ Este documento é a fonte de referência das regras comerciais e da terminologia
 - **Repetições** representam quantas vezes o jogo completo será realizado em rodadas consecutivas/próximas rodadas válidas. O jogador escolhe de 1 a 10 repetições.
 - Em cada repetição, todos os números do jogo são mantidos. Exemplo: um jogo com cinco números e dez repetições gera dez participações em rodadas distintas, cada uma contendo os mesmos cinco números.
 - **Rodada** é o evento de sorteio ao qual uma repetição é vinculada. A seleção das rodadas é automática pelo sistema; o jogador e o cambista não escolhem rodadas.
+- O sistema mantém uma fila móvel de **48 rodadas futuras**, com sorteios de 30 em 30 minutos, cobrindo as próximas 24 horas. A cada execução do scheduler, horários ausentes são repostos para preservar essa janela.
 - **Categorias de premiação** são unidade, dezena, centena, milhar e quina. Elas não são números nem jogos.
 
 ## 2. Cálculo do valor
@@ -22,7 +23,7 @@ A alocação de cada aposta entre unidade, dezena, centena, milhar e quina é um
 
 ## 3. Pagamento e vínculo com rodadas
 
-- O fluxo aceita vendas de jogadores e cambistas durante a transição entre fechamento, sorteio e abertura de rodadas.
+- O fluxo aceita vendas de jogadores e cambistas durante a transição entre fechamento, sorteio e abertura de rodadas. O fechamento de uma rodada não bloqueia vendas globalmente: cada compra usa as próximas 1 a 10 rodadas futuras válidas da fila de 48 rodadas.
 - A ausência momentânea de uma rodada com status `OPEN` não deve, por si só, bloquear uma venda.
 - No fluxo Pix, a compra fica como intenção pendente e não recebe vínculo definitivo com rodadas antes da confirmação autêntica do pagamento.
 - Após a confirmação do Pix, o sistema deve atribuir automaticamente as repetições às próximas rodadas válidas. Se ainda não houver uma sequência completa ou ocorrer uma falha transitória, o pagamento permanece pendente de conclusão da alocação e o scheduler consulta novamente o Mercado Pago e tenta vincular as rodadas em execuções subsequentes, até concluir. A confirmação externa do Pix não pode ser perdida só porque a alocação falhou na primeira tentativa.
