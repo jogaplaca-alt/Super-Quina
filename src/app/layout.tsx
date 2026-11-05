@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-const icon = "/images/brand/super-quina-icon.PNG";
-const favicon = "/_next/image?url=%2Fimages%2Fbrand%2Fsuper-quina-icon.PNG&w=64&q=75";
-const appleIcon = "/_next/image?url=%2Fimages%2Fbrand%2Fsuper-quina-icon.PNG&w=180&q=75";
+const icon = "/images/brand/super-quina-icon.webp";
+const favicon = "/_next/image?url=%2Fimages%2Fbrand%2Fsuper-quina-icon.webp&w=64&q=75";
+const appleIcon = "/_next/image?url=%2Fimages%2Fbrand%2Fsuper-quina-icon.webp&w=180&q=75";
 
 export const metadata: Metadata = {
   title: {
