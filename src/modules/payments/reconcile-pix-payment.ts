@@ -86,6 +86,7 @@ export async function reconcilePixPaymentFromProvider(
   if (!terminalStatus) return "still_pending";
 
   await prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT p."id" FROM "Purchase" p JOIN "Payment" pay ON pay."purchaseId" = p."id" WHERE pay."id" = ${payment.id} FOR UPDATE OF p, pay`;
     const changed = await tx.payment.updateMany({
       where: { id: payment.id, status: "PENDING" },
       data: { status: terminalStatus, providerStatus, providerStatusDetail: order.statusDetail },
