@@ -124,6 +124,13 @@ export async function POST(request: NextRequest) {
             select: { pixCopyPaste: true, pixQrCodeBase64: true, pixTicketUrl: true },
           });
           pixCheckout = { copyPaste: updated.pixCopyPaste, qrCodeBase64: updated.pixQrCodeBase64, ticketUrl: updated.pixTicketUrl };
+          if (!updated.pixCopyPaste) {
+            return NextResponse.json({
+              error: "O Mercado Pago registrou o pedido, mas ainda não disponibilizou o QR Code. Tente novamente em instantes; o mesmo pedido será consultado, sem criar outra cobrança.",
+              code: "PIX_QR_NOT_READY",
+              purchaseId: purchase.id,
+            }, { status: 502, headers: { "Cache-Control": "no-store" } });
+          }
         }
       } catch {
         return NextResponse.json({
