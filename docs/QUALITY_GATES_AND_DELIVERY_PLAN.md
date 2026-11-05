@@ -458,3 +458,17 @@ Esta seção registra auditoria estática inicial. Nenhum código ou banco foi a
 - A separação entre histórico de vendas, comissão materializada e snapshot de acerto está implementada.
 - **Status: PARCIAL.** Teste unitário/de rota foi criado, mas aguarda execução no CI. Permanecem necessários teste de integração PostgreSQL para dois acertos concorrentes e fronteiras temporais reais; avaliar paginação da listagem de cambistas.
 - Nenhuma alteração de código, schema, migration, banco, secret, deploy ou produção foi realizada neste bloco.
+
+## 17. Correção de inventário do CI — 2026-11-05
+
+A revisão da branch `setup/super-quina` corrigiu uma informação desatualizada que circulava em auditoria anterior:
+
+- O workflow `.github/workflows/quality.yml` **já existe**. Executa em push para `setup/super-quina` e em pull request para `main`/ `setup/super-quina`.
+- O workflow já instala com `npm ci`, valida e gera Prisma Client, executa TypeScript, testes unitários/rotas, lint, migrations em PostgreSQL 16 descartável, testes PostgreSQL e build.
+- `package-lock.json` também existe; portanto, instalação reproduzível e `npm ci` estão configurados no repositório.
+- Foi adicionado o gatilho `workflow_dispatch` para permitir execução manual pela interface do GitHub Actions.
+- O script `test:postgres` inclui atualmente duas suítes: rate limit de login e ciclo de vida de rodadas (sorteio/liquidação concorrentes). Não se deve registrar que existe apenas uma suíte.
+
+**Limitação atual:** não foi possível comprovar nesta auditoria uma execução CI concluída no HEAD atual. A existência do workflow e dos comandos não equivale a CI verde. O fluxo Pix ainda não tem teste PostgreSQL concorrente dedicado; os testes atuais de reconciliação são unitários com mocks. Permanecem necessários testes de corrida webhook × polling, notificação terminal × aprovação e indisponibilidade do provedor, além da execução real do pipeline no commit candidato.
+
+**Status:** inventário e gatilho manual corrigidos; validação automática do HEAD e cobertura concorrente do Pix continuam pendentes. Nenhum deploy, migration ou operação de produção foi executado.
