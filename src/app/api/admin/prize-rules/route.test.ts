@@ -39,27 +39,27 @@ describe("admin prize rules API", () => {
 
   it("rejects unauthenticated and non-admin users", async () => {
     mocks.getSessionUser.mockResolvedValue(null);
-    expect((await GET(request())).status).toBe(401);
+    expect((await GET(request()))!.status).toBe(401);
     mocks.getSessionUser.mockResolvedValue({ id: "player", role: "PLAYER", mustChangePassword: false });
     expect((await GET(request())).status).toBe(403);
     expect(mocks.settingFindUnique).not.toHaveBeenCalled();
   });
 
   it("returns defaults when no saved configuration exists", async () => {
-    const response = await GET(request());
+    const response = (await GET(request()))!;
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toContain("no-store");
     expect(await response.json()).toMatchObject({ multipliers: { unit: 5, tens: 20, hundreds: 200, thousands: 2000, quina: 20000 }, updatedAt: null });
   });
 
   it("rejects cross-origin and invalid multiplier updates", async () => {
-    expect((await PUT(request("PUT", valid, "https://attacker.test"))).status).toBe(403);
-    expect((await PUT(request("PUT", { ...valid, extra: true }))).status).toBe(400);
+    expect((await PUT(request("PUT", valid, "https://attacker.test")))!.status).toBe(403);
+    expect((await PUT(request("PUT", { ...valid, extra: true })))!.status).toBe(400);
     expect(mocks.transaction).not.toHaveBeenCalled();
   });
 
   it("persists valid multipliers with change history and audit", async () => {
-    const response = await PUT(request("PUT", valid));
+    const response = (await PUT(request("PUT", valid)))!;
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({ multipliers: valid });
     expect(mocks.settingUpsert).toHaveBeenCalledWith(expect.objectContaining({
