@@ -118,19 +118,34 @@ Limite desta entrega: isso libera a apresentação e impressão manual do recibo
 
 ## Avaliação de transporte Bluetooth SPP (2026-11-05)
 
-A comparação de bibliotecas foi aprofundada no código e nos metadados publicados, não apenas pelo nome do pacote:
+A comparação foi aprofundada no código Kotlin, Manifest, Gradle e metadados do pacote publicado:
 
 - `@capacitor-community/bluetooth-le` foi descartado: implementa BLE/GATT, não Bluetooth clássico SPP/RFCOMM.
-- `@kduma-autoid/capacitor-bluetooth-printer@0.2.1` oferece SPP e API simples, mas a versão publicada é antiga e declara peer dependency `@capacitor/core ^6.0.0`; não é a escolha para uma base nova.
-- `@delicity/capacitor-thermal-printer` declara suporte a Bluetooth clássico, porém o próprio repositório informa que está em desenvolvimento e ainda não validado em hardware real; não adotar como dependência de produção nesta etapa.
-- Candidato preferencial para protótipo Android: `@devlas/capacitor-thermal-printer@0.8.1`, licença MIT. O código-fonte publicado usa `BluetoothSocket` RFCOMM no Android, lista dispositivos Bluetooth já pareados, solicita `BLUETOOTH_CONNECT` em Android 12+ e transporta bytes ESC/POS em Base64. A dependência declara peer `@capacitor/core >=5.0.0`, sem dependências de runtime.
+- `@kduma-autoid/capacitor-bluetooth-printer@0.2.1` é antigo e declara peer dependency Capacitor 6.
+- `@devlas/capacitor-thermal-printer@0.8.1` realmente contém transporte SPP/RFCOMM com `BluetoothSocket`, usa dispositivos já pareados e solicita `BLUETOOTH_CONNECT` em Android 12+. O pacote publica bytes ESC/POS em Base64. A versão 0.8.1 aparece no catálogo npm; a página npm indexada ainda mostra 0.8.0 em parte do conteúdo.
+- Apesar do README anunciar ausência de dependências nativas adicionais, o código Gradle atual do repositório inclui Kotlin Gradle Plugin/Kotlin stdlib 2.2.10, Android Gradle Plugin 8.2.1, AppCompat, USB serial 3.11.0 e repositório JitPack. O mesmo módulo contém funções além da impressão, como leitura de balança e servidor/túnel de impressão.
 
-### Limites e validações obrigatórias do candidato
+### Decisão revisada
 
-- A descoberta é limitada a dispositivos já pareados pelo Android; a configuração inicial deve orientar o usuário a parear a impressora nas configurações do sistema.
-- O plugin transporta bytes, mas não formata recibos. O projeto precisa de encoder ESC/POS próprio e testes de largura, acentuação/code page, QR Code e corte com o modelo físico.
-- A adoção ainda é provisória até verificar compatibilidade real com a versão Capacitor escolhida, revisar o código Kotlin/Manifest da versão publicada e imprimir em impressora física.
-- A versão 0.8.1 é recente e tem histórico curto; manter a integração isolada atrás de um adapter local para permitir substituição sem espalhar a API do fornecedor pelo app.
-- O workflow atual usa Node.js 22, o que atende o requisito de ambiente Node para avaliar Capacitor 8. A adoção de Capacitor 8 ainda exige alinhar Android Gradle Plugin, Gradle wrapper, SDK Android e JDK compatível; nada disso foi sincronizado ou compilado nesta etapa.
+**Não adicionar esse pacote diretamente ao Super Quina neste momento.** Embora o transporte Bluetooth funcione pelo desenho do código, a adoção traz uma superfície nativa maior que a necessidade do projeto e possíveis conflitos de resolução Gradle/Kotlin/JitPack com outros plugins Android. A versão ainda tem histórico público curto e a validação de hardware publicada pelo mantenedor não substitui teste com a impressora que será usada no Super Quina.
 
-Decisão desta etapa: registrar `@devlas/capacitor-thermal-printer@0.8.1` como candidato para um protótipo isolado, sem adicionar dependência ao `package.json` ou alterar o lockfile antes de executar uma instalação npm real e validar o ambiente Android.
+A direção preferida é uma ponte Capacitor Android mínima, isolada, com apenas:
+- enumeração de dispositivos Bluetooth clássicos já pareados;
+- solicitação de `BLUETOOTH_CONNECT` em Android 12+;
+- conexão RFCOMM usando UUID SPP padrão;
+- envio de bytes ESC/POS em Base64;
+- erros estáveis para dispositivo ausente, permissão negada, falha de conexão e falha de escrita.
+
+Não implementar descoberta por varredura Bluetooth se o pareamento pelo Android Settings resolver o fluxo; isso reduz permissões e complexidade. Não adicionar BLE, USB, TCP, modo host, balança ou JitPack para este requisito.
+
+### Encoder e compatibilidade física
+
+O recibo web atual é HTML/CSS e não deve ser enviado diretamente à impressora. É necessário um encoder ESC/POS separado que receba o objeto oficial retornado pela rota autenticada de recibo. Antes de fixar code page, largura, densidade, QR e corte, confirmar o modelo exato da impressora e executar impressão de teste. Até lá, não assumir que todas as térmicas de 58 mm usam a mesma tabela de caracteres ou os mesmos comandos.
+
+### Estado de validação
+
+- O código Kotlin/Manifest/Gradle do candidato foi inspecionado; não foi instalado no projeto.
+- Nenhum pacote Capacitor foi adicionado ao `package.json` ou ao lockfile.
+- Nenhuma plataforma Android foi sincronizada ou compilada.
+- A ponte nativa própria ainda não foi criada; requer o projeto Android gerado e ambiente Node/Gradle/JDK para validar.
+- A reserva idempotente da impressão automática continua pendente. A confirmação do pagamento e a disponibilidade do recibo seguem exclusivamente no backend.
