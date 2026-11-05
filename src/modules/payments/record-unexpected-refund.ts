@@ -9,8 +9,8 @@ type RefundAuditInput = {
 
 /**
  * Records an unexpected provider refund once per purchase. Refunds are handled
- * as manual financial incidents; this deliberately does not reverse tickets,
- * prizes, or wallet entries.
+ * as informational reconciliation events only; this never initiates a refund
+ * or changes a confirmed purchase, allocated tickets, prizes, or commissions.
  */
 export async function recordUnexpectedExternalRefund(
   prisma: PrismaClient,
@@ -35,7 +35,7 @@ export async function recordUnexpectedExternalRefund(
           paymentId: input.paymentId,
           providerStatus: input.providerStatus,
           source: input.source,
-          note: "Manual financial review required; purchase and prizes were not reversed.",
+          note: "Informational provider event only; no internal refund or reversal is performed.",
         },
       },
     });
