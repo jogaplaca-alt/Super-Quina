@@ -26,7 +26,7 @@ function request(method = "GET", body?: unknown, origin = "https://example.test"
   });
 }
 const line = {
-  id: "line-123", participationId: "participation-1", numberValue: "1234", prizeCents: 1000, unitCents: 1, tensCents: 2, hundredsCents: 3, thousandsCents: 4, quinaCents: 5, ruleVersion: "v1", ruleSnapshot: {}, prizeCreditedAt: null, createdAt: new Date("2026-01-01T00:00:00Z"),
+  id: "line-123", participationId: "participation-1", numberValue: "1234", prizeCents: 1000, unitCents: 1, tensCents: 2, hundredsCents: 3, thousandsCents: 4, quinaCents: 5, ruleVersion: "v1", ruleSnapshot: {}, prizeCreditedAt: null, prizePayout: null, createdAt: new Date("2026-01-01T00:00:00Z"),
   participation: {
     id: "participation-1", status: "CONFIRMED",
     round: { id: "round-1", code: "R-01", status: "COMPLETED", resultAt: new Date("2026-01-02T00:00:00Z"), resultNumber: "1234" },
@@ -65,7 +65,7 @@ describe("admin prize credit reconciliation API", () => {
     expect(response.headers.get("cache-control")).toBe("no-store, private");
     expect(await response.json()).toMatchObject({
       count: 1, limit: 200,
-      items: [{ lineId: "line-123", playerId: "player-1", username: "player", ledgerEntryExists: false, ledgerMatches: false }],
+      items: [{ lineId: "line-123", playerId: "player-1", username: "player", ledgerEntryExists: false, ledgerMatches: false, payoutExists: false, prizeCreditedAt: null }],
     });
     expect(mocks.lineFindMany).toHaveBeenCalledWith(expect.objectContaining({ take: 200, where: expect.objectContaining({ prizeCents: { gt: 0 }, prizeCreditedAt: null }) }));
     expect(mocks.ledgerFindUnique).toHaveBeenCalledWith({ where: { idempotencyKey: "numeric-prize-credit:line-123" } });
@@ -110,7 +110,7 @@ describe("admin prize credit reconciliation API", () => {
 
   it("reconciles an existing matching ledger entry without duplicating the credit", async () => {
     mocks.ledgerFindUnique.mockResolvedValue({
-      userId: "player-1", amountCents: 1000, type: "PRIZE_CREDIT", participationId: "participation-1",
+      userId: "player-1", purchaseId: "purchase-1", amountCents: 1000, currency: "BRL", type: "PRIZE_CREDIT", participationId: "participation-1",
     });
     const response = await POST(request("POST", { lineId: "line-123", reason: "Conferência de crédito existente" }));
     expect(response.status).toBe(200);
@@ -121,6 +121,19 @@ describe("admin prize credit reconciliation API", () => {
       actorId: "admin-1", action: "PLAYER_PRIZE_CREDIT_RECONCILED",
       metadata: expect.objectContaining({ reason: "Conferência de crédito existente", creditedNow: false }),
     }) });
+  });
+
+  it("blocks reconciliation when the prize was already paid through a payout channel", async () => {
+    mocks.lineFindUnique.mockResolvedValue({
+      ...line,
+      prizePayout: { id: "payout-1", channel: "CASHIER_CASH", paidAt: new Date("2026-01-03T00:00:00Z") },
+    });
+    const response = await POST(request("POST", { lineId: "line-123", reason: "Pagamento em dinheiro já registrado" }));
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({ error: expect.stringContaining("pagamento registrado") });
+    expect(mocks.ledgerCreate).not.toHaveBeenCalled();
+    expect(mocks.lineUpdate).not.toHaveBeenCalled();
+    expect(mocks.auditCreate).not.toHaveBeenCalled();
   });
 
   it("blocks lines without a positive calculated prize", async () => {
