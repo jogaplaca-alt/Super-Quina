@@ -86,10 +86,15 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
             : "Pagamento confirmado. Sua aposta foi registrada.");
         } else {
           setReconciliationRequired(Boolean(body.reconciliationRequired));
-          if (["FAILED", "CANCELLED", "EXPIRED", "REFUNDED"].includes(body.paymentStatus ?? "")
-            || ["CANCELLED", "REFUNDED"].includes(body.purchaseStatus ?? "")) {
+          const terminalFailure = body.paymentTerminal === true
+            || ["FAILED", "CANCELLED", "EXPIRED"].includes(body.paymentStatus ?? "")
+            || body.purchaseStatus === "CANCELLED";
+          if (terminalFailure) {
             setPurchase(null); setPixCheckout(null); setPixModalOpen(false); setReconciliationRequired(false); setPurchaseMessage(""); idempotency.current = null;
-            setNotice("O pagamento não foi aprovado ou foi encerrado. Nenhuma aposta foi registrada.");
+            setNotice("");
+            setError(typeof body.message === "string" && body.message
+              ? body.message
+              : "Pagamento não aceito ou não concluído. Este jogo não foi realizado e nenhuma aposta foi alocada.");
           }
         }
       } catch { /* A falha temporária de consulta não altera o estado financeiro. */ }
