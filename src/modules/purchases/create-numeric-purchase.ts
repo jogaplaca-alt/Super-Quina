@@ -44,6 +44,10 @@ export async function createNumericPurchase(prisma: PrismaClient, input: Numeric
   for (let attempt = 0; ; attempt += 1) {
     try {
       return await prisma.$transaction(async (tx) => {
+        // Coordinate cashier sales with the administrator's settlement boundary.
+        if (input.cashierId) {
+          await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${input.cashierId} AND "role" = 'CASHIER' FOR UPDATE`;
+        }
         const existing = await tx.purchase.findUnique({
           where: { idempotencyKey: input.idempotencyKey },
           include: { participations: { include: { numericLines: true } }, payment: true, numericIntent: true },
