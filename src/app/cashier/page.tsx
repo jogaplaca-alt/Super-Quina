@@ -17,7 +17,6 @@ export default async function CashierPage() {
         <summary>
           <span className="player-collapsible-label">Resultados</span>
           <span className="player-collapsible-title">Últimos resultados</span>
-          <span className="player-collapsible-hint">Toque para consultar os sorteios publicados</span>
         </summary>
         <PlayerRecentResults />
       </details>
