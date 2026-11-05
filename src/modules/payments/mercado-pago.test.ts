@@ -1,6 +1,6 @@
 import { createHmac } from "node:crypto";
-import { describe, expect, it } from "vitest";
-import { classifyPixOrderStatus, parseVerifiedPixOrder, syntheticPayerEmail, verifyMercadoPagoWebhookSignature } from "./mercado-pago";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { classifyPixOrderStatus, createPixOrder, parseVerifiedPixOrder, syntheticPayerEmail, verifyMercadoPagoWebhookSignature } from "./mercado-pago";
 
 describe("Mercado Pago webhook signature", () => {
   const secret = "test-webhook-secret";
@@ -123,6 +123,42 @@ describe("Mercado Pago order status classification", () => {
       providerStatus: "refunded",
       normalizedStatus: "refunded",
       approved: false,
+    });
+  });
+});
+
+
+describe("Mercado Pago Pix order creation", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  it("returns and preserves the provider order ID when QR data is not ready yet", async () => {
+    vi.stubEnv("MERCADOPAGO_ACCESS_TOKEN", "test-access-token");
+    vi.stubEnv("MERCADOPAGO_PAYER_EMAIL_DOMAIN", "superquina.com");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        id: "order-created-without-qr",
+        status: "created",
+        total_amount: "1.00",
+        currency: "BRL",
+        transactions: { payments: [{ amount: "1.00", payment_method: { id: "pix", type: "bank_transfer" } }] },
+      }),
+    }));
+
+    const checkout = await createPixOrder({
+      purchaseId: "purchase-123",
+      paymentIdempotencyKey: "stable-payment-key-123",
+      playerId: "player-123",
+      amountCents: 100,
+    });
+
+    expect(checkout).toMatchObject({
+      orderId: "order-created-without-qr",
+      status: "created",
+      qrCode: null,
     });
   });
 });
