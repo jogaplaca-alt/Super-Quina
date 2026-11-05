@@ -94,7 +94,7 @@ describe("POST admin cashier settlements", () => {
       paymentMethod: "PIX", payment: { is: { status: "CONFIRMED" } },
     }, _sum: { totalCents: true }, _count: { _all: true } });
     expect(mocks.commissionAggregate).toHaveBeenCalledWith({ where: {
-      cashierId, createdAt: { gt: since, lte: cutoff }, purchase: { is: { status: "CONFIRMED" } },
+      cashierId, purchase: { is: { status: "CONFIRMED", confirmedAt: { gt: since, lte: cutoff } } },
     }, _sum: { amountCents: true } });
     expect(mocks.lineCount).toHaveBeenCalledWith({ where: {
       participation: { is: { status: "CONFIRMED", purchase: { is: {
