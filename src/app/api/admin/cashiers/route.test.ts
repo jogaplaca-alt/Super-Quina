@@ -2,12 +2,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
 const mocks = vi.hoisted(() => ({
-  getSessionUser: vi.fn(), findMany: vi.fn(), userCreate: vi.fn(), auditCreate: vi.fn(),
+  getSessionUser: vi.fn(), findMany: vi.fn(), userCount: vi.fn(), userCreate: vi.fn(), auditCreate: vi.fn(),
   transaction: vi.fn(), hashPassword: vi.fn(),
 }));
 vi.mock("@/lib/auth/session", () => ({
   getSessionUser: mocks.getSessionUser, SESSION_COOKIE: "superquina_session",
-  authPrisma: { user: { findMany: mocks.findMany }, $transaction: mocks.transaction },
+  authPrisma: { user: { findMany: mocks.findMany, count: mocks.userCount }, $transaction: mocks.transaction },
 }));
 vi.mock("@/lib/auth/password", () => ({ hashPassword: mocks.hashPassword }));
 import { GET, POST } from "./route";
@@ -26,6 +26,7 @@ describe("admin cashiers collection API", () => {
     vi.clearAllMocks();
     mocks.getSessionUser.mockResolvedValue({ id: "admin-1", role: "ADMIN", mustChangePassword: false });
     mocks.findMany.mockResolvedValue([{ ...created, mustChangePassword: true }]);
+    mocks.userCount.mockResolvedValue(1);
     mocks.hashPassword.mockResolvedValue("hashed-password");
     mocks.userCreate.mockResolvedValue(created);
     mocks.auditCreate.mockResolvedValue({});
@@ -44,8 +45,23 @@ describe("admin cashiers collection API", () => {
     const response = await GET(request());
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store, private");
-    expect(await response.json()).toMatchObject({ cashiers: [{ id: created.id, commissionPercent: 5.5 }] });
-    expect(mocks.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { role: "CASHIER" }, take: 500 }));
+    expect(await response.json()).toMatchObject({ cashiers: [{ id: created.id, commissionPercent: 5.5 }], pagination: { page: 1, limit: 50, total: 1, totalPages: 1, hasPreviousPage: false, hasNextPage: false } });
+    expect(mocks.userCount).toHaveBeenCalledWith({ where: { role: "CASHIER" } });
+    expect(mocks.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { role: "CASHIER" }, skip: 0, take: 50, orderBy: [{ status: "asc" }, { username: "asc" }, { id: "asc" }] }));
+  });
+
+  it("validates pagination parameters", async () => {
+    expect((await GET(new NextRequest("https://example.test/api/admin/cashiers?page=0"))).status).toBe(400);
+    expect((await GET(new NextRequest("https://example.test/api/admin/cashiers?limit=101"))).status).toBe(400);
+    expect(mocks.findMany).not.toHaveBeenCalled();
+  });
+
+  it("returns requested page and stable pagination metadata", async () => {
+    mocks.userCount.mockResolvedValue(121);
+    const response = await GET(new NextRequest("https://example.test/api/admin/cashiers?page=3&limit=50", { headers: { cookie: "superquina_session=session-token" } }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ pagination: { page: 3, limit: 50, total: 121, totalPages: 3, hasPreviousPage: true, hasNextPage: false } });
+    expect(mocks.findMany).toHaveBeenCalledWith(expect.objectContaining({ skip: 100, take: 50 }));
   });
 
   it("rejects cross-origin and invalid profiles", async () => {
