@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 
 const mocks = vi.hoisted(() => ({
   getSessionUser: vi.fn(), lineFindMany: vi.fn(), ledgerFindUnique: vi.fn(),
-  transaction: vi.fn(),
+  transaction: vi.fn(), lineFindUnique: vi.fn(), ledgerCreate: vi.fn(), lineUpdate: vi.fn(), auditCreate: vi.fn(),
 }));
 vi.mock("@/lib/auth/session", () => ({
   getSessionUser: mocks.getSessionUser, SESSION_COOKIE: "superquina_session",
@@ -26,11 +26,11 @@ function request(method = "GET", body?: unknown, origin = "https://example.test"
   });
 }
 const line = {
-  id: "line-123", numberValue: "1234", prizeCents: 1000, createdAt: new Date("2026-01-01T00:00:00Z"),
+  id: "line-123", participationId: "participation-1", numberValue: "1234", prizeCents: 1000, unitCents: 1, tensCents: 2, hundredsCents: 3, thousandsCents: 4, quinaCents: 5, ruleVersion: "v1", ruleSnapshot: {}, prizeCreditedAt: null, createdAt: new Date("2026-01-01T00:00:00Z"),
   participation: {
-    id: "participation-1",
-    round: { id: "round-1", code: "R-01", resultAt: new Date("2026-01-02T00:00:00Z"), resultNumber: "1234" },
-    purchase: { id: "purchase-1", createdAt: new Date("2026-01-01T00:00:00Z"), playerId: "player-1", player: { username: "player" } },
+    id: "participation-1", status: "CONFIRMED",
+    round: { id: "round-1", code: "R-01", status: "COMPLETED", resultAt: new Date("2026-01-02T00:00:00Z"), resultNumber: "1234" },
+    purchase: { id: "purchase-1", status: "CONFIRMED", cashierId: null, currency: "BRL", createdAt: new Date("2026-01-01T00:00:00Z"), playerId: "player-1", player: { username: "player" } },
   },
 };
 
@@ -40,6 +40,15 @@ describe("admin prize credit reconciliation API", () => {
     mocks.getSessionUser.mockResolvedValue({ id: "admin-1", role: "ADMIN", mustChangePassword: false });
     mocks.lineFindMany.mockResolvedValue([line]);
     mocks.ledgerFindUnique.mockResolvedValue(null);
+    mocks.lineFindUnique.mockResolvedValue(line);
+    mocks.ledgerCreate.mockResolvedValue({});
+    mocks.lineUpdate.mockResolvedValue({});
+    mocks.auditCreate.mockResolvedValue({});
+    mocks.transaction.mockImplementation(async (callback, options) => callback({
+      numericParticipationLine: { findUnique: mocks.lineFindUnique, update: mocks.lineUpdate },
+      ledgerEntry: { findUnique: mocks.ledgerFindUnique, create: mocks.ledgerCreate },
+      auditEvent: { create: mocks.auditCreate },
+    }));
   });
 
   it("requires an authenticated admin before listing pending credits", async () => {
