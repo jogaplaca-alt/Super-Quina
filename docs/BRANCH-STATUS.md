@@ -156,3 +156,13 @@ Branch de trabalho: `setup/super-quina`.
 - **Validação ambiental pendente:** ainda é necessário configurar/confirmar o cron na AquaCloud, verificar o secret sem expor seu valor, observar execuções recorrentes e confirmar logs/retentativas. A remoção do timer interno não configura o cron externo automaticamente.
 - O teste de integração PostgreSQL já existente cobre fechamento, sorteio e liquidação concorrentes por rodada; a suíte de alocação cobre disputa e checkpoint do cursor. Ainda falta teste de sobreposição do endpoint completo e medição de duração com volume representativo.
 - CI para o novo HEAD permanece pendente de confirmação. Nenhuma alteração de secrets, configuração do cron, banco de produção ou deploy manual foi realizada.
+
+
+## Auditoria incremental — concorrência de saques da carteira (2026-11-05)
+
+- Criada a suíte PostgreSQL `src/modules/wallet/withdrawal-concurrency.postgres.integration.test.ts`, com guarda que só permite execução local na base `superquina_test`.
+- O primeiro cenário dispara dois pedidos simultâneos para a mesma carteira e verifica que somente um reserva o saldo integral, sem saldo negativo nem reservas duplicadas.
+- O segundo cenário dispara duas ações administrativas simultâneas sobre o mesmo saque e verifica que apenas uma conclui o estado `PAID`, com um único lançamento de auditoria financeira e um único evento de histórico.
+- A suíte foi incluída no comando `npm run test:postgres`. Os testes de rota já existentes continuam cobrindo autenticação, origem, reserva, rejeição e conclusão; a nova suíte acrescenta concorrência real no PostgreSQL.
+- **Validação pendente:** a suíte foi adicionada ao repositório, mas não foi executada neste ambiente. Exigir execução em PostgreSQL descartável local e CI verde antes de fechar o bloco. Não declarar homologação com base apenas na criação dos testes.
+- Não foram alterados regras financeiras, migrations, dados de produção, secrets, cron ou deploy. Branch ativa: `setup/super-quina`; `main` permanece intocada.
