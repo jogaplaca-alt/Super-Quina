@@ -12,7 +12,7 @@ suite("PostgreSQL Mercado Pago webhook event claims", () => {
     if (!databaseUrl) throw new Error("DATABASE_URL is required for PostgreSQL integration tests");
     const parsed = new URL(databaseUrl);
     if (!["localhost", "127.0.0.1", "::1", "postgres"].includes(parsed.hostname) ||
-        parsed.pathname.replace(/^\\//, "").split("?")[0] !== "superquina_test") {
+        parsed.pathname.replace(/^\//, "").split("?")[0] !== "superquina_test") {
       throw new Error("Refusing to run webhook claim integration tests outside the local superquina_test database");
     }
   }
