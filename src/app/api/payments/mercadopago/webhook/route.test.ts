@@ -151,6 +151,34 @@ describe("POST /api/payments/mercadopago/webhook", () => {
     expect(response.status).toBe(503);
     expect(mocks.confirmPixPayment).not.toHaveBeenCalled();
   });
+  it("returns retryable 503 while another delivery holds a recent claim", async () => {
+    mocks.findEvent.mockResolvedValue({
+      id: "event-row-123",
+      processedAt: null,
+      processingError: `processing:${Date.now()}:other-request`,
+    });
+    const response = await POST(request());
+    expect(response.status).toBe(503);
+    expect(mocks.updateEventMany).not.toHaveBeenCalled();
+    expect(mocks.confirmPixPayment).not.toHaveBeenCalled();
+  });
+
+  it("reclaims an abandoned claim after the lease expires", async () => {
+    const expiredClaim = `processing:${Date.now() - 10 * 60_000}:previous-request`;
+    mocks.findEvent.mockResolvedValue({
+      id: "event-row-123",
+      processedAt: null,
+      processingError: expiredClaim,
+    });
+    const response = await POST(request());
+    expect(response.status).toBe(200);
+    expect(mocks.updateEventMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ id: "event-row-123", processedAt: null, processingError: expiredClaim }),
+      data: { processingError: expect.stringMatching(/^processing:/) },
+    }));
+    expect(mocks.confirmPixPayment).toHaveBeenCalledTimes(1);
+  });
+
   it("allows only one concurrent delivery to claim an existing unprocessed event", async () => {
     let claimAcquired = false;
     mocks.findEvent.mockResolvedValue({ id: "event-row-123", processedAt: null, processingError: null });
