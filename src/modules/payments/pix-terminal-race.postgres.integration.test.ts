@@ -176,7 +176,12 @@ suite("PostgreSQL Pix confirmation/cancellation race", () => {
       ]);
 
       expect(results.map((result) => result.outcome).sort()).toEqual(["already_confirmed", "confirmed"]);
-      const receiptCodes = results.map((result) => result.receiptCode);
+      const successfulResults = results.filter(
+        (result): result is Extract<typeof result, { outcome: "confirmed" | "already_confirmed" }> =>
+          result.outcome === "confirmed" || result.outcome === "already_confirmed",
+      );
+      expect(successfulResults).toHaveLength(2);
+      const receiptCodes = successfulResults.map((result) => result.receiptCode);
       expect(receiptCodes[0]).toBeTruthy();
       expect(receiptCodes[0]).toBe(receiptCodes[1]);
 
