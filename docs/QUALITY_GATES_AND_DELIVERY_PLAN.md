@@ -329,3 +329,32 @@ Esta seção registra auditoria estática inicial. Nenhum código ou banco foi a
 - O script `npm run test:postgres` agora executa essa suíte junto com a integração existente de limite de tentativas de login.
 - **Validação pendente:** o commit precisa passar no CI com migrations limpas e PostgreSQL 16. Se falhar, corrigir o teste ou serviço conforme a causa; não considerar o bloco concluído antes do resultado verde.
 - Nenhuma alteração em banco de produção, secrets, migration ou deploy.
+
+
+## 13. Auditoria incremental — Bloco 5: últimos resultados no ADMIN (2026-11-05)
+
+**Escopo:** componente compartilhado de resultados recentes, rota `GET /api/player/results`, uso nas áreas PLAYER/CASHIER/ADMIN e testes de autorização. Não inclui histórico completo de apostas nem paginação do painel de rodadas.
+
+### Fluxo e permissões confirmados
+
+- `PlayerRecentResults` é utilizado nas três áreas autenticadas: jogador, cambista e administrador.
+- A rota exige sessão válida e ativa; aceita somente papéis `PLAYER`, `CASHIER` e `ADMIN`; bloqueia qualquer usuário com troca obrigatória de senha pendente.
+- A consulta retorna somente rodadas `COMPLETED`, com `resultNumber` não nulo e `resultAt` dentro das últimas 24 horas, ordenadas da mais recente para a mais antiga. A API limita a 50 registros; o componente exibe no máximo 10.
+- A resposta usa `Cache-Control: no-store, private`; erros não expõem detalhes internos do banco.
+- O resultado apresentado é o único número oficial de cinco algarismos da rodada, preservando zeros à esquerda. Não há dados de jogador, compra ou bilhete nesta resposta.
+- A regra do produto confirma que os resultados visíveis ao cambista são os publicados nas últimas 24 horas; a mesma janela é aplicada pelo componente compartilhado nas demais áreas.
+
+### Ajustes realizados
+
+- Adicionado teste explícito de acesso ADMIN à rota de resultados recentes.
+- Adicionado teste negativo para bloqueio quando `mustChangePassword` está ativo.
+- Corrigida a descrição da operação no rodapé ADMIN: removida a referência incorreta a “dois resultados independentes” e adotada a expressão “resultado oficial”, coerente com o modelo singular `resultNumber` e as regras do produto.
+
+### Pendências e decisão
+
+- A rota tem cobertura de sessão ausente, acesso PLAYER/CASHIER/ADMIN, troca obrigatória de senha, filtro de 24 horas, ausência de cache e erro genérico de banco.
+- A janela de 24 horas é calculada com `Date.now()` no servidor. Recomenda-se cobrir explicitamente o limite temporal com relógio controlado em uma revisão de testes de fronteira, sem alterar a regra.
+- O texto da seção ADMIN informa 10 resultados mais recentes, enquanto a API aceita até 50 e a interface limita a 10; não há exposição adicional na UI. Manter o limite de apresentação em 10.
+- Nenhuma alteração de schema, migration, banco, secrets, deploy ou produção foi realizada.
+
+**Status:** revisão estática e ajustes de teste/texto realizados; aguarda CI verde no commit final para encerrar o bloco.
