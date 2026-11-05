@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { authPrisma } from "@/lib/auth/session";
 import { classifyPixOrderStatus, getVerifiedPixOrder, verifyMercadoPagoWebhookSignature } from "@/modules/payments/mercado-pago";
 import { confirmPixPayment } from "@/modules/payments/confirm-payment";
+import { recordUnexpectedExternalRefund } from "@/modules/payments/record-unexpected-refund";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -143,26 +144,9 @@ export async function POST(request: NextRequest) {
       if (normalizedStatus === "refunded") {
         // Refunds are not part of the game's commercial flow. Treat an external
         // refund notification as an administrative incident; never undo a ticket.
-        await authPrisma.$transaction(async (tx) => {
-          const prior = await tx.auditEvent.findFirst({
-            where: {
-              action: "UNEXPECTED_EXTERNAL_REFUND_REPORTED",
-              entityType: "Purchase",
-              entityId: payment.purchaseId,
-            },
-            select: { id: true },
-          });
-          if (!prior) {
-            await tx.auditEvent.create({
-              data: {
-                action: "UNEXPECTED_EXTERNAL_REFUND_REPORTED",
-                entityType: "Purchase",
-                entityId: payment.purchaseId,
-                metadata: { paymentId: payment.id, providerStatus, note: "Manual financial review required; purchase and prizes were not reversed." },
-              },
-            });
-          }
-        }, { isolationLevel: "Serializable" });
+        await recordUnexpectedExternalRefund(authPrisma, {
+          purchaseId: payment.purchaseId, paymentId: payment.id, providerStatus, source: "webhook",
+        });
       } else {
         const terminalStatus = ["rejected", "failure", "failed"].includes(normalizedStatus)
           ? "FAILED"
