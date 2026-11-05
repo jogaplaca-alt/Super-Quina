@@ -287,3 +287,15 @@ A tela de compra também passou a impedir consultas de status simultâneas: se u
 ### Limites desta camada
 
 A estrutura do banco e o serviço de domínio estão preparados, mas ainda não há rota HTTP que reserve o job nem integração com a ponte Bluetooth. Não disparar impressão automática até implementar e validar os endpoints autenticados, a ponte SPP e o tratamento do resultado de escrita. Em caso de resultado de transporte incerto, registrar `UNKNOWN` e exigir ação explícita do usuário; não repetir automaticamente.
+
+### Endpoints internos do ledger
+
+Foram acrescentadas rotas autenticadas para preparar a integração nativa:
+
+- `POST /api/purchases/[purchaseId]/print-jobs/auto`: valida propriedade (ou ADMIN), confirma que o recibo está pronto e reserva/recupera a reserva única `AUTO_RECEIPT`. A resposta indica se o registro foi criado e seu estado. Uma reserva existente não significa que a impressão foi enviada.
+- `POST /api/purchases/[purchaseId]/print-jobs/manual`: cria um novo job `MANUAL_REPRINT` após validar sessão, propriedade e prazo do recibo.
+- `POST /api/print-jobs/[jobId]/transition`: permite ao proprietário ou ADMIN avançar o estado com transições condicionais no banco. Códigos de falha são uma lista fechada; mensagens/exceções brutas do Android não são armazenadas.
+
+O cliente nativo deverá primeiro reservar/recuperar o job e, imediatamente antes de enviar bytes, disputar a transição atômica `RESERVED -> SENDING`. Apenas quem conseguir essa transição pode iniciar a escrita. Depois deverá registrar `SENT`, `FAILED` ou `UNKNOWN`. Um job `SENDING` que ficou sem resultado não deve ser reenviado automaticamente.
+
+Essas rotas ainda não estão ligadas ao polling ou a um transporte Bluetooth; são a API de controle e auditoria para a próxima etapa. O site continua oferecendo a impressão HTML atual até a ponte nativa ser implementada.
