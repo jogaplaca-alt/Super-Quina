@@ -4,11 +4,10 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - setup/super-quina
+      - Principal
   pull_request:
     branches:
-      - main
-      - setup/super-quina
+      - Principal
 
 permissions:
   contents: read
