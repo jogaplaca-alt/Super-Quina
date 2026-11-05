@@ -7,7 +7,7 @@ const enabled = process.env.RUN_POSTGRES_INTEGRATION === "1";
 const suite = enabled ? describe : describe.skip;
 
 suite("PostgreSQL Pix confirmation/cancellation race", () => {
-  const databaseUrl = process.env.DATABASE_URL ?? "";
+  const databaseUrl = process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/superquina_test?schema=public";
   if (enabled) {
     if (!databaseUrl) throw new Error("DATABASE_URL is required for PostgreSQL integration tests");
     const parsed = new URL(databaseUrl);
