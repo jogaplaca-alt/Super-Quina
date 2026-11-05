@@ -390,3 +390,36 @@ Esta seção registra auditoria estática inicial. Nenhum código ou banco foi a
 - A alteração dos multiplicadores afeta compras criadas depois da gravação, inclusive intenções Pix pendentes criadas antes de pagamento. Isso decorre da captura no momento em que a intenção de compra é criada e precisa ser mantido como regra consistente.
 
 **Status:** fluxo estático confirmado; testes focados acrescentados. Aguardar CI verde para encerrar formalmente o bloco. Nenhuma alteração de schema, migration, banco, secrets, deploy ou produção foi realizada.
+
+
+## 15. Auditoria incremental — Bloco 7: controle financeiro e saques no ADMIN (2026-11-05)
+
+**Escopo:** painel `AdminWithdrawalManager`, rotas `/api/admin/withdrawals` e `/api/player/withdrawals`, ledger, histórico de estado, criptografia de chave Pix e testes correspondentes. Não inclui reconciliação de prêmios nem acerto de comissões de cambistas.
+
+### Fluxo confirmado
+
+- A página ADMIN é protegida por `requireRole("ADMIN")`; a API administrativa exige sessão, papel ADMIN e ausência de troca obrigatória de senha. As respostas usam `Cache-Control: no-store, private`.
+- A solicitação PLAYER exige papel PLAYER, sessão válida, senha inicial atualizada, Origin/Host compatíveis e chave Pix em formato plausível. A chave é criptografada com AES-256-GCM usando `WALLET_PIX_ENCRYPTION_KEY`; a auditoria guarda apenas chave mascarada.
+- O jogador solicita o saque integral do saldo disponível. A rota bloqueia a linha do usuário, calcula o saldo pelo ledger e, na mesma transação serializável, cria o saque PENDING, lança `WITHDRAWAL_RESERVE` negativo, registra histórico e evento de auditoria.
+- A carteira calcula o saldo disponível pela soma do ledger. A reserva reduz o saldo imediatamente; a recusa cria `WITHDRAWAL_RELEASE` positivo; a marcação de pagamento cria apenas registro auditável `WITHDRAWAL_PAID` de valor zero, pois o valor já foi reservado. Não há débito duplicado na conclusão.
+- O ADMIN só pode agir sobre saque PENDING. A transação bloqueia a linha do saque, altera estado, cria lançamento/histórico e auditoria. A tentativa de segunda ação sobre estado encerrado é rejeitada com HTTP 409.
+- A interface descreve corretamente que o Pix é transferido manualmente fora da plataforma; “marcar como pago” significa que o administrador confirmou a transferência, não que o sistema enviou dinheiro.
+- Os estados APPROVED e PROCESSING permanecem no schema e na consulta histórica, mas a interface os identifica como estados antigos que exigem conferência; não são aceitos para nova ação administrativa.
+- Comissão de cambista usa modelos separados (`CashierCommission` e `CashierSettlement`); não foi identificada mistura desses valores com o saldo de saque PLAYER na parte examinada.
+
+### Achado funcional
+
+1. **Solicitações pendentes podem desaparecer da lista ADMIN após 200 registros:** o GET administrativo consulta todos os estados, ordena primeiro por `status` em ordem ascendente e aplica `take: 200`. A ordenação textual pode colocar estados históricos antes de PENDING; com volume suficiente, saques pendentes podem ficar fora dos 200 registros retornados. A tela então informa incorretamente que não há solicitações pendentes ou deixa de mostrar parte delas. Prioridade alta para operação financeira. Corrigir a consulta para buscar pendentes independentemente do limite do histórico e separar a consulta do histórico recente, ou implementar paginação explícita.
+2. **Histórico administrativo sem paginação:** mesmo sem o problema anterior, o painel limita a 200 itens e não informa que o histórico está truncado. Corrigir junto à separação entre pendentes e histórico, sem perder solicitações abertas.
+3. **Confirmação de pagamento manual:** a API aceita referência externa opcional, mas o painel atual não oferece campo para registrá-la. O evento e a nota de auditoria registram confirmação manual; avaliar incluir a referência Pix/transferência para facilitar conciliação. Não é bloqueio de segurança.
+
+### Cobertura observada e pendências
+
+- Testes existentes cobrem autenticação ADMIN/PLAYER, bloqueio de origem cruzada, reserva integral do saldo, saldo zero, liberação após recusa, marcação de pagamento, histórico/auditoria e bloqueio de segunda ação.
+- A suíte usa mocks; não foi encontrado neste bloco teste PostgreSQL concorrente que prove duas solicitações simultâneas de saque não reservam o mesmo saldo nem teste de corrida entre saque e crédito de prêmio.
+- A transação serializável e o bloqueio da linha do usuário são proteções implementadas, mas o comportamento concorrente precisa ser comprovado em integração PostgreSQL.
+- A consulta do saldo e a consulta dos saques na rota PLAYER são executadas em paralelo, não numa mesma transação de leitura. O saldo é calculado corretamente a partir do ledger, mas a resposta pode refletir instantes ligeiramente diferentes durante uma operação concorrente.
+- Não foi feita alteração de lógica nesta etapa. O achado do limite de 200 precisa ser corrigido e testado antes de encerrar o bloco.
+- Nenhuma migration, alteração de banco, secret, deploy ou operação em produção foi realizada.
+
+**Status:** auditoria estática parcial. Proteções e ledger identificados; correção da consulta ADMIN e testes de concorrência PostgreSQL pendentes. Não declarar o bloco aprovado até corrigir e validar.
