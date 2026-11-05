@@ -1,6 +1,6 @@
 # Critérios de qualidade, lacunas e plano de entrega — Super Quina
 
-Atualizado em 2026-11-04. Documento consolidado a partir da auditoria da branch `rebuild/super-quina-clean` e da fundação `foundation/super-quina-v2`. A implementação vigente continua sendo `setup/super-quina`.
+Atualizado em 2026-11-05. Documento consolidado a partir da auditoria da branch `rebuild/super-quina-clean` e da fundação `foundation/super-quina-v2`. A implementação vigente e única branch oficial é `Principal`.
 
 ## 1. Princípios técnicos adotados
 
@@ -88,7 +88,7 @@ Este documento não autoriza deploy, alteração de DNS, conexão com banco real
 
 ## 7. Registro de auditoria incremental — Bloco 1 (2026-11-04)
 
-Escopo: scheduler de rodadas, sorteio numérico e liquidação automática. Branch auditada: `setup/super-quina`.
+Escopo: scheduler de rodadas, sorteio numérico e liquidação automática. Branch auditada: `Principal`.
 
 ### Evidências confirmadas por leitura do código
 
@@ -141,7 +141,7 @@ Status permanece **PARCIAL**. Esta complementação é documental; nenhum códig
 
 ## 8. Auditoria incremental — Bloco 2: área do cambista (2026-11-04)
 
-Escopo inicial: tela do cambista, criação de vendas CASH/PIX, resumo financeiro e superfícies administrativas de cadastro/acerto/histórico. Branch: `setup/super-quina`.
+Escopo inicial: tela do cambista, criação de vendas CASH/PIX, resumo financeiro e superfícies administrativas de cadastro/acerto/histórico. Branch: `Principal`.
 
 ### Funcionalidades já identificadas no código
 
@@ -461,9 +461,9 @@ Esta seção registra auditoria estática inicial. Nenhum código ou banco foi a
 
 ## 17. Correção de inventário do CI — 2026-11-05
 
-A revisão da branch `setup/super-quina` corrigiu uma informação desatualizada que circulava em auditoria anterior:
+A revisão da branch `Principal` corrigiu uma informação desatualizada que circulava em auditoria anterior:
 
-- O workflow `.github/workflows/quality.yml` **já existe**. Executa em push para `setup/super-quina` e em pull request para `main`/ `setup/super-quina`.
+- O workflow `.github/workflows/quality.yml` **já existe**. Executa em push e pull request direcionados à branch `Principal`.
 - O workflow já instala com `npm ci`, valida e gera Prisma Client, executa TypeScript, testes unitários/rotas, lint, migrations em PostgreSQL 16 descartável, testes PostgreSQL e build.
 - `package-lock.json` também existe; portanto, instalação reproduzível e `npm ci` estão configurados no repositório.
 - Foi adicionado o gatilho `workflow_dispatch` para permitir execução manual pela interface do GitHub Actions.
