@@ -409,8 +409,8 @@ Esta seção registra auditoria estática inicial. Nenhum código ou banco foi a
 
 ### Achado funcional
 
-1. **Solicitações pendentes podem desaparecer da lista ADMIN após 200 registros:** o GET administrativo consulta todos os estados, ordena primeiro por `status` em ordem ascendente e aplica `take: 200`. A ordenação textual pode colocar estados históricos antes de PENDING; com volume suficiente, saques pendentes podem ficar fora dos 200 registros retornados. A tela então informa incorretamente que não há solicitações pendentes ou deixa de mostrar parte delas. Prioridade alta para operação financeira. Corrigir a consulta para buscar pendentes independentemente do limite do histórico e separar a consulta do histórico recente, ou implementar paginação explícita.
-2. **Histórico administrativo sem paginação:** mesmo sem o problema anterior, o painel limita a 200 itens e não informa que o histórico está truncado. Corrigir junto à separação entre pendentes e histórico, sem perder solicitações abertas.
+1. **Solicitações pendentes fora do limite do histórico — CORRIGIDO:** o GET agora busca todas as solicitações PENDING separadamente, sem que estados antigos ou saques encerrados consumam o limite, e consulta os 200 registros históricos mais recentes numa segunda consulta. A ordenação histórica passou a ser cronológica decrescente. Teste de rota atualizado para exigir as duas consultas e confirmar o limite apenas no histórico.
+2. **Histórico administrativo sem paginação:** o painel continua exibindo no máximo 200 registros encerrados, sem paginação nem indicação explícita de truncamento. Pendência funcional de prioridade média; não afeta a visibilidade das solicitações abertas após a correção.
 3. **Confirmação de pagamento manual:** a API aceita referência externa opcional, mas o painel atual não oferece campo para registrá-la. O evento e a nota de auditoria registram confirmação manual; avaliar incluir a referência Pix/transferência para facilitar conciliação. Não é bloqueio de segurança.
 
 ### Cobertura observada e pendências
@@ -419,7 +419,8 @@ Esta seção registra auditoria estática inicial. Nenhum código ou banco foi a
 - A suíte usa mocks; não foi encontrado neste bloco teste PostgreSQL concorrente que prove duas solicitações simultâneas de saque não reservam o mesmo saldo nem teste de corrida entre saque e crédito de prêmio.
 - A transação serializável e o bloqueio da linha do usuário são proteções implementadas, mas o comportamento concorrente precisa ser comprovado em integração PostgreSQL.
 - A consulta do saldo e a consulta dos saques na rota PLAYER são executadas em paralelo, não numa mesma transação de leitura. O saldo é calculado corretamente a partir do ledger, mas a resposta pode refletir instantes ligeiramente diferentes durante uma operação concorrente.
-- Não foi feita alteração de lógica nesta etapa. O achado do limite de 200 precisa ser corrigido e testado antes de encerrar o bloco.
+- Corrigidos `src/app/api/admin/withdrawals/route.ts` e `src/app/api/admin/withdrawals/route.test.ts` para separar solicitações abertas do histórico limitado. Teste focado atualizado; execução local e CI ainda precisam confirmar a alteração.
+- Permanecem pendentes testes PostgreSQL concorrentes para saque simultâneo e corrida entre saque e crédito de prêmio, além da paginação do histórico encerrado.
 - Nenhuma migration, alteração de banco, secret, deploy ou operação em produção foi realizada.
 
-**Status:** auditoria estática parcial. Proteções e ledger identificados; correção da consulta ADMIN e testes de concorrência PostgreSQL pendentes. Não declarar o bloco aprovado até corrigir e validar.
+**Status:** auditoria estática e correção do limite de pendentes realizadas; testes focados/CI e testes de concorrência PostgreSQL ainda pendentes. Bloco permanece PARCIAL, não aprovado.
