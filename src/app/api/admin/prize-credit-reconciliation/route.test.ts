@@ -108,4 +108,28 @@ describe("admin prize credit reconciliation API", () => {
     expect(mocks.lineUpdate).not.toHaveBeenCalled();
   });
 
+  it("reconciles an existing matching ledger entry without duplicating the credit", async () => {
+    mocks.ledgerFindUnique.mockResolvedValue({
+      userId: "player-1", amountCents: 1000, type: "PRIZE_CREDIT", participationId: "participation-1",
+    });
+    const response = await POST(request("POST", { lineId: "line-123", reason: "Conferência de crédito existente" }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ success: true, creditedNow: false, prizeCents: 1000 });
+    expect(mocks.ledgerCreate).not.toHaveBeenCalled();
+    expect(mocks.lineUpdate).toHaveBeenCalledWith({ where: { id: "line-123" }, data: { prizeCreditedAt: expect.any(Date) } });
+    expect(mocks.auditCreate).toHaveBeenCalledWith({ data: expect.objectContaining({
+      actorId: "admin-1", action: "PLAYER_PRIZE_CREDIT_RECONCILED",
+      metadata: expect.objectContaining({ reason: "Conferência de crédito existente", creditedNow: false }),
+    }) });
+  });
+
+  it("blocks lines without a positive calculated prize", async () => {
+    mocks.lineFindUnique.mockResolvedValue({ ...line, prizeCents: 0 });
+    const response = await POST(request("POST", { lineId: "line-123", reason: "Linha sem prêmio positivo" }));
+    expect(response.status).toBe(409);
+    expect(mocks.ledgerCreate).not.toHaveBeenCalled();
+    expect(mocks.lineUpdate).not.toHaveBeenCalled();
+    expect(mocks.auditCreate).not.toHaveBeenCalled();
+  });
+
 });
