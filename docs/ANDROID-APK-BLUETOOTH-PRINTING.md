@@ -115,3 +115,22 @@ Correção aplicada na branch:
 - Os testes da rota cobrem acesso do próprio jogador e bloqueio de recibo de outro jogador.
 
 Limite desta entrega: isso libera a apresentação e impressão manual do recibo oficial já confirmado. Ainda não habilita impressão automática Bluetooth. A ponte nativa SPP/ESC-POS, a reserva idempotente da impressão automática e a reimpressão explícita ainda dependem da instalação do runtime Capacitor e do serviço nativo Android.
+
+## Avaliação de transporte Bluetooth SPP (2026-11-05)
+
+A comparação de bibliotecas foi aprofundada no código e nos metadados publicados, não apenas pelo nome do pacote:
+
+- `@capacitor-community/bluetooth-le` foi descartado: implementa BLE/GATT, não Bluetooth clássico SPP/RFCOMM.
+- `@kduma-autoid/capacitor-bluetooth-printer@0.2.1` oferece SPP e API simples, mas a versão publicada é antiga e declara peer dependency `@capacitor/core ^6.0.0`; não é a escolha para uma base nova.
+- `@delicity/capacitor-thermal-printer` declara suporte a Bluetooth clássico, porém o próprio repositório informa que está em desenvolvimento e ainda não validado em hardware real; não adotar como dependência de produção nesta etapa.
+- Candidato preferencial para protótipo Android: `@devlas/capacitor-thermal-printer@0.8.1`, licença MIT. O código-fonte publicado usa `BluetoothSocket` RFCOMM no Android, lista dispositivos Bluetooth já pareados, solicita `BLUETOOTH_CONNECT` em Android 12+ e transporta bytes ESC/POS em Base64. A dependência declara peer `@capacitor/core >=5.0.0`, sem dependências de runtime.
+
+### Limites e validações obrigatórias do candidato
+
+- A descoberta é limitada a dispositivos já pareados pelo Android; a configuração inicial deve orientar o usuário a parear a impressora nas configurações do sistema.
+- O plugin transporta bytes, mas não formata recibos. O projeto precisa de encoder ESC/POS próprio e testes de largura, acentuação/code page, QR Code e corte com o modelo físico.
+- A adoção ainda é provisória até verificar compatibilidade real com a versão Capacitor escolhida, revisar o código Kotlin/Manifest da versão publicada e imprimir em impressora física.
+- A versão 0.8.1 é recente e tem histórico curto; manter a integração isolada atrás de um adapter local para permitir substituição sem espalhar a API do fornecedor pelo app.
+- O workflow atual usa Node.js 22, o que atende o requisito de ambiente Node para avaliar Capacitor 8. A adoção de Capacitor 8 ainda exige alinhar Android Gradle Plugin, Gradle wrapper, SDK Android e JDK compatível; nada disso foi sincronizado ou compilado nesta etapa.
+
+Decisão desta etapa: registrar `@devlas/capacitor-thermal-printer@0.8.1` como candidato para um protótipo isolado, sem adicionar dependência ao `package.json` ou alterar o lockfile antes de executar uma instalação npm real e validar o ambiente Android.
