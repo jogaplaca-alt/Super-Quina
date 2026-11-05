@@ -1,14 +1,13 @@
 /**
  * Starts the round scheduler inside the long-running Node.js web service.
  *
- * Railway cron jobs have a minimum interval of five minutes, which is too coarse
- * for minute-level opening, cutoff, and draw times. This process invokes the
- * protected scheduler endpoint every 5 seconds while explicitly enabled.
+ * This process invokes the protected scheduler endpoint every 5 seconds while
+ * explicitly enabled, keeping round timing independent of external cron cadence.
  */
 const SCHEDULER_INTERVAL_MS = 5_000;
 
 type SchedulerRuntime = typeof globalThis & {
-  __jogaPlacasSchedulerStarted?: boolean;
+  __superQuinaSchedulerStarted?: boolean;
 };
 
 export async function register() {
@@ -20,8 +19,8 @@ export async function register() {
   }
 
   const runtime = globalThis as SchedulerRuntime;
-  if (runtime.__jogaPlacasSchedulerStarted) return;
-  runtime.__jogaPlacasSchedulerStarted = true;
+  if (runtime.__superQuinaSchedulerStarted) return;
+  runtime.__superQuinaSchedulerStarted = true;
 
   let running = false;
   const runScheduler = async () => {
