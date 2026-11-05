@@ -85,3 +85,20 @@ Regras:
 ## Limitação operacional desta etapa
 
 A auditoria e a documentação podem ser versionadas pelo GitHub. A sincronização `npx cap sync android`, a instalação npm, a compilação Gradle e os testes em hardware exigem um ambiente de execução Node/Android; não devem ser declarados executados apenas por alterar arquivos no GitHub.
+
+## Auditoria do fluxo Pix existente (branch `setup/super-quina`)
+
+A leitura dos módulos reais confirmou que já existe uma camada de domínio para confirmação/cancelamento, portanto a integração de impressão deve reutilizá-la e não criar uma segunda confirmação paralela:
+
+- `src/modules/payments/confirm-payment.ts`: `confirmPixPayment` confirma pagamento e compra dentro de transação, valida igualdade dos valores, atualiza participações e gera um único `receiptCode`. Os resultados distinguem `confirmed` de `already_confirmed`; ambos devolvem o mesmo recibo persistido.
+- `src/modules/payments/cancel-pending-pix-purchase.ts`: `cancelPendingPixPurchase` aplica estados terminais apenas a pagamentos ainda pendentes, com escrita condicional, transação serializável e auditoria.
+- `src/modules/payments/mercado-pago.ts`: a consulta autenticada da Orders API usa o token exclusivamente no servidor; a classificação de sucesso exige pedido `processed`, pagamento `processed` e detalhe `accredited`. A validação da assinatura do webhook também está centralizada nesse módulo.
+- `src/modules/payments/pix-terminal-race.postgres.integration.test.ts`: há testes de concorrência para confirmação versus cancelamento e para confirmações duplicadas, verificando recibo e auditoria únicos.
+
+### Consequência para a impressão
+
+O APK não deve chamar `confirmPixPayment`, acessar credenciais do Mercado Pago ou inferir sucesso pelo desaparecimento do QR Code. A impressão deve consumir o recibo já persistido e confirmado pelo servidor. O resultado `already_confirmed` não deve, por si só, provocar uma nova impressão automática em cada consulta/polling; reimpressão deve ser uma ação explícita. O mecanismo final para reservar/registrar uma única impressão automática ainda precisa ser definido depois de localizar a rota de API e a tela que consultam o pagamento.
+
+### Pendência de auditoria de rotas
+
+Os módulos de domínio foram identificados, mas a rota HTTP real e o componente de interface que exibem o QR Code/recibo ainda não foram confirmados nesta etapa. Não conectar o gatilho de impressão a uma rota presumida. Antes da implementação, localizar esses dois pontos no repositório e verificar autenticação, autorização do dono da compra e formato dos dados do recibo.
