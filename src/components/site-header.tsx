@@ -6,10 +6,10 @@ export function SiteHeader() {
     <header className="site-header site-header-scenery" aria-label="Cabeçalho Super Quina">
       <Image
         className="site-header-scenery-image"
-        src="/images/brand/super-quina-header.PNG"
+        src="/images/brand/super-quina-header.webp"
         alt="Super Quina"
-        width={1600}
-        height={240}
+        width={1536}
+        height={512}
         priority
         sizes="100vw"
       />
