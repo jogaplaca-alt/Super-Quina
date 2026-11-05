@@ -1,6 +1,7 @@
 name: Super Quina quality checks
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - setup/super-quina
