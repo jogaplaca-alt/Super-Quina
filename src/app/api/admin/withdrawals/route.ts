@@ -19,16 +19,26 @@ export async function GET(request: NextRequest) {
   const auth = await requireAdmin(request);
   if (auth.response) return auth.response;
   try {
-    const withdrawals = await authPrisma.withdrawal.findMany({
-      where: { status: { in: ["PENDING", "APPROVED", "PROCESSING", "PAID", "REJECTED"] } },
-      include: {
-        user: { select: { id: true, username: true } },
-        reviewedBy: { select: { username: true } },
-        statusHistory: { select: { fromStatus: true, toStatus: true, note: true, createdAt: true, actor: { select: { username: true } } }, orderBy: { createdAt: "asc" } },
-      },
-      orderBy: [{ status: "asc" }, { createdAt: "asc" }],
-      take: 200,
-    });
+    const include = {
+      user: { select: { id: true, username: true } },
+      reviewedBy: { select: { username: true } },
+      statusHistory: { select: { fromStatus: true, toStatus: true, note: true, createdAt: true, actor: { select: { username: true } } }, orderBy: { createdAt: "asc" as const } },
+    };
+    // Never let old/closed records consume the limit and hide an actionable pending withdrawal.
+    const [pendingWithdrawals, historicalWithdrawals] = await Promise.all([
+      authPrisma.withdrawal.findMany({
+        where: { status: "PENDING" },
+        include,
+        orderBy: { createdAt: "asc" },
+      }),
+      authPrisma.withdrawal.findMany({
+        where: { status: { in: ["APPROVED", "PROCESSING", "PAID", "REJECTED"] } },
+        include,
+        orderBy: { createdAt: "desc" },
+        take: 200,
+      }),
+    ]);
+    const withdrawals = [...pendingWithdrawals, ...historicalWithdrawals];
     let keyConfigError = false;
     const items = withdrawals.map((item) => {
       let pixKey: string | null = null;
