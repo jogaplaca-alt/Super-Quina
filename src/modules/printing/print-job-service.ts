@@ -69,8 +69,10 @@ export async function reserveAutomaticReceiptPrint(prisma: PrismaClient, purchas
       return { created: true as const, job };
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   } catch (error) {
-    const uniqueConflict = error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
-    if (!uniqueConflict) throw error;
+    const retryableConflict = error instanceof Prisma.PrismaClientKnownRequestError
+      && (error.code === "P2002" || error.code === "P2034"
+        || (error.code === "P2010" && error.meta?.code === "40001"));
+    if (!retryableConflict) throw error;
     const existing = await prisma.printJob.findUnique({ where: { autoReceiptKey: purchaseId } });
     if (existing) return { created: false as const, job: existing };
     throw error;
@@ -128,7 +130,11 @@ export async function transitionPrintJob(
   const result = await prisma.printJob.updateMany({
     where: {
       id: input.jobId,
-      status: input.nextStatus === "SENDING" ? "RESERVED" : "SENDING",
+      status: input.nextStatus === "SENDING"
+        ? "RESERVED"
+        : input.nextStatus === "FAILED"
+          ? { in: ["RESERVED", "SENDING"] }
+          : "SENDING",
     },
     data: {
       status: input.nextStatus,
