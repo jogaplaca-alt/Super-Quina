@@ -2,12 +2,12 @@
 
 Atualizado em 2026-11-05. Repositório: `jpveiculos/Super-Quina`.
 
-**Estado atual:** `Principal` é a única branch existente e oficial do projeto. As comparações com `main`, `foundation/super-quina-v2` e demais branches abaixo são registros históricos de auditorias anteriores à renomeação; não representam branches ativas nem tarefas de integração pendentes.
+**Estado atual:** `main` é a única branch existente e oficial do projeto. As comparações com `main`, `foundation/super-quina-v2` e demais branches abaixo são registros históricos de auditorias anteriores à renomeação; não representam branches ativas nem tarefas de integração pendentes.
 
-Branch oficial de trabalho: `Principal`.
+Branch oficial de trabalho: `main`.
 
 ## Limites de segurança e operação
-- Trabalhar exclusivamente na branch `Principal`. Não criar branches paralelas para o fluxo normal de desenvolvimento.
+- Trabalhar exclusivamente na branch `main`. Não criar branches paralelas para o fluxo normal de desenvolvimento.
 - `main` e as demais branches citadas nas seções históricas não fazem parte do fluxo ativo.
 - Não fazer merge, deploy, alteração de DNS/infraestrutura ou migração em banco de produção sem autorização explícita.
 - O Super Quina usará um banco novo e vazio, sem importar absolutamente nenhum dado, usuário, ADMIN, aposta, pagamento, saldo, rodada, resultado ou histórico do sistema anterior.
@@ -31,7 +31,7 @@ Branch oficial de trabalho: `Principal`.
 - Execução: https://github.com/jpveiculos/Super-Quina/actions/runs/41752444863
 
 ## Bloqueios antes de liberar o site
-1. **Reconciliação de branches:** na comparação atual, `Principal` está divergente de `main` (309 commits à frente e 9 atrás) e de `foundation/super-quina-v2` (309 commits à frente e 45 atrás). Revisar individualmente os commits ausentes e o diff antes de qualquer integração. Não mesclar automaticamente.
+1. **Reconciliação de branches:** na comparação atual, `main` está divergente de `main` (309 commits à frente e 9 atrás) e de `foundation/super-quina-v2` (309 commits à frente e 45 atrás). Revisar individualmente os commits ausentes e o diff antes de qualquer integração. Não mesclar automaticamente.
 2. **Baseline do banco:** a cadeia histórica de migrations começa com tabelas do jogo de placas e depois faz a limpeza numérica. Antes do banco novo, construir e validar uma baseline numérica limpa em PostgreSQL descartável; não apagar nem reordenar migrations existentes.
 3. **Conta ADMIN:** configurar as três variáveis privadas de provisionamento no AquaCloud e confirmar nos logs a criação do primeiro ADMIN após a migration. Se o processo falhar, acionar o suporte técnico do servidor com o erro dos logs, sem compartilhar senhas.
 4. **AquaCloud / scheduler:** confirmar configuração de execução do endpoint `POST /api/internal/round-scheduler` a cada minuto, com `Authorization: Bearer <ROUND_SCHEDULER_SECRET>`. Verificar logs, último sucesso e tratamento de falhas sem revelar segredo.
@@ -55,7 +55,7 @@ Branch oficial de trabalho: `Principal`.
 
 ## Resultado da revisão de integração e banco — 2026-11-04
 - A comparação com `main` identificou quatro arquivos com alterações posteriores à base comum: `src/app/globals.css`, `src/app/player/page.tsx`, `src/components/admin/admin-cashier-manager.tsx` e `src/components/player/player-bet-history.tsx`. São mudanças de interface/fluxo; devem ser avaliadas e portadas seletivamente, não por merge integral. Em particular, o `main` remove ações de recibo do histórico, enquanto o branch de trabalho mantém acesso ao recibo confirmado. Essa diferença exige decisão funcional antes de qualquer cópia.
-- A branch `foundation/super-quina-v2` contém uma migration `20261103000000_initial_foundation` que cria novamente os tipos `UserRole` e `AccountStatus`, além das tabelas `User` e `Session`. Ela não pode ser adicionada à cadeia atual: a migration inicial de `Principal` já cria esses objetos e a execução duplicada falharia.
+- A branch `foundation/super-quina-v2` contém uma migration `20261103000000_initial_foundation` que cria novamente os tipos `UserRole` e `AccountStatus`, além das tabelas `User` e `Session`. Ela não pode ser adicionada à cadeia atual: a migration inicial de `main` já cria esses objetos e a execução duplicada falharia.
 - A fundação também possui utilitários de identidade próprios e parâmetros scrypt diferentes (`N=32768`), enquanto o código atual usa `N=16384`. Não importar esses arquivos nem assumir compatibilidade de hashes sem conversão/verificação explícita. O importador atual aceita apenas `scrypt$16384$8$1`, salt de 16 bytes e digest de 64 bytes.
 - A cadeia atual contém 14 migrations SQL, da inicial `20261023000000_init` até `20261103010000_performance_queue_indexes`. O CI anterior executou migrations em PostgreSQL descartável e testes de integração com sucesso. Portanto, para o banco novo, a estratégia segura neste momento é aplicar a cadeia existente em ordem com `prisma migrate deploy`; não criar baseline paralela, não editar/reordenar migrations já aplicadas e não executar contra produção nesta etapa.
 - A migration `20261101020000_numeric_only_cleanup` elimina `ParticipationLine` e os campos/tipos específicos de placas. Ela é deliberadamente destrutiva e reforça que a cadeia histórica não deve ser aplicada sobre uma base antiga com dados de placas sem plano de migração e backup próprios.
@@ -94,7 +94,7 @@ Branch oficial de trabalho: `Principal`.
 - A reconciliação ADMIN existente é para crédito de prêmio em carteira de jogador, não para pagamento externo de bilhete de cambista. O modelo atual não registra ator/data/status de pagamento Pix externo por linha premiada.
 - Ainda não foi confirmado se o rótulo `cashierLabel` identifica o ponto de venda correto, nem se a consulta pública já apresenta estados de prêmio ou contato WhatsApp. Esses pontos estão marcados para rastreamento no plano.
 - Implementação pendente: persistência da baixa externa, ação ADMIN após Pix efetivo, atualização da consulta QR para `NÃO PREMIADO` / `PRÊMIO DISPONÍVEL` + WhatsApp / `PRÊMIO PAGO`, configuração central do WhatsApp e testes de idempotência/concorrência/permissões.
-- Nenhum código, schema, migration, rota, interface ou deploy foi alterado nesta etapa; foram feitas somente atualizações documentais na branch `Principal`.
+- Nenhum código, schema, migration, rota, interface ou deploy foi alterado nesta etapa; foram feitas somente atualizações documentais na branch `main`.
 - Commits: plano `b3a0d0e1a7ec2f21a1d866c1b86680a0c80095cf`; regras de produto `69606bca4a406866414ea9906553b04d5ee13437`.
 
 - Auditoria adicional da consulta pública: `receipt-verification` e `ticket-check` usam `prizeCreditedAt` como indicador de prêmio pago/premiado. Esse campo representa crédito na carteira e não pode ser reutilizado para baixa de Pix externo de cambista. A API de recibo exibe `cashier.fullName` ou `username`; falta confirmar que isso corresponde à identificação comercial do ponto de venda. A API `ticket-check` também aplica janela de 7 dias, regra que deve ser avaliada para não conflitar com a consulta QR do recibo.
@@ -114,7 +114,7 @@ Branch oficial de trabalho: `Principal`.
 ### Reconciliação com main — decisão do responsável
 - A branch `main` foi esvaziada intencionalmente e não está conectada ao servidor; esse estado foi confirmado pelo responsável em 2026-11-05.
 - A ausência de arquivos em `main` não representa perda acidental e não exige recuperação, sincronização ou integração com a branch de trabalho.
-- O trabalho técnico permanece em `Principal`. Não fazer merge, rebase, cherry-pick ou publicação sem autorização explícita.
+- O trabalho técnico permanece em `main`. Não fazer merge, rebase, cherry-pick ou publicação sem autorização explícita.
 
 ### Estado técnico e gates restantes
 - A rota do webhook valida assinatura, consulta o estado canônico do pedido no Mercado Pago, confere referência externa, moeda, valor e método Pix, e converge para o serviço central de confirmação/cancelamento.
@@ -133,8 +133,8 @@ Branch oficial de trabalho: `Principal`.
 
 ## Esclarecimento do estado de main — 2026-11-05
 - O responsável pelo projeto confirmou que a branch `main` foi esvaziada intencionalmente e não está conectada ao servidor. A ausência de `.gitignore` e `README.md` em `main` é, portanto, estado deliberado, não uma perda acidental a ser recuperada.
-- A branch de trabalho permanece `Principal`; ela é a referência do trabalho técnico atual. Não é necessário sincronizar nem integrar com `main` nesta fase.
-- Não interpretar a divergência entre `main` e `Principal` como bloqueio técnico do projeto. A publicação só será considerada quando houver autorização explícita e decisão sobre qual branch será conectada ao servidor.
+- A branch de trabalho permanece `main`; ela é a referência do trabalho técnico atual. Não é necessário sincronizar nem integrar com `main` nesta fase.
+- Não interpretar a divergência entre `main` e `main` como bloqueio técnico do projeto. A publicação só será considerada quando houver autorização explícita e decisão sobre qual branch será conectada ao servidor.
 - Inventário confirmado: `npm run test:postgres` já inclui `src/modules/payments/pix-terminal-race.postgres.integration.test.ts`, que executa concorrência real entre confirmação Pix e cancelamento terminal, verificando que pagamento, compra, participação e recibo não terminam em estados divididos. Essa suíte foi incluída no pipeline CI #433 aprovado.
 - Continua pendente teste PostgreSQL específico de duas confirmações simultâneas do mesmo pagamento e teste de concorrência da reserva/processamento do mesmo evento webhook. A cobertura de rota atual testa reentrega sequencial e falha transitória com mocks.
 
@@ -149,7 +149,7 @@ Branch oficial de trabalho: `Principal`.
 - A suíte foi incluída em `npm run test:postgres`; não exige migration ou alteração de schema, pois reutiliza o campo existente `WebhookEvent.processingError`.
 - Commits desta sequência: `9c9e244ee9593745a652bfe16f80be00939b04ae`, `b84a56a13aea3a7576f3f10b370b105d964f3603`, `0554643d61fcd298740f107d340542292e460a44`, `32cf9cbda8f5c1087e5a212f6a9691988dfdbcea`, `97a1b290e71c048e7b61568191b738ee17483bbd` e `0e5a260bfdd096b03a0d33baa916ca917b967a69`.
 - **Validação pendente:** a alteração foi registrada na branch, mas ainda não há confirmação de execução verde do CI para o novo HEAD. Não declarar o bloco aprovado antes do workflow completo, incluindo PostgreSQL e build.
-- Nenhuma migration, alteração de banco de produção, secret, DNS ou deploy manual foi executado. A branch de trabalho continua `Principal`; `main` permanece intocada.
+- Nenhuma migration, alteração de banco de produção, secret, DNS ou deploy manual foi executado. A branch de trabalho continua `main`; `main` permanece intocada.
 
 
 ## Auditoria incremental — estratégia única do scheduler (2026-11-05)
@@ -170,7 +170,7 @@ Branch oficial de trabalho: `Principal`.
 - A suíte foi incluída no comando `npm run test:postgres`. Os testes de rota já existentes continuam cobrindo autenticação, origem, reserva, rejeição e conclusão; a nova suíte acrescenta concorrência real no PostgreSQL.
 - Revisão da implementação real: a rota do jogador bloqueia a linha `User`, calcula o saldo pela soma do ledger e cria saque + `WITHDRAWAL_RESERVE` negativa na mesma transação `Serializable`. A rota administrativa bloqueia a linha `Withdrawal`, aceita somente `PENDING`, e ao pagar cria `WITHDRAWAL_PAID` de zero porque a reserva já retirou o valor disponível; ao rejeitar, cria `WITHDRAWAL_RELEASE` positivo para devolver a reserva. O teste concorrente foi alinhado a essa semântica. A validação PostgreSQL e CI ainda não foram executadas/confirmadas para estes commits.
 - **Validação pendente:** a suíte foi adicionada ao repositório, mas não foi executada neste ambiente. Exigir execução em PostgreSQL descartável local e CI verde antes de fechar o bloco. Não declarar homologação com base apenas na criação dos testes.
-- Não foram alterados regras financeiras, migrations, dados de produção, secrets, cron ou deploy. Branch ativa: `Principal`; `main` permanece intocada.
+- Não foram alterados regras financeiras, migrations, dados de produção, secrets, cron ou deploy. Branch ativa: `main`; `main` permanece intocada.
 
 
 ## Auditoria financeira — ledger e comissões (revisão de código)
@@ -193,7 +193,7 @@ Branch oficial de trabalho: `Principal`.
 - O teste de rota do fechamento foi atualizado para exigir a janela de comissão pela data de confirmação da compra. A suíte existente cobre autenticação, proteção de origem, snapshot, associações, auditoria e rollback.
 - **Validação pendente:** ainda não foi executado CI para os novos commits nem teste PostgreSQL concorrente específico do fechamento contra o banco local descartável. Os testes de rota usam mocks; a revisão estática não equivale a prova concorrente real. Não declarar o financeiro homologado.
 - O botão “Zerar para novo acerto” apenas registra um corte/snapshot e inicia o próximo período; não realiza transferência bancária, pagamento automático de comissão nem liquidação financeira externa. O histórico é preservado.
-- Não foram alterados dados de produção, migrations, secrets, DNS ou hospedagem. Nenhum deploy foi realizado. Branch ativa: `Principal`; `main` e demais branches permanecem intocadas.
+- Não foram alterados dados de produção, migrations, secrets, DNS ou hospedagem. Nenhum deploy foi realizado. Branch ativa: `main`; `main` e demais branches permanecem intocadas.
 
 
 ### Teste de concorrência do fechamento — complemento
