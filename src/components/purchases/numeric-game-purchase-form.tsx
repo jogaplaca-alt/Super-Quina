@@ -77,7 +77,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
         const body = await response.json();
         if (!active) return;
         if (body.receiptReady) {
-          if (mode === "CASHIER") setReceiptPurchaseId(purchase.id);
+          setReceiptPurchaseId(purchase.id);
           idempotency.current = null;
           setPurchase(null); setPixCheckout(null); setPurchaseMessage(""); setPixModalOpen(false); setReconciliationRequired(false);
           setNumbers([]); setNumberInput(""); setParticipationCount(1);
@@ -282,7 +282,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
         </section>
       </div>}
 
-      {mode === "CASHIER" && receiptPurchaseId && <PlayerPurchaseReceipt purchaseId={receiptPurchaseId} autoOpen onClose={() => setReceiptPurchaseId(null)} />}
+      {receiptPurchaseId && <PlayerPurchaseReceipt purchaseId={receiptPurchaseId} autoOpen onClose={() => setReceiptPurchaseId(null)} />}
     </section>
   );
 }
