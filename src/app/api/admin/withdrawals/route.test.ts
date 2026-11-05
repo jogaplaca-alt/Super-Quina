@@ -56,10 +56,17 @@ describe("admin withdrawals API", () => {
     expect((await GET(request())).status).toBe(403);
   });
 
-  it("keeps legacy withdrawal states included in the administrative history query", async () => {
+  it("loads every pending withdrawal separately from the capped historical list", async () => {
     await GET(request());
+    expect(mocks.findMany).toHaveBeenCalledTimes(2);
     expect(mocks.findMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: { status: { in: ["PENDING", "APPROVED", "PROCESSING", "PAID", "REJECTED"] } },
+      where: { status: "PENDING" },
+      orderBy: { createdAt: "asc" },
+    }));
+    expect(mocks.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { status: { in: ["APPROVED", "PROCESSING", "PAID", "REJECTED"] } },
+      orderBy: { createdAt: "desc" },
+      take: 200,
     }));
   });
 
