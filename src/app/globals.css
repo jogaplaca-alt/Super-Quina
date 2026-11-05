@@ -1506,3 +1506,14 @@ p, .intro, .auth-description, .area-description, .feature-card p,
 .cashier-summary-tile{display:grid;gap:5px;padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
 .cashier-summary-tile span{color:var(--muted);font-size:.88rem}
 .cashier-summary-tile strong{font-size:1.2rem;overflow-wrap:anywhere}
+
+/* Cabeçalho da marca mais alto, mantendo a proporção visual em desktop e celular. */
+.site-header-scenery,
+.site-header-scenery-image{
+  height:clamp(110px,15vw,180px);
+  min-height:clamp(110px,15vw,180px);
+}
+.site-header-scenery-image{
+  object-fit:cover;
+  object-position:center;
+}
