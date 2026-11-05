@@ -17,6 +17,12 @@ export async function allocatePaidPurchases(
   requestedBatchSize = DEFAULT_BATCH_SIZE,
 ): Promise<{ checked: number; allocated: number; waiting: number; failures: number }> {
   const take = Math.max(1, Math.min(MAX_BATCH_SIZE, Math.floor(requestedBatchSize) || DEFAULT_BATCH_SIZE));
+  // Ensure the cursor row exists without overwriting a value another scheduler
+  // execution may already have written.
+  await prisma.setting.createMany({
+    data: [{ key: ALLOCATION_CURSOR_KEY, value: "" }],
+    skipDuplicates: true,
+  });
   const cursorSetting = await prisma.setting.findUnique({
     where: { key: ALLOCATION_CURSOR_KEY },
     select: { value: true },
@@ -42,10 +48,9 @@ export async function allocatePaidPurchases(
     });
     if (batch.length === 0) {
       if (cursorId) {
-        await prisma.setting.upsert({
-          where: { key: ALLOCATION_CURSOR_KEY },
-          create: { key: ALLOCATION_CURSOR_KEY, value: "" },
-          update: { value: "" },
+        await prisma.setting.updateMany({
+          where: { key: ALLOCATION_CURSOR_KEY, value: cursorId },
+          data: { value: "" },
         });
       }
       break;
@@ -155,18 +160,21 @@ export async function allocatePaidPurchases(
       }
     }
 
-    cursorId = batch[batch.length - 1]!.id;
-    await prisma.setting.upsert({
-      where: { key: ALLOCATION_CURSOR_KEY },
-      create: { key: ALLOCATION_CURSOR_KEY, value: cursorId },
-      update: { value: cursorId },
+    const nextCursorId = batch[batch.length - 1]!.id;
+    const checkpoint = await prisma.setting.updateMany({
+      where: { key: ALLOCATION_CURSOR_KEY, value: cursorId ?? "" },
+      data: { value: nextCursorId },
     });
 
+    // Another scheduler execution changed the cursor after this run read it.
+    // Do not overwrite that newer checkpoint or continue from stale state.
+    if (checkpoint.count === 0) break;
+
+    cursorId = nextCursorId;
     if (batch.length < take) {
-      await prisma.setting.upsert({
-        where: { key: ALLOCATION_CURSOR_KEY },
-        create: { key: ALLOCATION_CURSOR_KEY, value: "" },
-        update: { value: "" },
+      await prisma.setting.updateMany({
+        where: { key: ALLOCATION_CURSOR_KEY, value: cursorId },
+        data: { value: "" },
       });
       break;
     }
