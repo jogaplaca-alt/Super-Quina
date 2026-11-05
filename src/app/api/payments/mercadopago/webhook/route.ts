@@ -167,10 +167,13 @@ export async function POST(request: NextRequest) {
           });
           if (changed.count !== 1) return;
 
-          await tx.purchase.updateMany({
+          const cancelledPurchase = await tx.purchase.updateMany({
             where: { id: payment.purchaseId, status: "PENDING_PAYMENT" },
             data: { status: "CANCELLED" },
           });
+          if (cancelledPurchase.count !== 1) {
+            throw new Error("Pending Pix payment could not cancel its pending purchase");
+          }
           await tx.purchaseParticipation.updateMany({
             where: { purchaseId: payment.purchaseId, status: "PENDING" },
             data: { status: "CANCELLED" },
