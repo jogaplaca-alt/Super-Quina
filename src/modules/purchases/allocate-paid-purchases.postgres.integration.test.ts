@@ -7,6 +7,7 @@ import { allocatePaidPurchases } from "./allocate-paid-purchases";
 
 const enabled = process.env.RUN_POSTGRES_INTEGRATION === "1";
 const suite = enabled ? describe : describe.skip;
+const ALLOCATION_CURSOR_KEY = "paid_purchase_allocation_cursor";
 
 suite("PostgreSQL paid purchase allocation concurrency", () => {
   const databaseUrl = process.env.DATABASE_URL ?? "";
@@ -23,8 +24,16 @@ suite("PostgreSQL paid purchase allocation concurrency", () => {
   const suffix = randomUUID();
   const purchaseIds: string[] = [];
   const roundIds: string[] = [];
+  let originalCursorValue: string | null = null;
 
-  beforeAll(async () => { await prisma.$connect(); });
+  beforeAll(async () => {
+    await prisma.$connect();
+    const originalCursor = await prisma.setting.findUnique({
+      where: { key: ALLOCATION_CURSOR_KEY },
+      select: { value: true },
+    });
+    originalCursorValue = originalCursor?.value ?? null;
+  });
 
   afterAll(async () => {
     if (purchaseIds.length) {
@@ -35,7 +44,14 @@ suite("PostgreSQL paid purchase allocation concurrency", () => {
       await prisma.purchase.deleteMany({ where: { id: { in: purchaseIds } } });
     }
     if (roundIds.length) await prisma.round.deleteMany({ where: { id: { in: roundIds } } });
-    await prisma.setting.deleteMany({ where: { key: "paid_purchase_allocation_cursor" } });
+
+    // Keep the shared scheduler cursor at its original value. An empty value is
+    // the neutral initial state when the test database had no cursor beforehand.
+    await prisma.setting.upsert({
+      where: { key: ALLOCATION_CURSOR_KEY },
+      create: { key: ALLOCATION_CURSOR_KEY, value: originalCursorValue ?? "" },
+      update: { value: originalCursorValue ?? "" },
+    });
     await prisma.$disconnect();
   });
 
