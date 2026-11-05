@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         _sum: { totalCents: true },
       }),
       authPrisma.cashierCommission.aggregate({
-        where: { cashierId: user.id, createdAt: { gt: since }, purchase: { is: { status: "CONFIRMED" } } },
+        where: { cashierId: user.id, purchase: { is: { status: "CONFIRMED", confirmedAt: { gt: since } } } },
         _sum: { amountCents: true },
       }),
       authPrisma.user.findUnique({ where: { id: user.id }, select: { commissionRateBasisPoints: true } }),
