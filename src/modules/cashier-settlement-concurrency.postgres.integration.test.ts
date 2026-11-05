@@ -14,7 +14,7 @@ suite("PostgreSQL cashier settlement concurrency", () => {
     if (!databaseUrl) throw new Error("DATABASE_URL is required for PostgreSQL integration tests");
     const parsed = new URL(databaseUrl);
     if (!["localhost", "127.0.0.1", "::1", "postgres"].includes(parsed.hostname) ||
-        parsed.pathname.replace(/^\\//, "").split("?")[0] !== "superquina_test") {
+        parsed.pathname.replace(/^\//, "").split("?")[0] !== "superquina_test") {
       throw new Error("Refusing to run cashier settlement tests outside local superquina_test");
     }
   }
