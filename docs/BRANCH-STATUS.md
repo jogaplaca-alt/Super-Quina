@@ -23,14 +23,14 @@ Branch de trabalho: `setup/super-quina`.
 
 ## Validação automatizada
 - Em 2026-11-04, o GitHub Actions concluiu com sucesso no commit `c9fe6fa7ec6c47ac30efec6d4e0a0f656283009d`: Prisma validate/generate, TypeScript, testes unitários/rotas, lint, migrations em PostgreSQL descartável, testes de integração PostgreSQL e build de produção. A execução também validou os testes de bloqueio limitado de rodadas na criação de compras CASH.
-- Isso valida o commit no CI; não comprova funcionamento no Hydro, configuração de secrets, pagamento real, impressora ou ambiente de produção.
+- Isso valida o commit no CI; não comprova funcionamento no AquaCloud, configuração de secrets, pagamento real, impressora ou ambiente de produção.
 - Execução: https://github.com/jpveiculos/Super-Quina/actions/runs/41752444863
 
 ## Bloqueios antes de liberar o site
 1. **Reconciliação de branches:** na comparação atual, `setup/super-quina` está divergente de `main` (309 commits à frente e 9 atrás) e de `foundation/super-quina-v2` (309 commits à frente e 45 atrás). Revisar individualmente os commits ausentes e o diff antes de qualquer integração. Não mesclar automaticamente.
 2. **Baseline do banco:** a cadeia histórica de migrations começa com tabelas do jogo de placas e depois faz a limpeza numérica. Antes do banco novo, construir e validar uma baseline numérica limpa em PostgreSQL descartável; não apagar nem reordenar migrations existentes.
-3. **Conta ADMIN:** configurar as três variáveis privadas de provisionamento no Hydro e confirmar nos logs a criação do primeiro ADMIN após a migration. Se o processo falhar, acionar o suporte técnico do servidor com o erro dos logs, sem compartilhar senhas.
-4. **Hydro / scheduler:** confirmar configuração de execução do endpoint `POST /api/internal/round-scheduler` a cada minuto, com `Authorization: Bearer <ROUND_SCHEDULER_SECRET>`. Verificar logs, último sucesso e tratamento de falhas sem revelar segredo.
+3. **Conta ADMIN:** configurar as três variáveis privadas de provisionamento no AquaCloud e confirmar nos logs a criação do primeiro ADMIN após a migration. Se o processo falhar, acionar o suporte técnico do servidor com o erro dos logs, sem compartilhar senhas.
+4. **AquaCloud / scheduler:** confirmar configuração de execução do endpoint `POST /api/internal/round-scheduler` a cada minuto, com `Authorization: Bearer <ROUND_SCHEDULER_SECRET>`. Verificar logs, último sucesso e tratamento de falhas sem revelar segredo.
 5. **Variáveis e integração Pix:** conferir no ambiente correto a presença e consistência de `DATABASE_URL`, `AUTH_SECRET`, `APP_BASE_URL`, `ROUND_SCHEDULER_SECRET`, `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_WEBHOOK_SECRET` e `WALLET_PIX_ENCRYPTION_KEY`. Nunca copiar valores secretos para Git ou chat.
 6. **Auditoria financeira:** testar ponta a ponta Pix aprovado/rejeitado/cancelado/expirado/reembolsado, reentregas de webhook, confirmação tardia, idempotência, comissões, estornos e acerto de cambista. Confirmar também como tratar estorno ocorrido depois de um acerto já fechado.
 7. **Operação e segurança:** verificar backup/restauração, logs, health check, limites de acesso, cookies/CSRF, rate limit e procedimento de rollback.
@@ -44,7 +44,7 @@ Branch de trabalho: `setup/super-quina`.
 ## Próxima sequência de trabalho
 1. Auditoria de desempenho e fila de alocação concluída no código; CI completo aprovado no commit indicado acima.
 2. Reconciliar branches e revisar migrations/baseline e preservação do ADMIN.
-3. Validar configuração e execução no Hydro sem tocar produção até autorização.
+3. Validar configuração e execução no AquaCloud sem tocar produção até autorização.
 4. Executar homologação completa de compras, Pix, sorteios, premiações, carteira, cambistas e recibos.
 5. Só então avançar para Android, impressora térmica e API de monitoramento.
 
@@ -105,7 +105,7 @@ Branch de trabalho: `setup/super-quina`.
 - Passaram: validação/geração Prisma, TypeScript, testes unitários e de rotas, lint, migrations em PostgreSQL limpo, testes de integração PostgreSQL e build de produção.
 - A suíte nova `src/app/api/payments/mercadopago/webhook/route.test.ts` passou com os cenários de assinatura inválida, evento duplicado já processado, falha transitória com reentrega e pagamento ainda não mapeado.
 - Execução: https://github.com/jpveiculos/Super-Quina/actions/runs/41974462763
-- Esse resultado comprova o pipeline no commit indicado; não comprova pagamento real, webhook real, secrets ou comportamento no Hydro.
+- Esse resultado comprova o pipeline no commit indicado; não comprova pagamento real, webhook real, secrets ou comportamento no AquaCloud.
 
 ### Reconciliação com main — decisão do responsável
 - A branch `main` foi esvaziada intencionalmente e não está conectada ao servidor; esse estado foi confirmado pelo responsável em 2026-11-05.
@@ -116,7 +116,7 @@ Branch de trabalho: `setup/super-quina`.
 - A rota do webhook valida assinatura, consulta o estado canônico do pedido no Mercado Pago, confere referência externa, moeda, valor e método Pix, e converge para o serviço central de confirmação/cancelamento.
 - O scheduler chama a liquidação central de prêmios após o sorteio, com lock da rodada e idempotência por linha; o CI acima passou nos testes atuais de rota e integração de ciclo de rodadas.
 - Ainda falta teste PostgreSQL concorrente específico para corrida entre webhook e polling, reentrega simultânea do mesmo evento e notificação terminal fora de ordem. Os testes recentes do webhook são testes de rota com mocks, não homologação de concorrência real.
-- Permanecem sem comprovação: credenciais e webhook URL no painel Mercado Pago, variáveis/secrets no Hydro, criação efetiva do primeiro ADMIN, execução recorrente do scheduler no servidor, backup/restauração, monitoramento e homologação ponta a ponta de Pix, saques, comissões, prêmios e recibos.
+- Permanecem sem comprovação: credenciais e webhook URL no painel Mercado Pago, variáveis/secrets no AquaCloud, criação efetiva do primeiro ADMIN, execução recorrente do scheduler no servidor, backup/restauração, monitoramento e homologação ponta a ponta de Pix, saques, comissões, prêmios e recibos.
 - A cadeia de migrations deve ser aplicada somente num banco novo e vazio, conforme a regra de não importar dados legados. Não executar em produção nesta fase.
 - A impressão Bluetooth ainda não foi implementada. Antes de iniciar, identificar os modelos exatos das impressoras e confirmar se usam BLE/GATT ou Bluetooth Classic/SPP; a impressão direta pelo navegador não é universal.
 
