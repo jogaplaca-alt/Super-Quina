@@ -116,6 +116,10 @@ describe("POST admin cashier settlements", () => {
       actorId: "admin-1", action: "CASHIER_SETTLEMENT_RECORDED",
       entityType: "CashierSettlement", entityId: snapshot.id,
     }) });
+    expect(mocks.transaction).toHaveBeenCalledWith(expect.any(Function), {
+      isolationLevel: "Serializable",
+    });
+    expect(mocks.queryRaw).toHaveBeenCalledTimes(2);
   });
 
   it("uses the epoch as the first settlement boundary and keeps the cutoff from the database clock", async () => {
