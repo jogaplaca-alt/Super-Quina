@@ -358,3 +358,35 @@ Esta seção registra auditoria estática inicial. Nenhum código ou banco foi a
 - Nenhuma alteração de schema, migration, banco, secrets, deploy ou produção foi realizada.
 
 **Status:** revisão estática e ajustes de teste/texto realizados; aguarda CI verde no commit final para encerrar o bloco.
+
+
+## 14. Auditoria incremental — Bloco 6: multiplicadores administráveis (2026-11-05)
+
+**Escopo:** painel `AdminPrizeRules`, API `/api/admin/prize-rules`, persistência em `Setting`, histórico `SettingChange`, auditoria e captura das regras na criação de apostas. Sem alteração de valores comerciais padrão.
+
+### Fluxo confirmado
+
+- O painel ADMIN carrega a configuração com `cache: no-store`, permite editar cinco multiplicadores (unidade, dezena, centena/terno, milhar/quadra e quina) e envia atualização por `PUT`.
+- A API exige sessão ativa, papel ADMIN e ausência de troca obrigatória de senha. O PUT também exige Origin/Host compatíveis, valida corpo estrito e aceita somente inteiros de 0 a 1.000.000.
+- A configuração é salva na chave `numeric_prize_multipliers`. A mesma transação registra o valor anterior/novo em `SettingChange` e cria `AuditEvent` com ator e ação específica.
+- Se não houver configuração salva, o sistema usa os multiplicadores padrão versionados no domínio.
+- Na criação de cada compra, `createNumericPurchase` lê a configuração atual dentro da transação e salva uma cópia imutável em `NumericPurchaseIntent.ruleSnapshot`; quando a compra é alocada, o snapshot é copiado às linhas numéricas. A liquidação calcula o prêmio usando esse snapshot histórico, não a configuração atual.
+- Configuração persistida inválida causa falha fechada na API e impede criar novas apostas com regra corrompida; não substitui silenciosamente por valores padrão.
+- O cálculo paga somente a maior categoria correspondente. A alteração de multiplicadores não altera apostas anteriores nem prêmios já registrados.
+
+### Ajustes de validação realizados
+
+- Testes adicionados para bloquear ADMIN com troca de senha pendente.
+- Teste adicionado para rejeitar PUT sem Origin.
+- Teste adicionado para configuração persistida malformada, garantindo resposta 500 genérica.
+- Teste de serviço adicionado para comprovar que uma aposta Pix pendente captura exatamente os multiplicadores personalizados atuais no snapshot.
+- Cobertura existente já verifica defaults, validação estrita, bloqueio de origem cruzada, gravação transacional, histórico de alteração e evento de auditoria.
+
+### Pontos de atenção
+
+- O painel aceita zero como multiplicador. A API e o domínio também permitem zero; isso é comportamento configurável, não erro técnico. A decisão comercial sobre permitir desativar uma categoria por zero deve permanecer explícita.
+- O limite de 1.000.000 por multiplicador é aplicado no painel, API e parser compartilhado. A compra também verifica se o prêmio máximo por linha cabe no inteiro suportado pelo banco.
+- A concorrência entre duas edições simultâneas do ADMIN não tem controle de versão otimista; a última gravação vence. O histórico registra ambas, mas uma tela aberta em paralelo pode sobrescrever a edição mais recente. Recomenda-se avaliar versão/updatedAt como precondição numa melhoria futura, sem bloquear o uso atual.
+- A alteração dos multiplicadores afeta compras criadas depois da gravação, inclusive intenções Pix pendentes criadas antes de pagamento. Isso decorre da captura no momento em que a intenção de compra é criada e precisa ser mantido como regra consistente.
+
+**Status:** fluxo estático confirmado; testes focados acrescentados. Aguardar CI verde para encerrar formalmente o bloco. Nenhuma alteração de schema, migration, banco, secrets, deploy ou produção foi realizada.
