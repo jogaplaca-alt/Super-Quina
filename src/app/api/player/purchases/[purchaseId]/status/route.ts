@@ -75,14 +75,19 @@ export async function GET(request: NextRequest, context: RouteContext) {
     && purchase.payment?.status === "PENDING"
     && purchase.payment.providerStatus === "processed"
     && purchase.payment.providerStatusDetail === "accredited";
+  const paymentTerminal = ["FAILED", "CANCELLED", "EXPIRED"].includes(purchase.payment?.status ?? "")
+    && purchase.status === "CANCELLED";
 
   return NextResponse.json({
     purchaseStatus: purchase.status,
     paymentStatus: purchase.payment?.status ?? "PENDING",
     reconciliationRequired,
+    paymentTerminal,
     message: reconciliationRequired
       ? "O Mercado Pago confirmou o Pix. O sistema está vinculando a compra às próximas rodadas válidas. Não faça outro pagamento."
-      : null,
+      : paymentTerminal
+        ? "Pagamento não aceito ou não concluído pelo Mercado Pago. Este jogo não foi realizado e nenhuma aposta foi alocada. Se houve débito na sua conta, confira o extrato e entre em contato com o suporte antes de tentar novamente."
+        : null,
     providerStatus: purchase.payment?.providerStatus ?? null,
     providerStatusDetail: purchase.payment?.providerStatusDetail ?? null,
     receiptReady: confirmed,
