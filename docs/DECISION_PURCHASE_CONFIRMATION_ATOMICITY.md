@@ -1,7 +1,7 @@
 # Decisão técnica — confirmação, vinculação e emissão atômica do recibo
 
 Data: 2026-11-02  
-Branch: `setup/super-quina`  
+Branch oficial atual: `Principal`  
 Status: regra aprovada. O fluxo novo grava uma intenção numérica sem participações/roundIds antes do pagamento; a confirmação Pix cria e vincula as participações às rodadas válidas na mesma transação. Compras pendentes antigas com participações provisórias continuam suportadas durante a transição.
 
 ## Regra inviolável
@@ -61,4 +61,4 @@ CASH só confirma quando o cambista registra o recebimento. WALLET só confirma 
 
 ## Limites operacionais
 
-Trabalhar somente em `setup/super-quina`. Não alterar `main`, não fazer merge/PR, não aplicar migration em produção e não fazer deploy sem autorização explícita.
+Trabalhar somente em `Principal`. Não criar branches paralelas. Alterações em produção, migrations e deploy continuam dependendo de autorização e validação próprias.
