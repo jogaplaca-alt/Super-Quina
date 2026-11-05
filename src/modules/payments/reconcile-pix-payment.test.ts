@@ -161,6 +161,38 @@ describe("reconcilePixPaymentFromProvider", () => {
     expect(mocks.confirmPixPayment).not.toHaveBeenCalled();
   });
 
+  it("rolls back a terminal payment transition if the purchase is no longer pending", async () => {
+    const prisma = makePrisma();
+    const tx = {
+      payment: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      purchase: { updateMany: vi.fn().mockResolvedValue({ count: 0 }) },
+      purchaseParticipation: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      auditEvent: { create: vi.fn().mockResolvedValue({}) },
+    };
+    prisma.$transaction.mockImplementation(async (callback: (client: typeof tx) => Promise<unknown>) => callback(tx));
+    mocks.getVerifiedPixOrder.mockResolvedValue({
+      orderId: "order-1",
+      externalReference: "superquina_purchase_purchase-1",
+      currency: "BRL",
+      amountCents: 200,
+      status: "rejected",
+      statusDetail: "cc_rejected",
+      paymentStatus: "rejected",
+      paymentAmountCents: 200,
+      paymentMethodId: "pix",
+      paymentMethodType: "bank_transfer",
+    });
+    mocks.classifyPixOrderStatus.mockReturnValue({
+      providerStatus: "rejected",
+      normalizedStatus: "rejected",
+      approved: false,
+    });
+
+    await expect(reconcilePixPaymentFromProvider(prisma as never, "payment-1"))
+      .rejects.toThrow("Pending Pix payment could not cancel its pending purchase");
+    expect(tx.auditEvent.create).not.toHaveBeenCalled();
+  });
+
   it("rejects an approved order that is not a Pix bank transfer", async () => {
     const prisma = makePrisma();
     mocks.getVerifiedPixOrder.mockResolvedValue({
