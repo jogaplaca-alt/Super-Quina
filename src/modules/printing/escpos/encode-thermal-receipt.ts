@@ -23,6 +23,7 @@ export type EscPosProfile = {
   /** Used when a character has no verified byte mapping. */
   unsupportedCharacter?: "replace" | "transliterate";
   feedLines?: number;
+  cutMode?: "full" | "partial";
 };
 
 const ESC = 0x1b;
@@ -161,7 +162,7 @@ export function encodeThermalReceipt(receipt: ThermalReceiptForEncoding, profile
   bytes.push(...line(new Date(receipt.issuedAt).toISOString().slice(0, 16).replace("T", " "), profile));
   bytes.push(ESC, 0x61, 0x00);
   bytes.push(...line("RECIBO: " + receipt.receiptCode, profile));
-  for (const part of wrap("PAGAMENTO: " + paymentMethod, columns)) bytes.push(...line(part, profile));
+  for (const part of wrap("PAGAMENTO: " + cleanLabel(receipt.paymentMethod, "payment method"), columns)) bytes.push(...line(part, profile));
   if (customer) for (const part of wrap("CLIENTE: " + customer, columns)) bytes.push(...line(part, profile));
   if (cashier) for (const part of wrap("CAMBISTA: " + cashier, columns)) bytes.push(...line(part, profile));
   bytes.push(...line("-".repeat(columns), profile));
