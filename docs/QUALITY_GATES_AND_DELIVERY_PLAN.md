@@ -444,7 +444,7 @@ Esta seção registra auditoria estática inicial. Nenhum código ou banco foi a
 ### Achados e pendências
 
 1. **Listagem de cambistas limitada a 500:** `GET /api/admin/cashiers` usa `take: 500` sem paginação ou indicação de lista parcial. Com mais de 500 contas, o ADMIN não consegue localizar todos pelo seletor. Prioridade média; implementar paginação ou busca.
-2. **Falta de teste dedicado visível para o endpoint de acerto:** o arquivo `src/app/api/admin/cashiers/[cashierId]/settlements/route.ts` não tem teste correspondente no caminho esperado. A lógica financeira é sensível e deve ter testes de autorização, cutoff, ausência de vendas, soma de dinheiro/Pix, comissão, prêmios, associação única dos payouts e rollback.
+2. **Teste dedicado de rota criado — validação pendente:** criado `src/app/api/admin/cashiers/[cashierId]/settlements/route.test.ts`. A suíte cobre sessão ausente, papel incorreto, troca obrigatória de senha, Origin inválida, cambista inexistente, intervalo do último acerto até o cutoff do relógio do banco, agregados de dinheiro/Pix confirmado, comissão, jogos, prêmios ainda não associados, gravação do snapshot, associação dos payouts e resposta genérica em falha de persistência. O teste foi adicionado ao fluxo padrão `vitest run`; execução local/CI ainda não confirmada.
 3. **Concorrência do acerto não comprovada em PostgreSQL:** bloqueio da linha do cambista e isolamento serializável estão implementados, mas ainda falta teste real com duas chamadas simultâneas para provar que não criam dois snapshots cobrindo o mesmo intervalo nem associam um mesmo prêmio a dois acertos.
 4. **Vendas posteriores ao cutoff:** a consulta usa intervalo `confirmedAt > since AND confirmedAt <= cutoff`; prêmios pagos usam `paidAt` no mesmo intervalo e apenas payouts sem `settlementId`. Essa separação é coerente com o snapshot, mas precisa de teste de fronteira para garantir que operação concorrente após o cutoff permaneça no próximo acerto.
 5. **Comissão histórica:** a taxa e o valor são persistidos por compra, então mudar a taxa do cambista não reescreve comissões antigas. Manter essa regra; não recalcular o passado com a taxa atual.
@@ -456,5 +456,5 @@ Esta seção registra auditoria estática inicial. Nenhum código ou banco foi a
 
 - Não foi identificada falha comprovada de autorização nem mistura do saldo de PLAYER com comissão de CASHIER nesta inspeção.
 - A separação entre histórico de vendas, comissão materializada e snapshot de acerto está implementada.
-- **Status: PARCIAL.** Antes de encerrar, criar testes de rota e integração PostgreSQL para o acerto, concorrência e fronteiras temporais; avaliar paginação da listagem de cambistas.
+- **Status: PARCIAL.** Teste unitário/de rota foi criado, mas aguarda execução no CI. Permanecem necessários teste de integração PostgreSQL para dois acertos concorrentes e fronteiras temporais reais; avaliar paginação da listagem de cambistas.
 - Nenhuma alteração de código, schema, migration, banco, secret, deploy ou produção foi realizada neste bloco.
