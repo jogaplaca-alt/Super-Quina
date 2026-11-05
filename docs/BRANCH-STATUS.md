@@ -126,3 +126,11 @@ Branch de trabalho: `setup/super-quina`.
 - Liberação/implantação: **não aprovada ainda**, devido aos gates ambientais e de homologação acima e à divergência da branch.
 - Próxima sequência segura: resolver documentalmente a preservação/reconciliação de `main`; acrescentar testes PostgreSQL concorrentes do webhook; validar configuração e homologação no ambiente novo somente com autorização explícita; depois identificar impressoras e iniciar a etapa Bluetooth.
 - Nenhum deploy, alteração de secrets, banco de produção, DNS ou integração Bluetooth foi executado.
+
+
+## Esclarecimento do estado de main — 2026-11-05
+- O responsável pelo projeto confirmou que a branch `main` foi esvaziada intencionalmente e não está conectada ao servidor. A ausência de `.gitignore` e `README.md` em `main` é, portanto, estado deliberado, não uma perda acidental a ser recuperada.
+- A branch de trabalho permanece `setup/super-quina`; ela é a referência do trabalho técnico atual. Não é necessário sincronizar nem integrar com `main` nesta fase.
+- Não interpretar a divergência entre `main` e `setup/super-quina` como bloqueio técnico do projeto. A publicação só será considerada quando houver autorização explícita e decisão sobre qual branch será conectada ao servidor.
+- Inventário confirmado: `npm run test:postgres` já inclui `src/modules/payments/pix-terminal-race.postgres.integration.test.ts`, que executa concorrência real entre confirmação Pix e cancelamento terminal, verificando que pagamento, compra, participação e recibo não terminam em estados divididos. Essa suíte foi incluída no pipeline CI #433 aprovado.
+- Continua pendente teste PostgreSQL específico de duas confirmações simultâneas do mesmo pagamento e teste de concorrência da reserva/processamento do mesmo evento webhook. A cobertura de rota atual testa reentrega sequencial e falha transitória com mocks.
