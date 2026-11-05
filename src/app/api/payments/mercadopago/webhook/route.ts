@@ -157,6 +157,7 @@ export async function POST(request: NextRequest) {
               : null;
         if (terminalStatus) {
         await authPrisma.$transaction(async (tx) => {
+          await tx.$queryRaw`SELECT p."id" FROM "Purchase" p JOIN "Payment" pay ON pay."purchaseId" = p."id" WHERE pay."id" = ${payment.id} FOR UPDATE OF p, pay`;
           const changed = await tx.payment.updateMany({
             where: { id: payment.id, status: "PENDING" },
             data: {
