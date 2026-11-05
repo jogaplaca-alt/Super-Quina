@@ -43,7 +43,7 @@ function cleanLabel(value: string | null, name: string): string | null {
   if (typeof value !== "string" || value.length > MAX_LABEL_LENGTH) {
     throw new Error(`Invalid ${name}`);
   }
-  return value.replace(/[\\r\\n\\t]+/g, " ").trim() || null;
+  return value.replace(/[\r\n\t]+/g, " ").trim() || null;
 }
 
 function transliterate(character: string): string {
@@ -95,7 +95,7 @@ function line(value: string, profile: EscPosProfile): number[] {
 }
 
 function wrap(value: string, columns: number): string[] {
-  const words = value.split(/\\s+/).filter(Boolean);
+  const words = value.split(/\s+/).filter(Boolean);
   const lines: string[] = [];
   let current = "";
   for (const word of words) {
@@ -171,7 +171,7 @@ export function encodeThermalReceipt(receipt: ThermalReceiptForEncoding, profile
     if (typeof entry.numberValue !== "string" || entry.numberValue.length < 1 || entry.numberValue.length > 40) {
       throw new Error("Invalid entry number");
     }
-    if (typeof entry.roundCode !== "string" || entry.roundCode.length > 40 || /[\\r\\n]/.test(entry.roundCode)) throw new Error("Invalid round code");
+    if (typeof entry.roundCode !== "string" || entry.roundCode.length > 40 || /[\r\n]/.test(entry.roundCode)) throw new Error("Invalid round code");
     if (!Number.isFinite(Date.parse(entry.resultAt))) throw new Error("Invalid draw date");
     if (!Number.isSafeInteger(entry.stakeCents) || entry.stakeCents < 0) throw new Error("Invalid stake");
     for (const part of wrap(entry.numberValue, columns)) bytes.push(...line(part, profile));
