@@ -161,7 +161,7 @@ export function encodeThermalReceipt(receipt: ThermalReceiptForEncoding, profile
   bytes.push(...line(new Date(receipt.issuedAt).toISOString().slice(0, 16).replace("T", " "), profile));
   bytes.push(ESC, 0x61, 0x00);
   bytes.push(...line("RECIBO: " + receipt.receiptCode, profile));
-  bytes.push(...line("PAGAMENTO: " + receipt.paymentMethod, profile));
+  for (const part of wrap("PAGAMENTO: " + paymentMethod, columns)) bytes.push(...line(part, profile));
   if (customer) for (const part of wrap("CLIENTE: " + customer, columns)) bytes.push(...line(part, profile));
   if (cashier) for (const part of wrap("CAMBISTA: " + cashier, columns)) bytes.push(...line(part, profile));
   bytes.push(...line("-".repeat(columns), profile));
@@ -170,7 +170,7 @@ export function encodeThermalReceipt(receipt: ThermalReceiptForEncoding, profile
     if (typeof entry.numberValue !== "string" || entry.numberValue.length < 1 || entry.numberValue.length > 40) {
       throw new Error("Invalid entry number");
     }
-    if (typeof entry.roundCode !== "string" || entry.roundCode.length > 40) throw new Error("Invalid round code");
+    if (typeof entry.roundCode !== "string" || entry.roundCode.length > 40 || /[\\r\\n]/.test(entry.roundCode)) throw new Error("Invalid round code");
     if (!Number.isFinite(Date.parse(entry.resultAt))) throw new Error("Invalid draw date");
     if (!Number.isSafeInteger(entry.stakeCents) || entry.stakeCents < 0) throw new Error("Invalid stake");
     for (const part of wrap(entry.numberValue, columns)) bytes.push(...line(part, profile));
