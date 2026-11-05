@@ -207,7 +207,6 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
     <section className="feature-card numeric-game-purchase">
       <span className="feature-label">Jogo</span>
       <h2>Jogue seu número</h2>
-      <p>Monte seu jogo com um ou mais números de cinco algarismos, de 00000 a 99999. Os zeros à esquerda fazem parte do número.</p>
 
       <form onSubmit={submit}>
         <label htmlFor="numeric-number">Número (cinco algarismos)</label>
@@ -237,7 +236,6 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
             {Array.from({ length: 10 }, (_, index) => index + 1)
               .map((count) => <option key={count} value={count}>{count} {count === 1 ? "vez" : "vezes"}</option>)}
           </select>
-          <p>O jogo completo será repetido nas próximas rodadas válidas. A atribuição é automática após a confirmação do pagamento.</p>
         </fieldset>
 
         {mode === "PLAYER" ? <fieldset className="round-repeat-fieldset" disabled={Boolean(purchase)}>
