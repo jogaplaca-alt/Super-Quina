@@ -98,6 +98,11 @@ suite("PostgreSQL wallet withdrawal concurrency", () => {
       idempotencyKey: `it-wallet-admin-race-${suffix}`,
     } });
     withdrawalIds.push(withdrawal.id);
+    await prisma.ledgerEntry.create({ data: {
+      userId: adminRacePlayerId, withdrawalId: withdrawal.id, type: "WITHDRAWAL_RESERVE",
+      amountCents: -7500, idempotencyKey: `withdrawal-reserve:${withdrawal.id}`,
+      description: "Integration test withdrawal reserve",
+    } });
 
     const markPaid = () => prisma.$transaction(async (tx) => {
       await tx.$queryRawUnsafe('SELECT "id" FROM "Withdrawal" WHERE "id" = $1 FOR UPDATE', withdrawal.id);
@@ -119,7 +124,9 @@ suite("PostgreSQL wallet withdrawal concurrency", () => {
     expect(outcomes.filter((item) => item.status === "fulfilled")).toHaveLength(1);
     expect(outcomes.filter((item) => item.status === "rejected")).toHaveLength(1);
     expect(await prisma.withdrawal.count({ where: { id: withdrawal.id, status: "PAID" } })).toBe(1);
+    expect(await prisma.ledgerEntry.count({ where: { withdrawalId: withdrawal.id, type: "WITHDRAWAL_RESERVE" } })).toBe(1);
     expect(await prisma.ledgerEntry.count({ where: { withdrawalId: withdrawal.id, type: "WITHDRAWAL_PAID" } })).toBe(1);
+    expect(await prisma.ledgerEntry.aggregate({ where: { userId: adminRacePlayerId }, _sum: { amountCents: true } })).toMatchObject({ _sum: { amountCents: 0 } });
     expect(await prisma.withdrawalStatusHistory.count({ where: { withdrawalId: withdrawal.id, toStatus: "PAID" } })).toBe(1);
   });
 });
