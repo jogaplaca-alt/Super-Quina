@@ -11,6 +11,7 @@ import {
   UserRole,
 } from "../../generated/prisma/client";
 import { createNumericPrizeRuleSnapshot, NUMERIC_PRIZE_RULE_VERSION } from "../../domain/numeric-prize-rules";
+import { closeRound } from "./close-round";
 import { drawRoundResults } from "./draw-round-results";
 import { settleNumericRoundPrizes } from "./settle-numeric-round-prizes";
 
@@ -109,6 +110,20 @@ suite("PostgreSQL numeric round lifecycle", () => {
     if (roundIds.length) await prisma.round.deleteMany({ where: { id: { in: roundIds } } });
     if (playerId) await prisma.user.delete({ where: { id: playerId } });
     await prisma.$disconnect();
+  });
+
+  it("closes a round only once when scheduler executions race", async () => {
+    const round = await createRound(RoundStatus.SCHEDULED);
+    const [first, second] = await Promise.all([
+      closeRound(prisma, round.id),
+      closeRound(prisma, round.id),
+    ]);
+
+    expect(first.status).toBe(RoundStatus.CLOSED);
+    expect(second.status).toBe(RoundStatus.CLOSED);
+    expect(await prisma.auditEvent.count({
+      where: { entityType: "Round", entityId: round.id, action: "ROUND_CLOSED_AUTOMATICALLY" },
+    })).toBe(1);
   });
 
   it("returns one persisted result for simultaneous draw requests", async () => {
