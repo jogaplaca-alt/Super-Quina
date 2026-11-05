@@ -55,7 +55,7 @@ suite("PostgreSQL numeric round lifecycle", () => {
         playerId,
         status: PurchaseStatus.CONFIRMED,
         paymentMethod: PaymentMethod.CASH,
-        totalCents: 1,
+        totalCents: 100,
         idempotencyKey: `it-round-${suffix}-${purchaseIds.length}`,
         confirmedAt: new Date(),
       },
@@ -78,7 +78,7 @@ suite("PostgreSQL numeric round lifecycle", () => {
         tensCents: 0,
         hundredsCents: 0,
         thousandsCents: 0,
-        quinaCents: 1,
+        quinaCents: 100,
         ruleVersion: NUMERIC_PRIZE_RULE_VERSION,
         ruleSnapshot: snapshot as Prisma.InputJsonValue,
       },
@@ -138,7 +138,7 @@ suite("PostgreSQL numeric round lifecycle", () => {
       where: { idempotencyKey: `numeric-prize-credit:${line.id}` },
     })).toBe(1);
     const saved = await prisma.numericParticipationLine.findUniqueOrThrow({ where: { id: line.id } });
-    expect(saved.prizeCents).toBe(20_000);
+    expect(saved.prizeCents).toBe(2_000_000);
     expect(saved.prizeCreditedAt).not.toBeNull();
     expect(await prisma.auditEvent.count({
       where: { entityType: "Round", entityId: round.id, action: "NUMERIC_ROUND_PRIZES_SETTLED_AUTOMATICALLY" },
