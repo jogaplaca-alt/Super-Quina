@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { Prisma, PrismaClient, RoundStatus } from "../generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { createNumericPurchase } from "./purchases/create-numeric-purchase";
+import { allocatePaidPurchases } from "./purchases/allocate-paid-purchases";
 
 const enabled = process.env.RUN_POSTGRES_INTEGRATION === "1";
 const suite = enabled ? describe : describe.skip;
@@ -50,15 +51,15 @@ suite("PostgreSQL cashier settlement concurrency", () => {
   });
 
   it("places a cash sale after the settlement cutoff and includes its commission in the next settlement", async () => {
-    const now = Date.now();
-    const round = await prisma.round.create({ data: {
-      code: `IT-SETTLE-${suffix.slice(0, 12)}`,
-      startsAt: new Date(now - 60_000),
-      cutoffAt: new Date(now + 10 * 60_000),
-      resultAt: new Date(now + 20 * 60_000),
-      status: RoundStatus.SCHEDULED,
-    } });
-    roundIds.push(round.id);
+    // Create a CASH sale while no round is available: its commission exists,
+    // but the purchase is not yet confirmed and must not enter a settlement.
+    const sale = await createNumericPurchase(prisma, {
+      idempotencyKey: `it-settlement-cash-sale-${suffix}`,
+      cashierId, paymentMethod: "CASH", roundCount: 1, numbers: ["12345"], stakeCents: 100,
+    });
+    purchaseIds.push(sale.id);
+    expect(sale.status).toBe("PENDING_PAYMENT");
+    expect(await prisma.cashierCommission.count({ where: { purchaseId: sale.id } })).toBe(1);
 
     let releaseSettlement!: () => void;
     let signalSettlementLocked!: () => void;
@@ -88,15 +89,22 @@ suite("PostgreSQL cashier settlement concurrency", () => {
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
 
     await settlementLocked;
-    const salePromise = createNumericPurchase(prisma, {
-      idempotencyKey: `it-settlement-cash-sale-${suffix}`,
-      cashierId, paymentMethod: "CASH", roundCount: 1, numbers: ["12345"], stakeCents: 100,
-    });
-    // Let the competing sale reach its lock attempt before the settlement releases it.
+    // The allocator locks the purchase and then the same cashier row. It must
+    // wait for the settlement cutoff before confirming this delayed CASH sale.
+    const now = Date.now();
+    const round = await prisma.round.create({ data: {
+      code: `IT-SETTLE-${suffix.slice(0, 12)}`,
+      startsAt: new Date(now - 60_000),
+      cutoffAt: new Date(now + 10 * 60_000),
+      resultAt: new Date(now + 20 * 60_000),
+      status: RoundStatus.SCHEDULED,
+    } });
+    roundIds.push(round.id);
+    const allocationPromise = allocatePaidPurchases(prisma, 50);
     await new Promise((resolve) => setTimeout(resolve, 100));
     releaseSettlement();
-    const [first, sale] = await Promise.all([firstSettlement, salePromise]);
-    purchaseIds.push(sale.id);
+    const [first, allocation] = await Promise.all([firstSettlement, allocationPromise]);
+    expect(allocation.allocated).toBe(1);
 
     expect(first.totalSalesCents).toBe(0);
     expect(first.commissionCents).toBe(0);
