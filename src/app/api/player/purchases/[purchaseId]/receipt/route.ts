@@ -9,14 +9,14 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const user = await getSessionUser(request.cookies.get(SESSION_COOKIE)?.value);
   if (!user) return NextResponse.json({ error: "É necessário entrar na conta." }, { status: 401, headers });
   if (user.mustChangePassword) return NextResponse.json({ error: "Altere sua senha antes de continuar." }, { status: 403, headers });
-  if (user.role !== "ADMIN" && user.role !== "CASHIER") return NextResponse.json({ error: "Acesso não permitido." }, { status: 403, headers });
+  if (user.role !== "ADMIN" && user.role !== "CASHIER" && user.role !== "PLAYER") return NextResponse.json({ error: "Acesso não permitido." }, { status: 403, headers });
   const { purchaseId } = await context.params;
   if (!/^[a-zA-Z0-9_-]{8,100}$/.test(purchaseId)) return NextResponse.json({ error: "Compra não encontrada." }, { status: 404, headers });
   try {
-    const purchase = await authPrisma.purchase.findUnique({
-      where: { id: purchaseId },
+    const purchase = await authPrisma.purchase.findFirst({
+      where: user.role === "PLAYER" ? { id: purchaseId, playerId: user.id } : { id: purchaseId },
       select: {
-        id: true, createdAt: true, cashierId: true, status: true,
+        id: true, playerId: true, createdAt: true, cashierId: true, status: true,
         paymentMethod: true, totalCents: true, currency: true, receiptCode: true, confirmedAt: true,
         customer: { select: { name: true } },
         cashier: { select: { username: true, fullName: true } },
@@ -34,8 +34,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
         },
       },
     });
-    const ownsPurchase = user.role === "ADMIN" ||
-(user.role === "CASHIER" && purchase?.cashierId === user.id);
+    const ownsPurchase = user.role === "ADMIN"
+      || (user.role === "CASHIER" && purchase?.cashierId === user.id)
+      || (user.role === "PLAYER" && purchase?.playerId === user.id);
     if (!purchase || !ownsPurchase) return NextResponse.json({ error: "Compra não encontrada." }, { status: 404, headers });
     if (Date.now() >= purchase.createdAt.getTime() + 7 * 86400000) return NextResponse.json({ error: "O prazo de validade de 7 dias deste recibo terminou. Não é mais possível consultá-lo ou imprimi-lo." }, { status: 410, headers });
     const isCashSale = purchase.paymentMethod === "CASH";
