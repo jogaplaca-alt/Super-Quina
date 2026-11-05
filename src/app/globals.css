@@ -1589,3 +1589,105 @@ p, .intro, .auth-description, .area-description, .feature-card p,
     min-height: 0;
   }
 }
+
+
+/* Base visual consolidada: evita deformação do cabeçalho e desalinhamento entre áreas. */
+.site-header.site-header-scenery {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: clamp(88px, 12vw, 150px);
+  min-height: 0;
+  padding: 0 clamp(8px, 2vw, 20px);
+  overflow: hidden;
+  background: #07358f;
+}
+.site-header.site-header-scenery .site-header-scenery-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: contain;
+  object-position: center;
+}
+.area-page {
+  width: min(100%, 1440px);
+  min-height: 100vh;
+  margin-inline: auto;
+  padding: clamp(12px, 2.5vw, 36px) clamp(12px, 3vw, 44px) 28px;
+}
+.area-content,
+.area-content-compact {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: clamp(14px, 1.8vw, 22px);
+  width: 100%;
+  min-width: 0;
+  padding-top: clamp(16px, 2vw, 26px);
+}
+.area-content > *,
+.area-content-compact > *,
+.area-page .feature-card {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.area-page .feature-card {
+  padding: clamp(16px, 2vw, 28px);
+  border-radius: 16px;
+}
+.area-page .purchase-form,
+.area-page .admin-page-layout,
+.area-page .admin-accordion-list {
+  width: 100%;
+  min-width: 0;
+}
+.area-page img,
+.area-page table,
+.area-page input,
+.area-page select,
+.area-page textarea,
+.area-page button {
+  max-width: 100%;
+}
+.area-page .admin-accordion-content {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.area-logout-footer {
+  gap: 14px;
+  min-width: 0;
+}
+.auth-layout {
+  width: min(100%, 1440px);
+  margin-inline: auto;
+}
+.auth-layout .auth-card {
+  width: min(100%, 620px);
+}
+@media (max-width: 600px) {
+  .site-header.site-header-scenery {
+    height: clamp(76px, 20vw, 96px);
+    padding-inline: 6px;
+  }
+  .area-page {
+    padding: 8px 10px 18px;
+  }
+  .area-content,
+  .area-content-compact {
+    gap: 12px;
+    padding-top: 12px;
+  }
+  .area-page .feature-card {
+    padding: 12px;
+    border-radius: 13px;
+  }
+  .area-page-compact .area-header {
+    flex-wrap: wrap;
+  }
+  .area-page .admin-accordion-content {
+    padding-inline: 0;
+  }
+}
