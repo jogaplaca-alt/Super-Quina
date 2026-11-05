@@ -146,4 +146,20 @@ describe("POST /api/payments/mercadopago/webhook", () => {
     expect(response.status).toBe(503);
     expect(mocks.confirmPixPayment).not.toHaveBeenCalled();
   });
+  it("does not confirm twice when concurrent deliveries race to create the same event", async () => {
+    let createAttempts = 0;
+    mocks.createEvent.mockImplementation(async () => {
+      createAttempts += 1;
+      if (createAttempts === 1) return { id: "event-row-123", processedAt: null };
+      const conflict = Object.assign(new Error("Unique constraint violation"), { code: "P2002" });
+      throw conflict;
+    });
+
+    const [first, concurrent] = await Promise.all([POST(request()), POST(request())]);
+    const statuses = [first.status, concurrent.status].sort();
+    expect(statuses).toEqual([200, 503]);
+    expect(mocks.confirmPixPayment).toHaveBeenCalledTimes(1);
+    expect(createAttempts).toBe(2);
+  });
+
 });
