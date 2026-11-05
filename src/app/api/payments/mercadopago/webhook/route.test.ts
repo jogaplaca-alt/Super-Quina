@@ -100,7 +100,7 @@ describe("POST /api/payments/mercadopago/webhook", () => {
       purchase: { totalCents: 100 },
     });
     mocks.findEvent.mockResolvedValue(null);
-    mocks.createEvent.mockResolvedValue({ id: "event-row-123", processedAt: null });
+    mocks.createEvent.mockResolvedValue({ id: "event-row-123", processedAt: null, processingError: null });
     mocks.updatePayment.mockResolvedValue({});
     mocks.updateEventMany.mockResolvedValue({ count: 1 });
     mocks.confirmPixPayment.mockResolvedValue({ outcome: "confirmed" });
