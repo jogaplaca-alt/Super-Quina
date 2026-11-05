@@ -146,3 +146,13 @@ Branch de trabalho: `setup/super-quina`.
 - Commits desta sequência: `9c9e244ee9593745a652bfe16f80be00939b04ae`, `b84a56a13aea3a7576f3f10b370b105d964f3603`, `0554643d61fcd298740f107d340542292e460a44`, `32cf9cbda8f5c1087e5a212f6a9691988dfdbcea`, `97a1b290e71c048e7b61568191b738ee17483bbd` e `0e5a260bfdd096b03a0d33baa916ca917b967a69`.
 - **Validação pendente:** a alteração foi registrada na branch, mas ainda não há confirmação de execução verde do CI para o novo HEAD. Não declarar o bloco aprovado antes do workflow completo, incluindo PostgreSQL e build.
 - Nenhuma migration, alteração de banco de produção, secret, DNS ou deploy manual foi executado. A branch de trabalho continua `setup/super-quina`; `main` permanece intocada.
+
+
+## Auditoria incremental — estratégia única do scheduler (2026-11-05)
+
+- O contrato operacional documentado em `.env.example` é uma chamada externa a `POST /api/internal/round-scheduler` a cada minuto, autenticada por `ROUND_SCHEDULER_SECRET`.
+- A auditoria encontrou também `instrumentation.ts`, que iniciava um segundo mecanismo opcional dentro do processo Node a cada cinco segundos quando `ROUND_SCHEDULER_ENABLED=true`. Isso permitia duas estratégias simultâneas e criava ambiguidade operacional.
+- Removido `instrumentation.ts`. A estratégia de código passa a ser exclusivamente o endpoint protegido acionado pelo cron da AquaCloud, conforme o contrato já documentado. Não foi alterada a lógica de rodadas, pagamentos, alocação ou liquidação.
+- **Validação ambiental pendente:** ainda é necessário configurar/confirmar o cron na AquaCloud, verificar o secret sem expor seu valor, observar execuções recorrentes e confirmar logs/retentativas. A remoção do timer interno não configura o cron externo automaticamente.
+- O teste de integração PostgreSQL já existente cobre fechamento, sorteio e liquidação concorrentes por rodada; a suíte de alocação cobre disputa e checkpoint do cursor. Ainda falta teste de sobreposição do endpoint completo e medição de duração com volume representativo.
+- CI para o novo HEAD permanece pendente de confirmação. Nenhuma alteração de secrets, configuração do cron, banco de produção ou deploy manual foi realizada.
