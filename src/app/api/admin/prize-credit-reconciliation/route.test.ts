@@ -82,4 +82,30 @@ describe("admin prize credit reconciliation API", () => {
     expect((await POST(request("POST", { lineId: "line-123", reason: "Motivo de auditoria válido" }))).status).toBe(401);
     expect(mocks.transaction).not.toHaveBeenCalled();
   });
+  it("credits an eligible line and records the audit reason", async () => {
+    const response = await POST(request("POST", { lineId: "line-123", reason: "Correção validada pela auditoria" }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ success: true, player: "player", roundCode: "R-01", prizeCents: 1000, creditedNow: true });
+    expect(mocks.ledgerCreate).toHaveBeenCalledWith({ data: expect.objectContaining({
+      userId: "player-1", purchaseId: "purchase-1", participationId: "participation-1",
+      type: "PRIZE_CREDIT", amountCents: 1000, idempotencyKey: "numeric-prize-credit:line-123",
+    }) });
+    expect(mocks.lineUpdate).toHaveBeenCalledWith({ where: { id: "line-123" }, data: { prizeCreditedAt: expect.any(Date) } });
+    expect(mocks.auditCreate).toHaveBeenCalledWith({ data: expect.objectContaining({
+      actorId: "admin-1", action: "PLAYER_PRIZE_CREDIT_REPAIRED",
+      metadata: expect.objectContaining({ reason: "Correção validada pela auditoria", creditedNow: true }),
+    }) });
+  });
+
+  it("blocks an ineligible line without creating a ledger credit", async () => {
+    mocks.lineFindUnique.mockResolvedValue({
+      ...line,
+      participation: { ...line.participation, purchase: { ...line.participation.purchase, cashierId: "cashier-1" } },
+    });
+    const response = await POST(request("POST", { lineId: "line-123", reason: "Registro não elegível" }));
+    expect(response.status).toBe(409);
+    expect(mocks.ledgerCreate).not.toHaveBeenCalled();
+    expect(mocks.lineUpdate).not.toHaveBeenCalled();
+  });
+
 });
