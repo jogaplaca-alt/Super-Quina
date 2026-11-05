@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { PrismaPg } from "@prisma/adapter-pg";
 import {
   ParticipationStatus,
+  Prisma,
   PaymentMethod,
   PrismaClient,
   PurchaseStatus,
@@ -79,7 +80,7 @@ suite("PostgreSQL numeric round lifecycle", () => {
         thousandsCents: 0,
         quinaCents: 1,
         ruleVersion: NUMERIC_PRIZE_RULE_VERSION,
-        ruleSnapshot: snapshot as object,
+        ruleSnapshot: snapshot as Prisma.InputJsonValue,
       },
     });
     return { purchase, line };
