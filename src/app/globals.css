@@ -1691,3 +1691,123 @@ p, .intro, .auth-description, .area-description, .feature-card p,
     padding-inline: 0;
   }
 }
+
+
+/* Correção de overflow e organização dos formulários na área do cambista. */
+.area-page,
+.area-content,
+.area-content-compact,
+.area-page .feature-card,
+.numeric-game-purchase,
+.numeric-game-purchase form,
+.numeric-entry-row,
+.cashier-prize-payout,
+.cashier-prize-payout form {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.numeric-game-purchase form {
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.numeric-entry-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+  gap: 10px;
+}
+
+.numeric-entry-row > *,
+.numeric-entry-row input,
+.numeric-entry-row button {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.numeric-game-purchase input:not([type="checkbox"]),
+.numeric-game-purchase select,
+.numeric-game-purchase button,
+.cashier-prize-payout input,
+.cashier-prize-payout button {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.cashier-prize-payout {
+  width: 100%;
+  overflow: hidden;
+}
+
+.cashier-prize-payout-heading,
+.cashier-prize-lookup-form {
+  min-width: 0;
+  width: 100%;
+}
+
+.cashier-prize-payout-heading h2,
+.cashier-prize-payout-heading p {
+  overflow-wrap: anywhere;
+}
+
+.cashier-prize-lookup-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
+.cashier-prize-lookup-form label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.cashier-prize-lookup-form input,
+.cashier-prize-lookup-form button {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+}
+
+.cashier-prize-lines,
+.cashier-prize-line,
+.cashier-prize-line > div {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.cashier-prize-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  overflow-wrap: anywhere;
+}
+
+.cashier-prize-line button {
+  width: 100%;
+  white-space: normal;
+}
+
+@media (min-width: 700px) {
+  .cashier-prize-lookup-form {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: end;
+  }
+
+  .cashier-prize-lookup-form button {
+    grid-column: 1 / -1;
+  }
+
+  .cashier-prize-line {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .cashier-prize-line button {
+    width: auto;
+  }
+}
