@@ -1517,3 +1517,20 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   object-fit:cover;
   object-position:center;
 }
+
+/* Cabeçalho desktop: exibe a arte inteira em proporção natural, sem recorte. */
+@media screen and (min-width: 900px) {
+  .site-header-scenery {
+    height: auto;
+    min-height: 0;
+  }
+
+  .site-header-scenery-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    object-fit: contain;
+    object-position: center;
+  }
+}
