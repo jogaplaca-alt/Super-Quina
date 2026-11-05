@@ -266,3 +266,24 @@ Esta seção prevalece sobre exemplos genéricos anteriores quando houver diverg
 - Critérios de aceite: testes unitários de bytes/acentos/limites; concorrência da reserva no PostgreSQL; autorização de PLAYER/CASHIER/ADMIN; permissões concedidas/negadas; falhas e timeout SPP; aparelhos reais 58/80 mm com e sem corte; versões Android suportadas; lint, typecheck, testes e builds web/Android.
 - Assinatura do APK deve usar chaves e senhas fora do repositório e do binário, via secrets protegidos. Validar instalação e atualização. O app remoto depende de domínio, TLS, rede e disponibilidade do site; não prometer operação offline completa.
 
+## Registro persistente de impressão — primeira camada
+
+Na branch `setup/super-quina` foi criada a estrutura persistente para separar o estado financeiro do estado físico da impressora:
+
+- `PrintJob` registra compra, finalidade, estado, dispositivo e timestamps.
+- `AUTO_RECEIPT` usa `autoReceiptKey = purchaseId` com restrição única no PostgreSQL. Polling ou duas instâncias concorrentes não podem reservar duas impressões automáticas para a mesma compra.
+- `MANUAL_REPRINT` sempre cria um novo registro, sem reutilizar a chave automática, preservando auditoria de cada reimpressão.
+- A reserva automática verifica compra confirmada, código de recibo, data de confirmação e confirmação do pagamento Pix. A validade segue o limite de sete dias já aplicado pela rota oficial.
+- O serviço valida o proprietário para reimpressão manual (PLAYER/CASHIER) e permite ADMIN, sem expor a existência de compras alheias.
+- A máquina de estados permite `RESERVED -> SENDING -> SENT|FAILED|UNKNOWN`. Falha de codificação pode ser registrada como `FAILED` antes do envio. `SENDING`, `SENT` e `UNKNOWN` não são reiniciados automaticamente.
+
+Arquivos adicionados:
+- `prisma/migrations/20261105010000_print_job_ledger/migration.sql`
+- `src/modules/printing/print-job-service.ts`
+- `src/modules/printing/print-job-service.test.ts`
+
+A tela de compra também passou a impedir consultas de status simultâneas: se uma requisição de polling ainda estiver em andamento, a próxima verificação de três segundos é ignorada.
+
+### Limites desta camada
+
+A estrutura do banco e o serviço de domínio estão preparados, mas ainda não há rota HTTP que reserve o job nem integração com a ponte Bluetooth. Não disparar impressão automática até implementar e validar os endpoints autenticados, a ponte SPP e o tratamento do resultado de escrita. Em caso de resultado de transporte incerto, registrar `UNKNOWN` e exigir ação explícita do usuário; não repetir automaticamente.
