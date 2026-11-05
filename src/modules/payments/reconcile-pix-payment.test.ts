@@ -95,6 +95,28 @@ describe("reconcilePixPaymentFromProvider", () => {
     });
   });
 
+  it("rejects a provider order whose total differs from the persisted payment", async () => {
+    const prisma = makePrisma();
+    mocks.getVerifiedPixOrder.mockResolvedValue({
+      orderId: "order-1", externalReference: "superquina_purchase_purchase-1", currency: "BRL", amountCents: 199,
+      status: "created", statusDetail: null, paymentStatus: null, paymentAmountCents: null, paymentMethodId: null, paymentMethodType: null,
+    });
+    await expect(reconcilePixPaymentFromProvider(prisma as never, "payment-1")).rejects.toThrow("Mercado Pago order does not match the pending Pix purchase");
+    expect(prisma.payment.update).not.toHaveBeenCalled();
+    expect(mocks.confirmPixPayment).not.toHaveBeenCalled();
+  });
+
+  it("does not confirm an approved-looking order with a mismatched external reference", async () => {
+    const prisma = makePrisma();
+    mocks.getVerifiedPixOrder.mockResolvedValue({
+      orderId: "order-1", externalReference: "superquina_purchase_another-purchase", currency: "BRL", amountCents: 200,
+      status: "processed", statusDetail: "accredited", paymentStatus: "processed", paymentAmountCents: 200, paymentMethodId: "pix", paymentMethodType: "bank_transfer",
+    });
+    mocks.classifyPixOrderStatus.mockReturnValue({ providerStatus: "processed", normalizedStatus: "processed", approved: true });
+    await expect(reconcilePixPaymentFromProvider(prisma as never, "payment-1")).rejects.toThrow("Mercado Pago order does not match the pending Pix purchase");
+    expect(mocks.confirmPixPayment).not.toHaveBeenCalled();
+  });
+
   it("rejects an approved order that is not a Pix bank transfer", async () => {
     const prisma = makePrisma();
     mocks.getVerifiedPixOrder.mockResolvedValue({
