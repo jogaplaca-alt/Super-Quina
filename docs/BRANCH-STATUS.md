@@ -190,3 +190,12 @@ Branch de trabalho: `setup/super-quina`.
 - **Validação pendente:** ainda não foi executado CI para os novos commits nem teste PostgreSQL concorrente específico do fechamento contra o banco local descartável. Os testes de rota usam mocks; a revisão estática não equivale a prova concorrente real. Não declarar o financeiro homologado.
 - O botão “Zerar para novo acerto” apenas registra um corte/snapshot e inicia o próximo período; não realiza transferência bancária, pagamento automático de comissão nem liquidação financeira externa. O histórico é preservado.
 - Não foram alterados dados de produção, migrations, secrets, DNS ou hospedagem. Nenhum deploy foi realizado. Branch ativa: `setup/super-quina`; `main` e demais branches permanecem intocadas.
+
+
+### Teste de concorrência do fechamento — complemento
+
+- Criado `src/modules/cashier-settlement-concurrency.postgres.integration.test.ts`.
+- O cenário cobre a falha histórica de comissão: cria venda CASH sem rodada disponível (compra pendente, comissão já existente), registra um acerto enquanto a venda ainda está pendente e, depois do corte, executa a alocação tardia com a mesma trava do cambista.
+- Verifica que o primeiro acerto não inclui a venda/comissão pendente, que a alocação confirma a venda depois do corte e que o próximo período inclui o valor da venda e sua comissão exatamente uma vez.
+- O teste usa Prisma/PostgreSQL real, chama `createNumericPurchase` e `allocatePaidPurchases`, e recusa execução fora de host local e banco `superquina_test`. Foi incluído em `npm run test:postgres`.
+- O teste foi adicionado ao repositório, mas ainda não foi executado neste ambiente. A espera concorrente usa uma breve janela de sincronização; a validação efetiva depende de executar a suíte em PostgreSQL local descartável.
