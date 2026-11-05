@@ -66,7 +66,7 @@ export default async function AdminCashierDetailPage({ params, searchParams }: {
     authPrisma.cashierSettlement.count({ where: { cashierId } }),
     authPrisma.purchase.aggregate({ where: { cashierId, status: "CONFIRMED", paymentMethod: "CASH", confirmedAt: { gt: since } }, _sum: { totalCents: true }, _count: { _all: true } }),
     authPrisma.purchase.aggregate({ where: { cashierId, status: "CONFIRMED", paymentMethod: "PIX", confirmedAt: { gt: since }, payment: { is: { status: "CONFIRMED" } } }, _sum: { totalCents: true }, _count: { _all: true } }),
-    authPrisma.cashierCommission.aggregate({ where: { cashierId, createdAt: { gt: since }, purchase: { is: { status: "CONFIRMED" } } }, _sum: { amountCents: true } }),
+    authPrisma.cashierCommission.aggregate({ where: { cashierId, purchase: { is: { status: "CONFIRMED", confirmedAt: { gt: since } } } }, _sum: { amountCents: true } }),
     authPrisma.numericParticipationLine.count({ where: { participation: { is: { status: "CONFIRMED", purchase: { is: { cashierId, status: "CONFIRMED", confirmedAt: { gt: since } } } } } } }),
     authPrisma.numericPrizePayout.aggregate({ where: { cashierId, channel: "CASHIER_CASH", settlementId: null, paidAt: { gt: since } }, _sum: { amountCents: true }, _count: { _all: true } }),
   ]);
