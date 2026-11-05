@@ -95,3 +95,34 @@ Branch de trabalho: `setup/super-quina`.
 
 - Auditoria adicional da consulta pública: `receipt-verification` e `ticket-check` usam `prizeCreditedAt` como indicador de prêmio pago/premiado. Esse campo representa crédito na carteira e não pode ser reutilizado para baixa de Pix externo de cambista. A API de recibo exibe `cashier.fullName` ou `username`; falta confirmar que isso corresponde à identificação comercial do ponto de venda. A API `ticket-check` também aplica janela de 7 dias, regra que deve ser avaliada para não conflitar com a consulta QR do recibo.
 - Plano atualizado com essas divergências no commit `0c3ee07b76962b9d476eb2f4b2134955a83eb369`.
+
+
+## Fechamento da auditoria incremental — 2026-11-05
+
+### CI confirmado no commit de trabalho
+- Commit: `f8f02e0512ca443743c2d2689262c30074ec47e1` — `test: cover Mercado Pago webhook retries and duplicates`.
+- GitHub Actions execução #433, run `41974462763`: **conclusão success**.
+- Passaram: validação/geração Prisma, TypeScript, testes unitários e de rotas, lint, migrations em PostgreSQL limpo, testes de integração PostgreSQL e build de produção.
+- A suíte nova `src/app/api/payments/mercadopago/webhook/route.test.ts` passou com os cenários de assinatura inválida, evento duplicado já processado, falha transitória com reentrega e pagamento ainda não mapeado.
+- Execução: https://github.com/jpveiculos/Super-Quina/actions/runs/41974462763
+- Esse resultado comprova o pipeline no commit indicado; não comprova pagamento real, webhook real, secrets ou comportamento no Hydro.
+
+### Reconciliação com main — situação atual
+- Comparação GitHub de `main` com `setup/super-quina`: estado `diverged`, 512 commits à frente e 12 atrás, segundo a API de comparação.
+- A comparação inversa identificou como alterações exclusivas da ponta atual de `main` a remoção de `.gitignore` e `README.md`. O HEAD de `main` é o commit `3a9d2f623e4c113bf31ba292846bccbfca6eddc2`, cuja mensagem é `Delete .gitignore`; seu tree aponta para a árvore vazia.
+- Não integrar essa ponta de `main` automaticamente. Antes de qualquer integração, preservar e revisar os commits e o estado da branch, e decidir explicitamente como recuperar os arquivos removidos. Nenhum merge, rebase, cherry-pick ou alteração de `main` foi feito.
+- Este inventário substitui números anteriores de divergência registrados neste documento; eles estavam desatualizados.
+
+### Estado técnico e gates restantes
+- A rota do webhook valida assinatura, consulta o estado canônico do pedido no Mercado Pago, confere referência externa, moeda, valor e método Pix, e converge para o serviço central de confirmação/cancelamento.
+- O scheduler chama a liquidação central de prêmios após o sorteio, com lock da rodada e idempotência por linha; o CI acima passou nos testes atuais de rota e integração de ciclo de rodadas.
+- Ainda falta teste PostgreSQL concorrente específico para corrida entre webhook e polling, reentrega simultânea do mesmo evento e notificação terminal fora de ordem. Os testes recentes do webhook são testes de rota com mocks, não homologação de concorrência real.
+- Permanecem sem comprovação: credenciais e webhook URL no painel Mercado Pago, variáveis/secrets no Hydro, criação efetiva do primeiro ADMIN, execução recorrente do scheduler no servidor, backup/restauração, monitoramento e homologação ponta a ponta de Pix, saques, comissões, prêmios e recibos.
+- A cadeia de migrations deve ser aplicada somente num banco novo e vazio, conforme a regra de não importar dados legados. Não executar em produção nesta fase.
+- A impressão Bluetooth ainda não foi implementada. Antes de iniciar, identificar os modelos exatos das impressoras e confirmar se usam BLE/GATT ou Bluetooth Classic/SPP; a impressão direta pelo navegador não é universal.
+
+### Decisão operacional
+- Auditoria de código e CI: avançada, com pipeline verde no commit citado.
+- Liberação/implantação: **não aprovada ainda**, devido aos gates ambientais e de homologação acima e à divergência da branch.
+- Próxima sequência segura: resolver documentalmente a preservação/reconciliação de `main`; acrescentar testes PostgreSQL concorrentes do webhook; validar configuração e homologação no ambiente novo somente com autorização explícita; depois identificar impressoras e iniciar a etapa Bluetooth.
+- Nenhum deploy, alteração de secrets, banco de produção, DNS ou integração Bluetooth foi executado.
