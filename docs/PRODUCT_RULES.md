@@ -30,7 +30,7 @@ O total da compra é:
 
 `valor por número em cada rodada × quantidade de números × quantidade de repetições`
 
-A alocação de cada aposta entre unidade, dezena, centena, milhar e quina é uma regra de premiação separada da quantidade de números e da quantidade de repetições.
+A aposta mínima é de R$ 1,00 por número em cada rodada. Esse valor concorre simultaneamente às cinco categorias: unidade, dezena, centena, milhar e quina. O valor em centavos é rateado igualmente entre as cinco categorias; eventual sobra de centavos é acrescentada à unidade. Exemplo: R$ 1,00 resulta em 20 centavos para cada categoria. A alocação é registrada separadamente por categoria para calcular o prêmio correspondente.
 
 ## 3. Pagamento e vínculo com rodadas
 
