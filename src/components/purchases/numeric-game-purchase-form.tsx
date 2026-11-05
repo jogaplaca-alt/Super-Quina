@@ -70,7 +70,10 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
     const endpoint = mode === "PLAYER"
       ? `/api/player/purchases/${encodeURIComponent(purchase.id)}/status`
       : `/api/cashier/purchases/${encodeURIComponent(purchase.id)}/status`;
+    let checking = false;
     const check = async () => {
+      if (!active || checking) return;
+      checking = true;
       try {
         const response = await fetch(endpoint, { cache: "no-store" });
         if (!response.ok) return;
@@ -98,6 +101,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
           }
         }
       } catch { /* A falha temporária de consulta não altera o estado financeiro. */ }
+      finally { checking = false; }
     };
     void check();
     const timer = window.setInterval(() => { void check(); }, 3000);
