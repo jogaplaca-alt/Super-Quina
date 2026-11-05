@@ -1,6 +1,6 @@
 # Plano de autenticação e autorização
 
-Status: documento histórico do desenho inicial de autenticação. A implementação vigente está na branch oficial `Principal`; a aprovação para produção depende das validações e controles descritos neste documento.
+Status: documento histórico do desenho inicial de autenticação. A implementação vigente está na branch oficial `main`; a aprovação para produção depende das validações e controles descritos neste documento.
 A CI do commit `c0fbd833a4fc5b05ef2fe396ac12dbf079dc0ea8` passou nos três jobs (verificação, migrações e testes PostgreSQL). Commits posteriores de preparação/deferimento de provisionamento ainda precisam de CI própria.
 Este documento não habilita acesso administrativo nem substitui código/testes.
 
@@ -42,7 +42,7 @@ Já existem hash de senha, login/logout, sessões opacas persistidas e endpoint 
 
 ## Limites operacionais
 
-- Trabalhar exclusivamente na branch oficial `Principal`; não criar branches paralelas para o fluxo normal.
+- Trabalhar exclusivamente na branch oficial `main`; não criar branches paralelas para o fluxo normal.
 - Não acessar banco ou segredos de produção, não provisionar conta real, não implantar e não iniciar cobranças/webhooks.
 - A rota de fechamento permanece inexistente até a autenticação e autorização acima serem implementadas e verificadas.
 
