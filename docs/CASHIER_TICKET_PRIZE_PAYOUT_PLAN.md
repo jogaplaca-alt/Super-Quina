@@ -20,7 +20,7 @@
 11. Após a baixa, a consulta pública do mesmo QR Code deve exibir imediatamente `PRÊMIO PAGO`.
 12. Não criar uma segunda apuração, outro ledger de carteira, outra consulta pública ou outro worker. Ampliar os serviços, páginas e rotas atuais.
 
-## 2. Auditoria inicial — evidências encontradas na branch Principal
+## 2. Auditoria inicial — evidências encontradas na branch main
 
 | Área | Evidência atual | Situação |
 |---|---|---|
