@@ -31,6 +31,10 @@ export async function confirmPixPayment(
           return { outcome: "already_confirmed", receiptCode: paymentRow.purchase.receiptCode } as const;
         }
         if (paymentRow.status !== "PENDING" || paymentRow.purchase.status !== "PENDING_PAYMENT") return { outcome: "not_pending" } as const;
+        // The cashier row is the shared lock used by settlement and cashier sales.
+        if (paymentRow.purchase.cashierId) {
+          await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${paymentRow.purchase.cashierId} AND "role" = 'CASHIER' FOR UPDATE`;
+        }
         if (paymentRow.amountCents !== paymentRow.purchase.totalCents) throw new Error("Persisted payment and purchase totals do not match");
 
         const participations = await tx.purchaseParticipation.findMany({
