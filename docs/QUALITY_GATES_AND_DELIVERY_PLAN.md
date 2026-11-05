@@ -319,3 +319,13 @@ Esta seção registra auditoria estática inicial. Nenhum código ou banco foi a
 - A alteração não muda a regra do jogo, o algoritmo aleatório, o formato de cinco dígitos, permissões, scheduler ou schema.
 - **Validação pendente:** ainda não há teste de integração PostgreSQL do ciclo de rodadas no comando `test:postgres`. A próxima ação é implementar e executar testes reais de concorrência para sorteio e liquidação, incluindo crédito único e rollback. Não declarar o bloco concluído até CI comprovar.
 - Nenhum banco de produção, secret, migration ou deploy foi alterado.
+
+
+## 12. Continuação do Bloco 4 — integração PostgreSQL do ciclo de rodadas (2026-11-04)
+
+- Criada a suíte `src/modules/rounds/round-lifecycle.postgres.integration.test.ts`, habilitada somente com `RUN_POSTGRES_INTEGRATION=1`.
+- A suíte recusa conexão fora de uma base local chamada `superquina_test`, evitando execução acidental contra banco remoto/de produção.
+- Cenários incluídos: duas solicitações simultâneas de sorteio retornam o mesmo resultado de cinco dígitos e produzem um único evento; duas liquidações simultâneas geram um único lançamento de prêmio e um único evento; snapshot inválido provoca rollback sem crédito parcial nem marcação da linha como paga.
+- O script `npm run test:postgres` agora executa essa suíte junto com a integração existente de limite de tentativas de login.
+- **Validação pendente:** o commit precisa passar no CI com migrations limpas e PostgreSQL 16. Se falhar, corrigir o teste ou serviço conforme a causa; não considerar o bloco concluído antes do resultado verde.
+- Nenhuma alteração em banco de produção, secrets, migration ou deploy.
