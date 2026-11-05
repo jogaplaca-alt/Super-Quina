@@ -13,7 +13,7 @@ suite("PostgreSQL Pix confirmation/cancellation race", () => {
   if (enabled) {
     const parsed = new URL(databaseUrl);
     if (!["localhost", "127.0.0.1", "::1", "postgres"].includes(parsed.hostname) ||
-        parsed.pathname.replace(/^\\//, "").split("?")[0] !== "superquina_test") {
+        parsed.pathname.replace(/^\//, "").split("?")[0] !== "superquina_test") {
       throw new Error("Refusing to run Pix integration tests outside the local superquina_test database");
     }
   }
