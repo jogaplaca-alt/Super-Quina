@@ -150,6 +150,8 @@ export function encodeThermalReceipt(receipt: ThermalReceiptForEncoding, profile
   const feedLines = profile.feedLines ?? 3;
   assertInteger(feedLines, "feed lines", 0, 10);
 
+  const paymentMethod = cleanLabel(receipt.paymentMethod, "payment method");
+  if (!paymentMethod) throw new Error("Invalid payment method");
   const customer = cleanLabel(receipt.customerLabel, "customer label");
   const cashier = cleanLabel(receipt.cashierLabel, "cashier label");
   const columns = profile.columns;
@@ -162,7 +164,7 @@ export function encodeThermalReceipt(receipt: ThermalReceiptForEncoding, profile
   bytes.push(...line(new Date(receipt.issuedAt).toISOString().slice(0, 16).replace("T", " "), profile));
   bytes.push(ESC, 0x61, 0x00);
   bytes.push(...line("RECIBO: " + receipt.receiptCode, profile));
-  for (const part of wrap("PAGAMENTO: " + cleanLabel(receipt.paymentMethod, "payment method"), columns)) bytes.push(...line(part, profile));
+  for (const part of wrap("PAGAMENTO: " + paymentMethod, columns)) bytes.push(...line(part, profile));
   if (customer) for (const part of wrap("CLIENTE: " + customer, columns)) bytes.push(...line(part, profile));
   if (cashier) for (const part of wrap("CAMBISTA: " + cashier, columns)) bytes.push(...line(part, profile));
   bytes.push(...line("-".repeat(columns), profile));
