@@ -102,3 +102,16 @@ O APK não deve chamar `confirmPixPayment`, acessar credenciais do Mercado Pago 
 ### Pendência de auditoria de rotas
 
 Os módulos de domínio foram identificados, mas a rota HTTP real e o componente de interface que exibem o QR Code/recibo ainda não foram confirmados nesta etapa. Não conectar o gatilho de impressão a uma rota presumida. Antes da implementação, localizar esses dois pontos no repositório e verificar autenticação, autorização do dono da compra e formato dos dados do recibo.
+
+## Integração inicial do recibo do jogador
+
+A auditoria encontrou uma lacuna funcional: a rota `GET /api/player/purchases/[purchaseId]/receipt` estava limitada a ADMIN/CASHIER, embora o jogador seja o dono da compra Pix; além disso, a interface de compra só montava o componente de recibo para CASHIER.
+
+Correção aplicada na branch:
+
+- A rota agora aceita PLAYER, mas consulta a compra com filtro simultâneo por `id` e `playerId`. Compra de outro jogador retorna 404.
+- ADMIN continua podendo consultar; CASHIER continua restrito ao próprio `cashierId`.
+- O polling do pagamento agora abre o componente de recibo oficial também para PLAYER quando `receiptReady` chega verdadeiro.
+- Os testes da rota cobrem acesso do próprio jogador e bloqueio de recibo de outro jogador.
+
+Limite desta entrega: isso libera a apresentação e impressão manual do recibo oficial já confirmado. Ainda não habilita impressão automática Bluetooth. A ponte nativa SPP/ESC-POS, a reserva idempotente da impressão automática e a reimpressão explícita ainda dependem da instalação do runtime Capacitor e do serviço nativo Android.
