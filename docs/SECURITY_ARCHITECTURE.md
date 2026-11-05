@@ -18,7 +18,7 @@ Este documento define guardrails de implementação, não uma afirmação de que
 
 ## Processo de trabalho
 1. Inspecionar o estado atual e documentar decisões antes de escolher a stack.
-2. Implementar exclusivamente na branch oficial `Principal`; não criar branches paralelas para o fluxo normal.
+2. Implementar exclusivamente na branch oficial `main`; não criar branches paralelas para o fluxo normal.
 3. Entregar mudanças pequenas, com testes e resumo dos arquivos/impactos.
 4. Revisar segurança, compatibilidade e migrações antes de abrir/mesclar PR.
 5. Confirmar variáveis e configurações de ambiente sem expor valores secretos.
