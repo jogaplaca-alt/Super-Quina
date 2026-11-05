@@ -1,7 +1,7 @@
 # Auditoria do fluxo de recibo e impressão — Android
 
 Data: 2026-11-05  
-Branch: `setup/super-quina`
+Branch: `Principal`
 
 ## Resultado da auditoria
 
