@@ -7,7 +7,7 @@ O APK é uma aplicação Android nativa com Capacitor que abre a aplicação Nex
 - Aplicação web de produção: `https://superquina.com`
 - Identificador Android: `com.superquina.app`
 - Nome: `Super Quina`
-- Branch isolada: `Principal`
+- Branch isolada: `main`
 - Hospedagem autorizada: AquaCloud
 - Não gerar exportação estática do Next.js.
 - Não adicionar URLs, variáveis ou referências a outros provedores de hospedagem.
@@ -86,7 +86,7 @@ Regras:
 
 A auditoria e a documentação podem ser versionadas pelo GitHub. A sincronização `npx cap sync android`, a instalação npm, a compilação Gradle e os testes em hardware exigem um ambiente de execução Node/Android; não devem ser declarados executados apenas por alterar arquivos no GitHub.
 
-## Auditoria do fluxo Pix existente (branch `Principal`)
+## Auditoria do fluxo Pix existente (branch `main`)
 
 A leitura dos módulos reais confirmou que já existe uma camada de domínio para confirmação/cancelamento, portanto a integração de impressão deve reutilizá-la e não criar uma segunda confirmação paralela:
 
@@ -268,7 +268,7 @@ Esta seção prevalece sobre exemplos genéricos anteriores quando houver diverg
 
 ## Registro persistente de impressão — primeira camada
 
-Na branch `Principal` foi criada a estrutura persistente para separar o estado financeiro do estado físico da impressora:
+Na branch `main` foi criada a estrutura persistente para separar o estado financeiro do estado físico da impressora:
 
 - `PrintJob` registra compra, finalidade, estado, dispositivo e timestamps.
 - `AUTO_RECEIPT` usa `autoReceiptKey = purchaseId` com restrição única no PostgreSQL. Polling ou duas instâncias concorrentes não podem reservar duas impressões automáticas para a mesma compra.
