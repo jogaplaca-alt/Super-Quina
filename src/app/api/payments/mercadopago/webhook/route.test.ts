@@ -128,15 +128,20 @@ describe("POST /api/payments/mercadopago/webhook", () => {
 
     const first = await POST(request());
     expect(first.status).toBe(503);
-    expect(mocks.updateEventMany).not.toHaveBeenCalled();
+    expect(mocks.updateEventMany).toHaveBeenCalledTimes(2);
+    expect(mocks.updateEventMany).toHaveBeenLastCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ id: "event-row-123", processedAt: null }),
+      data: { processingError: null },
+    }));
 
-    // The event exists but remains unprocessed, as it would after the failed attempt.
-    mocks.findEvent.mockResolvedValue({ id: "event-row-123", processedAt: null });
+    // The event exists but its claim was released after the transient failure.
+    mocks.findEvent.mockResolvedValue({ id: "event-row-123", processedAt: null, processingError: null });
     const retry = await POST(request());
     expect(retry.status).toBe(200);
     expect(mocks.confirmPixPayment).toHaveBeenCalledTimes(2);
     expect(mocks.updateEventMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: { id: "event-row-123", processedAt: null },
+      where: expect.objectContaining({ id: "event-row-123", processedAt: null, processingError: expect.stringMatching(/^processing:/) }),
+      data: expect.objectContaining({ processedAt: expect.any(Date), processingError: null }),
     }));
   });
 
@@ -146,6 +151,26 @@ describe("POST /api/payments/mercadopago/webhook", () => {
     expect(response.status).toBe(503);
     expect(mocks.confirmPixPayment).not.toHaveBeenCalled();
   });
+  it("allows only one concurrent delivery to claim an existing unprocessed event", async () => {
+    let claimAcquired = false;
+    mocks.findEvent.mockResolvedValue({ id: "event-row-123", processedAt: null, processingError: null });
+    mocks.updateEventMany.mockImplementation(async (args: {
+      where: { processingError?: string | null };
+      data: { processingError?: string | null; processedAt?: Date };
+    }) => {
+      if (typeof args.data.processingError === "string" && args.data.processingError.startsWith("processing:")) {
+        if (claimAcquired) return { count: 0 };
+        claimAcquired = true;
+        return { count: 1 };
+      }
+      return { count: 1 };
+    });
+
+    const [first, concurrent] = await Promise.all([POST(request()), POST(request())]);
+    expect([first.status, concurrent.status].sort()).toEqual([200, 503]);
+    expect(mocks.confirmPixPayment).toHaveBeenCalledTimes(1);
+  });
+
   it("does not confirm twice when concurrent deliveries race to create the same event", async () => {
     let createAttempts = 0;
     mocks.createEvent.mockImplementation(async () => {
