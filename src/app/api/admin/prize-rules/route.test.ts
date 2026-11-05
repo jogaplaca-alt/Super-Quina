@@ -49,7 +49,7 @@ describe("admin prize rules API", () => {
     const response = await GET(request());
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toContain("no-store");
-    expect(await response.json()).toMatchObject({ multipliers: { unit: 1, tens: 10, hundreds: 100, thousands: 1000, quina: 10000 }, updatedAt: null });
+    expect(await response.json()).toMatchObject({ multipliers: { unit: 5, tens: 20, hundreds: 200, thousands: 2000, quina: 20000 }, updatedAt: null });
   });
 
   it("rejects cross-origin and invalid multiplier updates", async () => {
