@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
         prizePayout: { select: { channel: true, paidAt: true } },
         participation: { select: {
           id: true, round: { select: { id: true, code: true, resultAt: true, resultNumber: true } },
-          purchase: { select: { id: true, createdAt: true, playerId: true, player: { select: { username: true } } } },
+          purchase: { select: { id: true, createdAt: true, playerId: true, currency: true, player: { select: { username: true } } } },
         } },
       },
       orderBy: [{ createdAt: "asc" }, { id: "asc" }], take: 200,
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
         ledgerEntryExists: Boolean(entry),
         ledgerMatches: Boolean(entry && entry.userId === line.participation.purchase.playerId &&
           entry.purchaseId === line.participation.purchase.id && entry.amountCents === line.prizeCents &&
-          entry.currency === "BRL" && entry.type === "PRIZE_CREDIT" &&
+          entry.currency === line.participation.purchase.currency && entry.type === "PRIZE_CREDIT" &&
           entry.participationId === line.participation.id),
         prizeCreditedAt: line.prizeCreditedAt?.toISOString() ?? null,
         payoutExists: Boolean(line.prizePayout),
