@@ -165,22 +165,20 @@ suite("PostgreSQL paid purchase allocation concurrency", () => {
               return result;
             };
           }
-          if (method === "upsert") {
-            return async (args: Parameters<typeof prisma.setting.upsert>[0]) => {
-              const value = args.update.value;
+          if (method === "updateMany") {
+            return async (args: Parameters<typeof prisma.setting.updateMany>[0]) => {
+              const value = args.data.value;
               if (kind === "wide" && value === wideCursor) {
-                const result = await prisma.setting.upsert(args);
-                checkpointWritten = true;
+                const result = await prisma.setting.updateMany(args);
+                checkpointWritten = result.count === 1;
                 releaseWideCheckpoint();
                 return result;
               }
               if (kind === "short" && value === shortCursor) {
                 await wideCheckpointWritten;
-                const result = await prisma.setting.upsert(args);
-                checkpointWritten = true;
-                return result;
+                return prisma.setting.updateMany(args);
               }
-              return prisma.setting.upsert(args);
+              return prisma.setting.updateMany(args);
             };
           }
           const value = Reflect.get(delegate, method, delegate);
@@ -219,15 +217,15 @@ suite("PostgreSQL paid purchase allocation concurrency", () => {
       allocatePaidPurchases(makeExecutionClient("wide"), 2),
     ]);
 
-    expect(outcomes.every((outcome) => outcome.status === "rejected")).toBe(true);
+    expect(outcomes[0]?.status).toBe("fulfilled");
+    expect(outcomes[1]?.status).toBe("rejected");
     const savedCursor = await prisma.setting.findUnique({
       where: { key: ALLOCATION_CURSOR_KEY },
       select: { value: true },
     });
-    // The wider run checkpoints the later ID first. The shorter run then
-    // overwrites it with its stale, earlier ID: the race this test is designed
-    // to reproduce. Both runs are interrupted before another batch can reset it.
-    expect(savedCursor?.value).toBe(shortCursor);
+    // The wider run checkpoints the later ID first. The shorter run's
+    // compare-and-set must fail rather than overwrite that newer checkpoint.
+    expect(savedCursor?.value).toBe(wideCursor);
   }, 30_000);
 
 });
