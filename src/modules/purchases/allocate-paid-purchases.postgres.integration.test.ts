@@ -113,4 +113,121 @@ suite("PostgreSQL paid purchase allocation concurrency", () => {
     expect(lines).toBe(1);
     expect(audits).toBe(1);
   });
+
+  it("reproduces a stale cursor overwrite when overlapping runs checkpoint out of order", async () => {
+    const testPurchases = await Promise.all([0, 1].map((index) => prisma.purchase.create({
+      data: {
+        status: PurchaseStatus.PENDING_PAYMENT,
+        paymentMethod: PaymentMethod.CASH,
+        totalCents: 100,
+        idempotencyKey: `it-alloc-cursor-race-${suffix}-${index}`,
+        numericIntent: {
+          create: {
+            roundCount: 1,
+            numbers: ["12345"],
+            allocation: { unitCents: 20, tensCents: 20, hundredsCents: 20, thousandsCents: 20, quinaCents: 20 },
+            ruleVersion: NUMERIC_PRIZE_RULE_VERSION,
+            ruleSnapshot: createNumericPrizeRuleSnapshot(),
+          },
+        },
+      },
+    })));
+    purchaseIds.push(...testPurchases.map((purchase) => purchase.id));
+
+    const orderedIds = testPurchases.map((purchase) => purchase.id).sort();
+    const shortCursor = orderedIds[0]!;
+    const wideCursor = orderedIds[1]!;
+
+    await prisma.setting.upsert({
+      where: { key: ALLOCATION_CURSOR_KEY },
+      create: { key: ALLOCATION_CURSOR_KEY, value: "" },
+      update: { value: "" },
+    });
+
+    let cursorReads = 0;
+    let releaseCursorReads!: () => void;
+    const bothCursorReads = new Promise<void>((resolve) => { releaseCursorReads = resolve; });
+    let releaseWideCheckpoint!: () => void;
+    const wideCheckpointWritten = new Promise<void>((resolve) => { releaseWideCheckpoint = resolve; });
+
+    const makeExecutionClient = (kind: "short" | "wide"): PrismaClient => {
+      let checkpointWritten = false;
+      let interrupted = false;
+
+      const setting = new Proxy(prisma.setting, {
+        get(delegate, method) {
+          if (method === "findUnique") {
+            return async (args: Parameters<typeof prisma.setting.findUnique>[0]) => {
+              const result = await prisma.setting.findUnique(args);
+              cursorReads += 1;
+              if (cursorReads === 2) releaseCursorReads();
+              await bothCursorReads;
+              return result;
+            };
+          }
+          if (method === "upsert") {
+            return async (args: Parameters<typeof prisma.setting.upsert>[0]) => {
+              const value = args.update.value;
+              if (kind === "wide" && value === wideCursor) {
+                const result = await prisma.setting.upsert(args);
+                checkpointWritten = true;
+                releaseWideCheckpoint();
+                return result;
+              }
+              if (kind === "short" && value === shortCursor) {
+                await wideCheckpointWritten;
+                const result = await prisma.setting.upsert(args);
+                checkpointWritten = true;
+                return result;
+              }
+              return prisma.setting.upsert(args);
+            };
+          }
+          const value = Reflect.get(delegate, method, delegate);
+          return typeof value === "function" ? value.bind(delegate) : value;
+        },
+      });
+
+      const purchase = new Proxy(prisma.purchase, {
+        get(delegate, method) {
+          if (method === "findMany") {
+            return async (args: Parameters<typeof prisma.purchase.findMany>[0]) => {
+              if (checkpointWritten && !interrupted) {
+                interrupted = true;
+                throw new Error("Deterministic test interruption after cursor checkpoint");
+              }
+              return prisma.purchase.findMany(args);
+            };
+          }
+          const value = Reflect.get(delegate, method, delegate);
+          return typeof value === "function" ? value.bind(delegate) : value;
+        },
+      });
+
+      return new Proxy(prisma, {
+        get(target, property) {
+          if (property === "setting") return setting;
+          if (property === "purchase") return purchase;
+          const value = Reflect.get(target, property, target);
+          return typeof value === "function" ? value.bind(target) : value;
+        },
+      }) as PrismaClient;
+    };
+
+    const outcomes = await Promise.allSettled([
+      allocatePaidPurchases(makeExecutionClient("short"), 1),
+      allocatePaidPurchases(makeExecutionClient("wide"), 2),
+    ]);
+
+    expect(outcomes.every((outcome) => outcome.status === "rejected")).toBe(true);
+    const savedCursor = await prisma.setting.findUnique({
+      where: { key: ALLOCATION_CURSOR_KEY },
+      select: { value: true },
+    });
+    // The wider run checkpoints the later ID first. The shorter run then
+    // overwrites it with its stale, earlier ID: the race this test is designed
+    // to reproduce. Both runs are interrupted before another batch can reset it.
+    expect(savedCursor?.value).toBe(shortCursor);
+  }, 30_000);
+
 });
