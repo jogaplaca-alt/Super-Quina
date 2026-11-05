@@ -51,6 +51,9 @@ export async function POST(request: NextRequest) {
   const resourceId = String(body.data?.id ?? dataId);
   if (resourceId !== dataId) return response({ error: "Webhook resource mismatch." }, 400);
 
+  let claimedEventId: string | null = null;
+  let claimToken: string | null = null;
+
   try {
     // Fetch canonical state from the provider; the body itself is never trusted
     // as evidence that money was received.
@@ -90,9 +93,9 @@ export async function POST(request: NextRequest) {
     const eventState = await authPrisma.$transaction(async (tx) => {
       const existing = await tx.webhookEvent.findUnique({
         where: { provider_providerEventId: { provider: "MERCADO_PAGO", providerEventId: eventId } },
-        select: { id: true, processedAt: true },
+        select: { id: true, processedAt: true, processingError: true },
       });
-      if (existing?.processedAt) return { alreadyProcessed: true, eventId: existing.id };
+      if (existing?.processedAt) return { alreadyProcessed: true, eventId: existing.id, processingError: null };
 
       const event = existing ?? await tx.webhookEvent.create({
         data: {
@@ -102,7 +105,7 @@ export async function POST(request: NextRequest) {
           payloadDigest: digest,
           paymentId: payment.id,
         },
-        select: { id: true, processedAt: true },
+        select: { id: true, processedAt: true, processingError: true },
       });
 
       await tx.payment.update({
@@ -112,15 +115,39 @@ export async function POST(request: NextRequest) {
           providerStatusDetail: order.statusDetail,
         },
       });
-      return { alreadyProcessed: false, eventId: event.id };
+      return { alreadyProcessed: false, eventId: event.id, processingError: event.processingError };
     });
     if (eventState.alreadyProcessed) return response({ received: true, duplicate: true }, 200);
 
+    // Claim an unprocessed event with compare-and-set. A recent claim is left
+    // alone so overlapping deliveries cannot execute the same side effects.
+    // Claims older than five minutes can be recovered after a crashed process.
+    const claimAgeMs = 5 * 60_000;
+    const currentClaimAt = eventState.processingError?.startsWith("processing:")
+      ? Number(eventState.processingError.slice("processing:".length).split(":", 1)[0])
+      : Number.NaN;
+    if (Number.isFinite(currentClaimAt) && Date.now() - currentClaimAt < claimAgeMs) {
+      return response({ error: "Webhook event is already being processed." }, 503);
+    }
+
+    claimToken = `processing:${Date.now()}:${requestId}`;
+    const claim = await authPrisma.webhookEvent.updateMany({
+      where: { id: eventState.eventId, processedAt: null, processingError: eventState.processingError },
+      data: { processingError: claimToken },
+    });
+    if (claim.count !== 1) {
+      return response({ error: "Webhook event is already being processed." }, 503);
+    }
+    claimedEventId = eventState.eventId;
+
     const markEventProcessed = async () => {
-      await authPrisma.webhookEvent.updateMany({
-        where: { id: eventState.eventId, processedAt: null },
+      const marked = await authPrisma.webhookEvent.updateMany({
+        where: { id: eventState.eventId, processedAt: null, processingError: claimToken },
         data: { processedAt: new Date(), processingError: null },
       });
+      if (marked.count !== 1) throw new Error("Webhook event processing claim was lost.");
+      claimedEventId = null;
+      claimToken = null;
     };
 
     // An order-level terminal state (especially refunded) takes precedence over
@@ -172,8 +199,14 @@ export async function POST(request: NextRequest) {
     await markEventProcessed();
     return response({ received: true }, 200);
   } catch {
-    // Leave the event unprocessed on failure so the provider's retry can safely
-    // resume reconciliation instead of being acknowledged as complete.
+    // Release only this execution's claim. The provider can safely retry the
+    // unprocessed event; a different concurrent execution's claim is untouched.
+    if (claimedEventId && claimToken) {
+      await authPrisma.webhookEvent.updateMany({
+        where: { id: claimedEventId, processedAt: null, processingError: claimToken },
+        data: { processingError: null },
+      }).catch(() => undefined);
+    }
     // Do not leak provider responses, payloads, database details or credentials.
     return response({ error: "Webhook reconciliation temporarily unavailable." }, 503);
   }
