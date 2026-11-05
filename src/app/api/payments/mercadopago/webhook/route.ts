@@ -143,14 +143,26 @@ export async function POST(request: NextRequest) {
       if (normalizedStatus === "refunded") {
         // Refunds are not part of the game's commercial flow. Treat an external
         // refund notification as an administrative incident; never undo a ticket.
-        await authPrisma.auditEvent.create({
-          data: {
-            action: "UNEXPECTED_EXTERNAL_REFUND_REPORTED",
-            entityType: "Purchase",
-            entityId: payment.purchaseId,
-            metadata: { paymentId: payment.id, providerStatus, note: "Manual financial review required; purchase and prizes were not reversed." },
-          },
-        });
+        await authPrisma.$transaction(async (tx) => {
+          const prior = await tx.auditEvent.findFirst({
+            where: {
+              action: "UNEXPECTED_EXTERNAL_REFUND_REPORTED",
+              entityType: "Purchase",
+              entityId: payment.purchaseId,
+            },
+            select: { id: true },
+          });
+          if (!prior) {
+            await tx.auditEvent.create({
+              data: {
+                action: "UNEXPECTED_EXTERNAL_REFUND_REPORTED",
+                entityType: "Purchase",
+                entityId: payment.purchaseId,
+                metadata: { paymentId: payment.id, providerStatus, note: "Manual financial review required; purchase and prizes were not reversed." },
+              },
+            });
+          }
+        }, { isolationLevel: "Serializable" });
       } else {
         const terminalStatus = ["rejected", "failure", "failed"].includes(normalizedStatus)
           ? "FAILED"
