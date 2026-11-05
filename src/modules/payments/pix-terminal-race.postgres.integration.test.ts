@@ -1,7 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { Prisma, PrismaClient, PaymentMethod, PurchaseStatus, PaymentStatus } from "../../generated/prisma/client";
+import { PrismaClient, PaymentMethod, PurchaseStatus, PaymentStatus, RoundStatus } from "../../generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { confirmPixPayment } from "./confirm-payment";
+import { cancelPendingPixPurchase } from "./cancel-pending-pix-purchase";
 
 const enabled = process.env.RUN_POSTGRES_INTEGRATION === "1";
 const suite = enabled ? describe : describe.skip;
@@ -9,10 +11,9 @@ const suite = enabled ? describe : describe.skip;
 suite("PostgreSQL Pix confirmation/cancellation race", () => {
   const databaseUrl = process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/superquina_test?schema=public";
   if (enabled) {
-    if (!databaseUrl) throw new Error("DATABASE_URL is required for PostgreSQL integration tests");
     const parsed = new URL(databaseUrl);
     if (!["localhost", "127.0.0.1", "::1", "postgres"].includes(parsed.hostname) ||
-        parsed.pathname.replace(/^\//, "").split("?")[0] !== "superquina_test") {
+        parsed.pathname.replace(/^\\//, "").split("?")[0] !== "superquina_test") {
       throw new Error("Refusing to run Pix integration tests outside the local superquina_test database");
     }
   }
@@ -21,9 +22,23 @@ suite("PostgreSQL Pix confirmation/cancellation race", () => {
   const suffix = randomUUID();
   let purchaseId = "";
   let paymentId = "";
+  let roundId = "";
+  let participationId = "";
 
   beforeAll(async () => {
     await prisma.$connect();
+    const now = Date.now();
+    const round = await prisma.round.create({
+      data: {
+        code: `IT-PX-${suffix.slice(0, 12)}`,
+        startsAt: new Date(now + 5 * 60_000),
+        cutoffAt: new Date(now + 15 * 60_000),
+        resultAt: new Date(now + 25 * 60_000),
+        status: RoundStatus.SCHEDULED,
+      },
+    });
+    roundId = round.id;
+
     const purchase = await prisma.purchase.create({
       data: {
         status: PurchaseStatus.PENDING_PAYMENT,
@@ -33,6 +48,7 @@ suite("PostgreSQL Pix confirmation/cancellation race", () => {
       },
     });
     purchaseId = purchase.id;
+
     const payment = await prisma.payment.create({
       data: {
         purchaseId,
@@ -44,53 +60,59 @@ suite("PostgreSQL Pix confirmation/cancellation race", () => {
       },
     });
     paymentId = payment.id;
+
+    const participation = await prisma.purchaseParticipation.create({
+      data: { purchaseId, roundId, status: "PENDING", totalCents: 100 },
+    });
+    participationId = participation.id;
   });
 
   afterAll(async () => {
+    if (participationId) await prisma.purchaseParticipation.delete({ where: { id: participationId } });
     if (paymentId) await prisma.payment.delete({ where: { id: paymentId } });
     if (purchaseId) await prisma.purchase.delete({ where: { id: purchaseId } });
+    if (roundId) await prisma.round.delete({ where: { id: roundId } });
     await prisma.$disconnect();
   });
 
-  async function transition(kind: "approve" | "cancel") {
-    return prisma.$transaction(async (tx) => {
-      await tx.$queryRaw`SELECT p."id" FROM "Purchase" p JOIN "Payment" pay ON pay."purchaseId" = p."id" WHERE pay."id" = ${paymentId} FOR UPDATE OF p, pay`;
-      const current = await tx.payment.findUniqueOrThrow({
-        where: { id: paymentId },
-        select: { status: true, purchase: { select: { status: true } } },
-      });
-      if (current.status !== "PENDING" || current.purchase.status !== "PENDING_PAYMENT") return false;
+  it("runs the production confirmation and cancellation routines concurrently without split state", async () => {
+    const results = await Promise.allSettled([
+      confirmPixPayment(prisma, {
+        paymentId,
+        providerStatus: "processed",
+        providerStatusDetail: "accredited",
+      }),
+      cancelPendingPixPurchase(prisma, {
+        paymentId,
+        purchaseId,
+        terminalStatus: "CANCELLED",
+        providerStatus: "cancelled",
+        providerStatusDetail: "cancelled_by_provider",
+        source: "status_fallback",
+      }),
+    ]);
 
-      const payment = await tx.payment.updateMany({
-        where: { id: paymentId, status: "PENDING" },
-        data: { status: kind === "approve" ? "CONFIRMED" : "CANCELLED" },
-      });
-      if (payment.count !== 1) return false;
-      const purchase = await tx.purchase.updateMany({
-        where: { id: purchaseId, status: "PENDING_PAYMENT" },
-        data: { status: kind === "approve" ? "CONFIRMED" : "CANCELLED" },
-      });
-      if (purchase.count !== 1) throw new Error("Pix payment and purchase transitions diverged");
-      return true;
-    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
-  }
-
-  it("serializes approval and terminal cancellation so payment and purchase cannot diverge", async () => {
-    const results = await Promise.allSettled([transition("approve"), transition("cancel")]);
-    const unexpectedFailures = results.filter((result) =>
-      result.status === "rejected" &&
-      !(result.reason instanceof Prisma.PrismaClientKnownRequestError && result.reason.code === "P2034"),
-    );
+    const unexpectedFailures = results.filter((result) => result.status === "rejected");
     expect(unexpectedFailures).toEqual([]);
 
-    const [payment, purchase] = await Promise.all([
+    const [payment, purchase, participation] = await Promise.all([
       prisma.payment.findUniqueOrThrow({ where: { id: paymentId }, select: { status: true } }),
-      prisma.purchase.findUniqueOrThrow({ where: { id: purchaseId }, select: { status: true } }),
+      prisma.purchase.findUniqueOrThrow({ where: { id: purchaseId }, select: { status: true, receiptCode: true } }),
+      prisma.purchaseParticipation.findUniqueOrThrow({ where: { id: participationId }, select: { status: true } }),
     ]);
-    expect(
-      (payment.status === "CONFIRMED" && purchase.status === "CONFIRMED") ||
-      (payment.status === "CANCELLED" && purchase.status === "CANCELLED"),
-    ).toBe(true);
-    expect(results.some((result) => result.status === "fulfilled" && result.value)).toBe(true);
+
+    if (payment.status === "CONFIRMED") {
+      expect(purchase.status).toBe("CONFIRMED");
+      expect(purchase.receiptCode).toMatch(/^SQ-[A-F0-9]{16}$/);
+      expect(participation.status).toBe("CONFIRMED");
+      expect(results[0]!.status).toBe("fulfilled");
+      expect(results[1]).toMatchObject({ status: "fulfilled", value: false });
+    } else {
+      expect(payment.status).toBe("CANCELLED");
+      expect(purchase.status).toBe("CANCELLED");
+      expect(purchase.receiptCode).toBeNull();
+      expect(participation.status).toBe("CANCELLED");
+      expect(results[1]).toMatchObject({ status: "fulfilled", value: true });
+    }
   });
 });
