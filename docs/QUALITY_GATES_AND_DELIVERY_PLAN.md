@@ -295,7 +295,7 @@ Esta seção registra auditoria estática inicial. Nenhum código ou banco foi a
 1. **Cobertura insuficiente dos serviços de domínio:** os testes das rotas validam autorização e mapeamento de respostas, mas mockam os serviços. Não há, neste bloco, testes PostgreSQL específicos demonstrando concorrência real no fechamento, sorteio único e liquidação/ledger. Prioridade alta antes de homologação financeira.
 2. **Sorteio concorrente:** o bloqueio por linha e a transação impedem que duas chamadas válidas sorteiem a mesma rodada duas vezes. Ainda falta teste de integração com duas requisições simultâneas e verificação de um único resultado/evento de auditoria.
 3. **Liquidação concorrente e rollback:** a chave única de idempotência e a transação serializável são proteções implementadas, mas faltam cenários PostgreSQL que comprovem um único crédito por linha, rollback sem crédito parcial e retentativa posterior.
-4. **Falha de serialização no sorteio:** ao contrário de fechamento e liquidação, o serviço de sorteio não faz retry local explícito de conflito serializável. O scheduler pode tentar novamente no minuto seguinte e a ação manual pode ser repetida, mas isso deve ser testado; avaliar retry curto e limitado somente se a integração demonstrar falha operacional relevante.
+4. **Falha de serialização no sorteio:** identificada diferença em relação aos serviços de fechamento e liquidação. Corrigida nesta sequência com retry limitado a três repetições para conflitos Prisma P2034/SQLSTATE 40001; cada tentativa relê a rodada bloqueada e, se outra transação já concluiu o sorteio, devolve o resultado persistido sem gerar outro número. A prova concorrente PostgreSQL continua pendente.
 5. **UX de fechamento antecipado:** a interface mostra “Fechar apostas” tanto para SCHEDULED quanto OPEN, mesmo antes do cutoff. O servidor bloqueia corretamente com HTTP 409, portanto não é bypass de regra, mas a interface pode oferecer uma ação que será recusada. Ajustar a disponibilidade/estado do botão ou explicar que o fechamento só é possível no horário; incluir teste de interface.
 6. **Lista de rodadas limitada:** permanece o achado do bloco 3: API retorna no máximo 100 rodadas, sem paginação/total, e a tela não sinaliza lista parcial. Tratar com paginação estável em subbloco próprio do painel.
 7. **Contadores sem período:** os totais de compras aguardando pagamento e confirmadas continuam sem recorte temporal nem indicação de que são totais históricos. A decisão de produto sobre o período ainda está pendente.
@@ -309,3 +309,13 @@ Esta seção registra auditoria estática inicial. Nenhum código ou banco foi a
 - Próxima ação recomendada: criar testes de integração PostgreSQL para fechamento concorrente, sorteio único, liquidação concorrente/rollback e retentativa; depois ajustar o botão de fechamento para não oferecer ação antes do cutoff e planejar paginação da lista de rodadas.
 - O CI do commit anterior `9d9175bc` estava em execução durante esta inspeção; resultado ainda não confirmado neste registro. Nenhum teste foi executado nesta sessão.
 - Nenhuma migration, alteração de banco, secret, deploy ou operação em produção foi realizada.
+
+
+## 11. Continuação do Bloco 4 — retry de serialização no sorteio (2026-11-04)
+
+- Arquivo corrigido: `src/modules/rounds/draw-round-results.ts`.
+- O sorteio agora trata conflitos de serialização Prisma `P2034` e SQLSTATE `40001` com até três retries e espera incremental curta, seguindo o padrão já usado por fechamento e liquidação.
+- Cada retry executa novamente a transação, bloqueia e relê a rodada. Se a primeira transação já concluiu o sorteio, a chamada concorrente retorna o mesmo `resultNumber` persistido; não cria novo resultado nem novo evento de sorteio.
+- A alteração não muda a regra do jogo, o algoritmo aleatório, o formato de cinco dígitos, permissões, scheduler ou schema.
+- **Validação pendente:** ainda não há teste de integração PostgreSQL do ciclo de rodadas no comando `test:postgres`. A próxima ação é implementar e executar testes reais de concorrência para sorteio e liquidação, incluindo crédito único e rollback. Não declarar o bloco concluído até CI comprovar.
+- Nenhum banco de produção, secret, migration ou deploy foi alterado.
