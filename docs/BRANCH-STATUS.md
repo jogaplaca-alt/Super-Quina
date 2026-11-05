@@ -107,11 +107,10 @@ Branch de trabalho: `setup/super-quina`.
 - Execução: https://github.com/jpveiculos/Super-Quina/actions/runs/41974462763
 - Esse resultado comprova o pipeline no commit indicado; não comprova pagamento real, webhook real, secrets ou comportamento no Hydro.
 
-### Reconciliação com main — situação atual
-- Comparação GitHub de `main` com `setup/super-quina`: estado `diverged`, 512 commits à frente e 12 atrás, segundo a API de comparação.
-- A comparação inversa identificou como alterações exclusivas da ponta atual de `main` a remoção de `.gitignore` e `README.md`. O HEAD de `main` é o commit `3a9d2f623e4c113bf31ba292846bccbfca6eddc2`, cuja mensagem é `Delete .gitignore`; seu tree aponta para a árvore vazia.
-- Não integrar essa ponta de `main` automaticamente. Antes de qualquer integração, preservar e revisar os commits e o estado da branch, e decidir explicitamente como recuperar os arquivos removidos. Nenhum merge, rebase, cherry-pick ou alteração de `main` foi feito.
-- Este inventário substitui números anteriores de divergência registrados neste documento; eles estavam desatualizados.
+### Reconciliação com main — decisão do responsável
+- A branch `main` foi esvaziada intencionalmente e não está conectada ao servidor; esse estado foi confirmado pelo responsável em 2026-11-05.
+- A ausência de arquivos em `main` não representa perda acidental e não exige recuperação, sincronização ou integração com a branch de trabalho.
+- O trabalho técnico permanece em `setup/super-quina`. Não fazer merge, rebase, cherry-pick ou publicação sem autorização explícita.
 
 ### Estado técnico e gates restantes
 - A rota do webhook valida assinatura, consulta o estado canônico do pedido no Mercado Pago, confere referência externa, moeda, valor e método Pix, e converge para o serviço central de confirmação/cancelamento.
