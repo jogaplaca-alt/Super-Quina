@@ -24,8 +24,7 @@ export async function POST(request: NextRequest) {
     } catch {
       return NextResponse.json({ error: "Requisição inválida." }, { status: 403, headers: { "Cache-Control": "no-store" } });
     }
-    // Railway terminates public HTTPS before forwarding to Next.js. Compare
-    // the public browser Origin to the incoming Host, not nextUrl.origin.
+    // Compare the browser Origin with the incoming Host to reject cross-origin requests.
     const requestHost = request.headers.get("host");
     if (!requestHost || originHost !== requestHost) {
       return NextResponse.json({ error: "Requisição inválida." }, { status: 403, headers: { "Cache-Control": "no-store" } });
