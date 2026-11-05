@@ -2,6 +2,7 @@ import { Prisma, type PrismaClient } from "@/generated/prisma/client";
 import { classifyPixOrderStatus, getVerifiedPixOrder } from "@/modules/payments/mercado-pago";
 import { confirmPixPayment } from "@/modules/payments/confirm-payment";
 import { recordUnexpectedExternalRefund } from "@/modules/payments/record-unexpected-refund";
+import { cancelPendingPixPurchase } from "@/modules/payments/cancel-pending-pix-purchase";
 
 export type PixReconciliationOutcome =
   | "confirmed"
@@ -85,32 +86,13 @@ export async function reconcilePixPaymentFromProvider(
         : null;
   if (!terminalStatus) return "still_pending";
 
-  await prisma.$transaction(async (tx) => {
-    await tx.$queryRaw`SELECT p."id" FROM "Purchase" p JOIN "Payment" pay ON pay."purchaseId" = p."id" WHERE pay."id" = ${payment.id} FOR UPDATE OF p, pay`;
-    const changed = await tx.payment.updateMany({
-      where: { id: payment.id, status: "PENDING" },
-      data: { status: terminalStatus, providerStatus, providerStatusDetail: order.statusDetail },
-    });
-    if (changed.count !== 1) return;
-    const cancelledPurchase = await tx.purchase.updateMany({
-      where: { id: payment.purchaseId, status: "PENDING_PAYMENT" },
-      data: { status: "CANCELLED" },
-    });
-    if (cancelledPurchase.count !== 1) {
-      throw new Error("Pending Pix payment could not cancel its pending purchase");
-    }
-    await tx.purchaseParticipation.updateMany({
-      where: { purchaseId: payment.purchaseId, status: "PENDING" },
-      data: { status: "CANCELLED" },
-    });
-    await tx.auditEvent.create({
-      data: {
-        action: "PIX_PAYMENT_TERMINAL_FAILURE",
-        entityType: "Purchase",
-        entityId: payment.purchaseId,
-        metadata: { paymentId: payment.id, providerStatus, terminalStatus, source: "status_fallback" },
-      },
-    });
-  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+  await cancelPendingPixPurchase(prisma, {
+    paymentId: payment.id,
+    purchaseId: payment.purchaseId,
+    terminalStatus,
+    providerStatus,
+    providerStatusDetail: order.statusDetail,
+    source: "status_fallback",
+  });
   return "terminal";
 }
