@@ -73,6 +73,11 @@ export async function allocatePaidPurchases(
           });
           if (!purchase || purchase.status !== "PENDING_PAYMENT" || !purchase.numericIntent) return "skipped" as const;
           if (purchase.paymentMethod !== "CASH" && purchase.paymentMethod !== "WALLET") return "skipped" as const;
+          // A delayed cash allocation is the sale's confirmation boundary. Serialize it
+          // with cashier settlement so it cannot fall behind an already-recorded cutoff.
+          if (purchase.paymentMethod === "CASH" && purchase.cashierId) {
+            await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${purchase.cashierId} AND "role" = 'CASHIER' FOR UPDATE`;
+          }
           if (purchase.participations.length) throw new Error("Paid allocation intent unexpectedly has existing participations");
 
           const count = purchase.numericIntent.roundCount;
