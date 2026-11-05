@@ -238,3 +238,38 @@ Divergência que precisa ser corrigida no formulário compartilhado:
 Próximas verificações PLAYER: examinar rotas/testes de histórico, carteira, crédito de prêmio e compras; verificar estados pendentes/confirmados, atualização do saldo após crédito e saque; conferir se não há recibo/QR de impressão no PLAYER; executar testes focados antes de declarar concluído. Em seguida, concluir CASHIER e só então iniciar ADMIN.
 
 Esta seção registra auditoria estática inicial. Nenhum código ou banco foi alterado nesta etapa; não foram executados testes nem deploy.
+
+## 9. Auditoria incremental — Bloco 3: entrada e estrutura da área ADMIN (2026-11-04)
+
+**Escopo deste bloco:** somente a página principal administrativa, proteção de acesso à página e leitura inicial do painel de rodadas. Não equivale à auditoria das operações financeiras, saques, cambistas, prêmios ou rotas de pagamento.
+
+### Estrutura identificada
+
+- `src/app/admin/page.tsx` protege a página com `requireRole("ADMIN")`.
+- A página apresenta seis seções recolhíveis: rodadas e sorteios; últimos resultados; prêmios e carteira digital; multiplicadores; controle financeiro e saques; cadastro e gestão de cambistas.
+- A página reutiliza `PlayerRecentResults` dentro do ADMIN. Isso é compartilhamento de componente, não necessariamente compartilhamento de permissão: a API chamada pelo componente precisa ser conferida separadamente no bloco de resultados.
+- O rodapé descreve a operação de rodadas e informa que a integração Pix está implementada, mas ainda depende de homologação ponta a ponta. A redação não deve ser interpretada como autorização para operação real.
+- Não foi identificado nesta página texto, imagem ou nomenclatura explícita de placas/Joga Placas. Esta inspeção limitada não substitui a varredura global de identidade e arquivos históricos.
+
+### Proteção de acesso observada
+
+- `src/lib/auth/require-role.ts` exige sessão, bloqueia usuário com troca de senha inicial pendente e redireciona papéis diferentes para suas áreas.
+- `GET /api/admin/rounds` repete a verificação de sessão, papel ADMIN e troca de senha pendente; responde 401/403 e usa `Cache-Control: no-store, private`.
+- As rotas POST de fechar, sortear e apurar rodada validam origem/host, sessão, papel ADMIN, troca de senha e identificador da rodada. Tentativas com papel insuficiente geram evento de auditoria.
+- Existe teste para `GET /api/admin/rounds` cobrindo ausência de sessão, papéis PLAYER/CASHIER e resposta sem cache. A existência de testes para as três operações POST deve ser avaliada individualmente no subbloco seguinte; não presumir cobertura completa a partir do teste GET.
+
+### Achados e pendências deste bloco
+
+1. **Limite fixo de 100 rodadas:** `GET /api/admin/rounds` usa `take: 100`, ordena da mais recente para a mais antiga e não oferece paginação nem informa total. A tela não informa que a lista é parcial. Em histórico superior a 100 rodadas, o ADMIN não consegue consultar todas por este painel. Classificação: melhoria funcional de prioridade média; implementar paginação/cursor estável quando o bloco de rodadas for revisado.
+2. **Resumo de compras sem recorte temporal:** os contadores `pendingPayments` e `confirmedPurchases` contam todas as compras nos respectivos estados, sem período ou explicação de escopo. Confirmar se os números devem representar totais históricos ou operação corrente; se forem totais, explicitar o rótulo. Não alterar sem decisão de produto.
+3. **Resultados compartilhados:** `PlayerRecentResults` é usado na página ADMIN. Verificar a rota de dados, permissões e limite temporal no bloco de resultados, para garantir que o compartilhamento do componente não exponha dados indevidos nem aplique um filtro inadequado.
+4. **Ações manuais sensíveis:** a interface permite fechar, sortear e apurar manualmente, além do scheduler automático. O servidor revalida as condições e os serviços devem garantir idempotência; no próximo bloco revisar transações, estados, testes negativos e a relação entre ação manual e execução automática.
+5. **Coerência da apresentação:** o texto introdutório menciona “dois resultados independentes” no histórico de auditoria, enquanto a implementação atual da tela de rodadas exibe `resultNumber` singular. Resolver a terminologia apenas após conferir schema, regras do produto e serviço de sorteio; não alterar a regra de sorteio por inferência.
+
+### Decisão e próximo bloco
+
+- A proteção de entrada da página ADMIN e a estrutura dos menus foram identificadas; não foi encontrada falha comprovada de autorização nesta leitura estática.
+- A limitação de 100 rodadas e a semântica dos contadores ficam registradas para revisão específica.
+- **Próximo bloco recomendado: “Rodadas e sorteios” — painel ADMIN + GET/POST das rotas close/draw/settle + serviços de domínio e testes correspondentes.** Manter o escopo restrito ao ciclo da rodada; não misturar saques, cadastro de cambistas ou pagamento Pix.
+- Antes de marcar este bloco como concluído, executar testes focados e CI no commit correspondente. A inspeção estática não substitui execução.
+- Nenhuma migration, alteração de banco, secret, deploy ou operação em produção foi realizada nesta etapa.
