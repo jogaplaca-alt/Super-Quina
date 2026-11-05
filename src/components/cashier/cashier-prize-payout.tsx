@@ -62,7 +62,6 @@ export function CashierPrizePayout() {
     <div className="cashier-prize-payout-heading">
       <span className="player-collapsible-label">Premiações</span>
       <h2>Registrar prêmio pago em dinheiro</h2>
-      <p>Consulte o recibo, confira o comprovante físico e entregue o dinheiro antes de registrar a baixa.</p>
     </div>
     <form onSubmit={lookup} className="cashier-prize-lookup-form">
       <label htmlFor="cashier-prize-receipt">Código do recibo</label>
