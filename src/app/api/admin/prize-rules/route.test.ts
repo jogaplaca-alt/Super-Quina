@@ -65,7 +65,7 @@ describe("admin prize rules API", () => {
 
   it("fails closed when the stored multiplier configuration is malformed", async () => {
     mocks.settingFindUnique.mockResolvedValue({ value: "{not-json", updatedAt: new Date() });
-    const response = await GET(request());
+    const response = (await GET(request()))!;
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({ error: "Não foi possível carregar os multiplicadores salvos." });
   });
