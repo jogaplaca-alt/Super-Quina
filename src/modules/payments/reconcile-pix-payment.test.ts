@@ -120,6 +120,7 @@ describe("reconcilePixPaymentFromProvider", () => {
   it("cancels a rejected pending purchase without allocating or confirming it", async () => {
     const prisma = makePrisma();
     const tx = {
+      $queryRaw: vi.fn().mockResolvedValue([]),
       payment: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
       purchase: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
       purchaseParticipation: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
@@ -164,6 +165,7 @@ describe("reconcilePixPaymentFromProvider", () => {
   it("rolls back a terminal payment transition if the purchase is no longer pending", async () => {
     const prisma = makePrisma();
     const tx = {
+      $queryRaw: vi.fn().mockResolvedValue([]),
       payment: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
       purchase: { updateMany: vi.fn().mockResolvedValue({ count: 0 }) },
       purchaseParticipation: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
