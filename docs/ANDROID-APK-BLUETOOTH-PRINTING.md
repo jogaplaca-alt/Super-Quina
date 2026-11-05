@@ -248,3 +248,21 @@ Não disparar impressão a partir de `already_confirmed`, do desaparecimento do 
 ### Limite de execução nesta alteração
 
 A configuração do Capacitor já existente foi conferida e está alinhada com esta diretriz; não precisou ser substituída. O Manifest ainda não pode ser editado porque a plataforma Android não existe na branch. Também não executar `npx cap sync android` até instalar Capacitor com atualização real e coerente de `package.json`/ `package-lock.json` e inicializar a plataforma Android em ambiente Node/Gradle/JDK.
+
+
+## Regras adicionais de segurança e confiabilidade
+
+Esta seção prevalece sobre exemplos genéricos anteriores quando houver divergência.
+
+- Primeira versão: conectar somente a impressoras já pareadas pelo Android Settings. Android 12/API 31+: solicitar `BLUETOOTH_CONNECT`; Android 11/API 30 e anteriores: permissão legada `BLUETOOTH` limitada a API 30. Não solicitar `BLUETOOTH_SCAN`, localização, `BLUETOOTH_ADMIN` ou `BLUETOOTH_ADVERTISE` sem implementar e justificar descoberta/pareamento ativo.
+- Solicitar permissão Bluetooth apenas quando o usuário iniciar configuração ou impressão. Recusa não pode bloquear login nem consulta de compras.
+- WebView: manter TLS validado, HTTPS e conteúdo misto desabilitado. Restringir navegação principal a `https://superquina.com`; links externos abrem no navegador do sistema. A ponte nativa só pode ser invocada por conteúdo confiável. Não aceitar certificados inválidos nem expor ponte JavaScript a páginas arbitrárias.
+- Preservar cookies/sessão do site e testar login, expiração, logout e retorno do segundo plano em aparelho real. Toda rota valida sessão, autorização e propriedade no servidor; ID enviado pelo cliente não concede acesso.
+- Nunca embutir segredos, tokens ou credenciais Mercado Pago no APK. Não registrar cookies, tokens ou conteúdo sensível do recibo.
+- Ponte SPP mínima: listar pareados, conectar RFCOMM, enviar bytes ESC/POS em Base64 e desconectar. Aplicar timeout, impedir escritas concorrentes no mesmo socket, liberar recursos e normalizar erros de permissão, Bluetooth desligado, dispositivo ausente, conexão, desconexão e escrita.
+- Sucesso de escrita significa somente que os bytes foram entregues ao socket, não que o papel foi impresso. Diferenciar estados persistentes `RESERVED`, `SENDING`, `SENT`, `FAILED` e `UNKNOWN`. Nunca repetir automaticamente `SENDING`, `SENT` ou `UNKNOWN`; resultado incerto exige decisão manual. Reimpressão deve ser autorizada, auditada e identificada como segunda via.
+- Encoder ESC/POS deve ser TypeScript puro e testável, receber apenas DTO oficial autenticado, preservar zeros à esquerda e valores em centavos sem recálculo em ponto flutuante. Perfis 58/80 mm configuram largura imprimível e code page; acentos, cedilha, QR e corte exigem testes por firmware. Não prometer compatibilidade absoluta.
+- Distinguir pagamento confirmado, recibo disponível, impressora conectada e envio concluído. Retorno do segundo plano deve consultar o servidor e nunca reimprimir por reabertura. Falha de impressora não altera pagamento.
+- Critérios de aceite: testes unitários de bytes/acentos/limites; concorrência da reserva no PostgreSQL; autorização de PLAYER/CASHIER/ADMIN; permissões concedidas/negadas; falhas e timeout SPP; aparelhos reais 58/80 mm com e sem corte; versões Android suportadas; lint, typecheck, testes e builds web/Android.
+- Assinatura do APK deve usar chaves e senhas fora do repositório e do binário, via secrets protegidos. Validar instalação e atualização. O app remoto depende de domínio, TLS, rede e disponibilidade do site; não prometer operação offline completa.
+
