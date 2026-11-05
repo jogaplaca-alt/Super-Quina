@@ -2,6 +2,35 @@ import { describe, expect, it, vi } from "vitest";
 import { createNumericPurchase } from "./create-numeric-purchase";
 
 describe("createNumericPurchase pending Pix intent", () => {
+
+  it("snapshots the current admin multipliers into a new pending Pix bet", async () => {
+    const configured = { unit: 7, tens: 30, hundreds: 250, thousands: 2500, quina: 25000 };
+    const purchaseCreate = vi.fn().mockResolvedValue({
+      id: "purchase-custom-rules", status: "PENDING_PAYMENT", paymentMethod: "PIX", totalCents: 100,
+      receiptCode: null, confirmedAt: null, participations: [],
+      numericIntent: { roundCount: 1, numbers: ["00007"], allocation: { unitCents: 20, tensCents: 20, hundredsCents: 20, thousandsCents: 20, quinaCents: 20 } },
+      payment: { id: "payment-custom", status: "PENDING" },
+    });
+    const tx = {
+      purchase: { findUnique: vi.fn().mockResolvedValue(null), create: purchaseCreate },
+      setting: { findUnique: vi.fn().mockResolvedValue({ value: JSON.stringify(configured) }) },
+      $queryRaw: vi.fn(),
+    };
+    const prisma = {
+      $transaction: vi.fn(async (callback: (client: unknown) => Promise<unknown>) => callback(tx)),
+    };
+
+    await createNumericPurchase(prisma as never, {
+      idempotencyKey: "pending-custom-rules-0001",
+      playerId: "player-1", paymentMethod: "PIX", roundCount: 1,
+      numbers: ["00007"], stakeCents: 100,
+    });
+
+    expect(purchaseCreate.mock.calls[0]![0].data.numericIntent.create.ruleSnapshot).toEqual({
+      version: "numeric-admin-v1", multipliers: configured,
+    });
+  });
+
   it("stores the bet intent without selecting or creating round participations", async () => {
     const purchaseCreate = vi.fn().mockResolvedValue({
       id: "purchase-12345678", status: "PENDING_PAYMENT", paymentMethod: "PIX", totalCents: 200,
