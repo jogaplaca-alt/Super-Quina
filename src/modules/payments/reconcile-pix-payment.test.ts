@@ -186,4 +186,36 @@ describe("reconcilePixPaymentFromProvider", () => {
     );
     expect(mocks.confirmPixPayment).not.toHaveBeenCalled();
   });
+
+  it("keeps the purchase pending when Mercado Pago is unavailable", async () => {
+    const prisma = makePrisma();
+    mocks.getVerifiedPixOrder.mockRejectedValue(new Error("provider timeout"));
+
+    await expect(reconcilePixPaymentFromProvider(prisma as never, "payment-1"))
+      .rejects.toThrow("provider timeout");
+
+    expect(prisma.payment.update).not.toHaveBeenCalled();
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+    expect(mocks.confirmPixPayment).not.toHaveBeenCalled();
+  });
+
+  it("does not downgrade an already confirmed purchase after a delayed terminal notification", async () => {
+    const prisma = makePrisma();
+    prisma.payment.findUnique.mockResolvedValue({
+      id: "payment-1",
+      purchaseId: "purchase-1",
+      provider: "MERCADO_PAGO",
+      providerPaymentId: "order-1",
+      amountCents: 200,
+      status: "CONFIRMED",
+      purchase: { totalCents: 200, status: "CONFIRMED" },
+    });
+
+    await expect(reconcilePixPaymentFromProvider(prisma as never, "payment-1"))
+      .resolves.toBe("already_confirmed");
+
+    expect(mocks.getVerifiedPixOrder).not.toHaveBeenCalled();
+    expect(prisma.payment.update).not.toHaveBeenCalled();
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
 });
