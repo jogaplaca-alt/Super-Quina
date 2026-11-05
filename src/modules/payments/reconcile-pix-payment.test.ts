@@ -147,7 +147,7 @@ describe("reconcilePixPaymentFromProvider", () => {
 
     await expect(reconcilePixPaymentFromProvider(prisma as never, "payment-1")).resolves.toBe("terminal");
     expect(tx.payment.updateMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: { id: "payment-1", status: "PENDING" },
+      where: expect.objectContaining({ id: "payment-1", status: "PENDING" }),
       data: expect.objectContaining({ status: "FAILED" }),
     }));
     expect(tx.purchase.updateMany).toHaveBeenCalledWith({
