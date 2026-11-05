@@ -115,4 +115,92 @@ suite("PostgreSQL Pix confirmation/cancellation race", () => {
       expect(results[1]).toMatchObject({ status: "fulfilled", value: true });
     }
   });
+  it("confirms the same pending Pix payment concurrently only once", async () => {
+    const testSuffix = randomUUID();
+    let testPurchaseId = "";
+    let testPaymentId = "";
+    let testRoundId = "";
+    let testParticipationId = "";
+
+    try {
+      const now = Date.now();
+      const round = await prisma.round.create({
+        data: {
+          code: `IT-PX-DBL-${testSuffix.slice(0, 10)}`,
+          startsAt: new Date(now + 5 * 60_000),
+          cutoffAt: new Date(now + 15 * 60_000),
+          resultAt: new Date(now + 25 * 60_000),
+          status: RoundStatus.SCHEDULED,
+        },
+      });
+      testRoundId = round.id;
+
+      const purchase = await prisma.purchase.create({
+        data: {
+          status: PurchaseStatus.PENDING_PAYMENT,
+          paymentMethod: PaymentMethod.PIX,
+          totalCents: 100,
+          idempotencyKey: `it-pix-double-${testSuffix}`,
+        },
+      });
+      testPurchaseId = purchase.id;
+
+      const payment = await prisma.payment.create({
+        data: {
+          purchaseId: testPurchaseId,
+          provider: "MERCADO_PAGO",
+          providerPaymentId: `it-order-double-${testSuffix}`,
+          idempotencyKey: `it-pix-payment-double-${testSuffix}`,
+          amountCents: 100,
+          status: PaymentStatus.PENDING,
+        },
+      });
+      testPaymentId = payment.id;
+
+      const participation = await prisma.purchaseParticipation.create({
+        data: { purchaseId: testPurchaseId, roundId: testRoundId, status: "PENDING", totalCents: 100 },
+      });
+      testParticipationId = participation.id;
+
+      const results = await Promise.all([
+        confirmPixPayment(prisma, {
+          paymentId: testPaymentId,
+          providerStatus: "processed",
+          providerStatusDetail: "accredited",
+        }),
+        confirmPixPayment(prisma, {
+          paymentId: testPaymentId,
+          providerStatus: "processed",
+          providerStatusDetail: "accredited",
+        }),
+      ]);
+
+      expect(results.map((result) => result.outcome).sort()).toEqual(["already_confirmed", "confirmed"]);
+      const receiptCodes = results.map((result) => result.receiptCode);
+      expect(receiptCodes[0]).toBeTruthy();
+      expect(receiptCodes[0]).toBe(receiptCodes[1]);
+
+      const [savedPayment, savedPurchase, savedParticipation, confirmationAudits] = await Promise.all([
+        prisma.payment.findUniqueOrThrow({ where: { id: testPaymentId }, select: { status: true } }),
+        prisma.purchase.findUniqueOrThrow({ where: { id: testPurchaseId }, select: { status: true, receiptCode: true } }),
+        prisma.purchaseParticipation.findUniqueOrThrow({ where: { id: testParticipationId }, select: { status: true } }),
+        prisma.auditEvent.count({
+          where: { action: "PIX_PAYMENT_CONFIRMED", entityType: "Purchase", entityId: testPurchaseId },
+        }),
+      ]);
+
+      expect(savedPayment.status).toBe("CONFIRMED");
+      expect(savedPurchase.status).toBe("CONFIRMED");
+      expect(savedPurchase.receiptCode).toBe(receiptCodes[0]);
+      expect(savedParticipation.status).toBe("CONFIRMED");
+      expect(confirmationAudits).toBe(1);
+      expect(await prisma.cashierCommission.count({ where: { purchaseId: testPurchaseId } })).toBe(0);
+    } finally {
+      if (testParticipationId) await prisma.purchaseParticipation.deleteMany({ where: { id: testParticipationId } });
+      if (testPaymentId) await prisma.payment.deleteMany({ where: { id: testPaymentId } });
+      if (testPurchaseId) await prisma.purchase.deleteMany({ where: { id: testPurchaseId } });
+      if (testRoundId) await prisma.round.deleteMany({ where: { id: testRoundId } });
+    }
+  });
+
 });
