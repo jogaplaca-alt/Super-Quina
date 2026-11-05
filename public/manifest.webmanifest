@@ -9,8 +9,9 @@
   "theme_color": "#07358f",
   "icons": [
     {
-      "src": "/_next/image?url=%2Fimages%2Fbrand%2Fsuper-quina-icon.PNG&w=512&q=75",
-      "sizes": "512x512",
+      "src": "/images/brand/super-quina-icon.webp",
+      "sizes": "1254x1254",
+      "type": "image/webp",
       "purpose": "any maskable"
     }
   ]
