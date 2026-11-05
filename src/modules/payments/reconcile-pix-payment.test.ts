@@ -117,6 +117,50 @@ describe("reconcilePixPaymentFromProvider", () => {
     expect(mocks.confirmPixPayment).not.toHaveBeenCalled();
   });
 
+  it("cancels a rejected pending purchase without allocating or confirming it", async () => {
+    const prisma = makePrisma();
+    const tx = {
+      payment: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      purchase: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      purchaseParticipation: { updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      auditEvent: { create: vi.fn().mockResolvedValue({}) },
+    };
+    prisma.$transaction.mockImplementation(async (callback: (client: typeof tx) => Promise<unknown>) => callback(tx));
+    mocks.getVerifiedPixOrder.mockResolvedValue({
+      orderId: "order-1",
+      externalReference: "superquina_purchase_purchase-1",
+      currency: "BRL",
+      amountCents: 200,
+      status: "rejected",
+      statusDetail: "cc_rejected",
+      paymentStatus: "rejected",
+      paymentAmountCents: 200,
+      paymentMethodId: "pix",
+      paymentMethodType: "bank_transfer",
+    });
+    mocks.classifyPixOrderStatus.mockReturnValue({
+      providerStatus: "rejected",
+      normalizedStatus: "rejected",
+      approved: false,
+    });
+
+    await expect(reconcilePixPaymentFromProvider(prisma as never, "payment-1")).resolves.toBe("terminal");
+    expect(tx.payment.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: "payment-1", status: "PENDING" },
+      data: expect.objectContaining({ status: "FAILED" }),
+    }));
+    expect(tx.purchase.updateMany).toHaveBeenCalledWith({
+      where: { id: "purchase-1", status: "PENDING_PAYMENT" },
+      data: { status: "CANCELLED" },
+    });
+    expect(tx.purchaseParticipation.updateMany).toHaveBeenCalledWith({
+      where: { purchaseId: "purchase-1", status: "PENDING" },
+      data: { status: "CANCELLED" },
+    });
+    expect(tx.auditEvent.create).toHaveBeenCalled();
+    expect(mocks.confirmPixPayment).not.toHaveBeenCalled();
+  });
+
   it("rejects an approved order that is not a Pix bank transfer", async () => {
     const prisma = makePrisma();
     mocks.getVerifiedPixOrder.mockResolvedValue({
