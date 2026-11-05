@@ -80,6 +80,19 @@ enum WithdrawalStatus {
   REJECTED
 }
 
+enum PrintJobPurpose {
+  AUTO_RECEIPT
+  MANUAL_REPRINT
+}
+
+enum PrintJobStatus {
+  RESERVED
+  SENDING
+  SENT
+  FAILED
+  UNKNOWN
+}
+
 model User {
   id                    String        @id @default(cuid())
   username              String        @unique
@@ -107,6 +120,7 @@ model User {
   cashierSettlementsCreated CashierSettlement[] @relation("CashierSettlementAdmin")
   numericPrizePayoutsCreated NumericPrizePayout[] @relation("NumericPrizePayoutActor")
   numericPrizePayoutsAsCashier NumericPrizePayout[] @relation("NumericPrizePayoutCashier")
+  printJobsRequested PrintJob[] @relation("PrintJobRequester")
 
   @@index([role, status])
 }
@@ -177,6 +191,7 @@ model Purchase {
   payment           Payment?
   ledgerEntries     LedgerEntry[]
   commission        CashierCommission?
+  printJobs         PrintJob[]
 
   @@index([playerId, createdAt])
   @@index([cashierId, createdAt])
@@ -431,4 +446,27 @@ model LoginAttemptBucket {
 
   @@index([blockedUntil])
   @@index([windowStartedAt])
+}
+
+model PrintJob {
+  id             String          @id @default(cuid())
+  purchaseId     String
+  purpose        PrintJobPurpose
+  /// For AUTO_RECEIPT, equals purchaseId; unique nullable key permits unlimited audited manual reprints.
+  autoReceiptKey String?         @unique
+  status         PrintJobStatus  @default(RESERVED)
+  requestedById  String?
+  deviceName     String?
+  errorCode      String?
+  reservedAt     DateTime        @default(now())
+  sendingAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  purchase       Purchase        @relation(fields: [purchaseId], references: [id], onDelete: Restrict)
+  requestedBy    User?           @relation("PrintJobRequester", fields: [requestedById], references: [id], onDelete: Restrict)
+
+  @@index([purchaseId, createdAt])
+  @@index([status, updatedAt])
+  @@index([requestedById, createdAt])
 }
