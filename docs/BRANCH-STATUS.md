@@ -133,3 +133,16 @@ Branch de trabalho: `setup/super-quina`.
 - Não interpretar a divergência entre `main` e `setup/super-quina` como bloqueio técnico do projeto. A publicação só será considerada quando houver autorização explícita e decisão sobre qual branch será conectada ao servidor.
 - Inventário confirmado: `npm run test:postgres` já inclui `src/modules/payments/pix-terminal-race.postgres.integration.test.ts`, que executa concorrência real entre confirmação Pix e cancelamento terminal, verificando que pagamento, compra, participação e recibo não terminam em estados divididos. Essa suíte foi incluída no pipeline CI #433 aprovado.
 - Continua pendente teste PostgreSQL específico de duas confirmações simultâneas do mesmo pagamento e teste de concorrência da reserva/processamento do mesmo evento webhook. A cobertura de rota atual testa reentrega sequencial e falha transitória com mocks.
+
+
+## Auditoria incremental — concorrência de eventos do webhook Mercado Pago (2026-11-05)
+
+- A auditoria identificou uma janela de corrida: duas entregas simultâneas de um evento já persistido, mas ainda não processado, podiam observar `processedAt = null` e executar o mesmo fluxo em paralelo. A restrição única de `providerEventId` protege a criação duplicada, mas não reservava o processamento de uma linha já existente.
+- Corrigido `src/app/api/payments/mercadopago/webhook/route.ts`: o processamento agora usa compare-and-set em `WebhookEvent.processingError` para adquirir uma reserva exclusiva antes de executar confirmação/cancelamento/registro de estorno.
+- A reserva expira após cinco minutos para permitir recuperação se o processo morrer. Falhas liberam somente a reserva pertencente àquela execução; conclusão exige que a mesma reserva ainda seja a proprietária do evento.
+- Adicionados testes de rota para concorrência sobre evento pendente existente, evento já reservado, recuperação de reserva expirada, falha transitória/reentrega e corrida na criação do mesmo evento.
+- Adicionada a suíte PostgreSQL `src/modules/payments/webhook-event-claim.postgres.integration.test.ts`, que comprova com duas atualizações simultâneas que apenas uma execução adquire a reserva e somente a reserva vencedora consegue concluir o evento.
+- A suíte foi incluída em `npm run test:postgres`; não exige migration ou alteração de schema, pois reutiliza o campo existente `WebhookEvent.processingError`.
+- Commits desta sequência: `9c9e244ee9593745a652bfe16f80be00939b04ae`, `b84a56a13aea3a7576f3f10b370b105d964f3603`, `0554643d61fcd298740f107d340542292e460a44`, `32cf9cbda8f5c1087e5a212f6a9691988dfdbcea`, `97a1b290e71c048e7b61568191b738ee17483bbd` e `0e5a260bfdd096b03a0d33baa916ca917b967a69`.
+- **Validação pendente:** a alteração foi registrada na branch, mas ainda não há confirmação de execução verde do CI para o novo HEAD. Não declarar o bloco aprovado antes do workflow completo, incluindo PostgreSQL e build.
+- Nenhuma migration, alteração de banco de produção, secret, DNS ou deploy manual foi executado. A branch de trabalho continua `setup/super-quina`; `main` permanece intocada.
