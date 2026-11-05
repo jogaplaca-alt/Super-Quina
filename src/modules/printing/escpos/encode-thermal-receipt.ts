@@ -187,7 +187,9 @@ export function encodeThermalReceipt(receipt: ThermalReceiptForEncoding, profile
   bytes.push(ESC, 0x45, 0x00, ESC, 0x61, 0x01);
   bytes.push(...line("GUARDE ESTE COMPROVANTE", profile));
   bytes.push(...line(receipt.receiptCode, profile));
-  bytes.push(ESC, 0x61, 0x00, GS, 0x56, 0x00);
+  bytes.push(ESC, 0x61, 0x00);
   bytes.push(...Array.from({ length: feedLines }, () => 0x0a));
+  if (profile.cutMode === "full") bytes.push(GS, 0x56, 0x00);
+  if (profile.cutMode === "partial") bytes.push(GS, 0x56, 0x01);
   return new Uint8Array(bytes);
 }
