@@ -1534,3 +1534,31 @@ p, .intro, .auth-description, .area-description, .feature-card p,
     object-position: center;
   }
 }
+
+/* Cabeçalho compacto: reduz a faixa sem deformar a arte da marca. */
+.site-header.site-header-scenery {
+  height: 124px;
+  min-height: 124px;
+  overflow: hidden;
+}
+
+.site-header.site-header-scenery .site-header-scenery-image {
+  width: 100%;
+  height: 124px;
+  min-height: 124px;
+  object-fit: cover;
+  object-position: center 52%;
+}
+
+@media (max-width: 600px) {
+  .site-header.site-header-scenery {
+    height: 82px;
+    min-height: 82px;
+  }
+
+  .site-header.site-header-scenery .site-header-scenery-image {
+    height: 82px;
+    min-height: 82px;
+    object-position: center 52%;
+  }
+}
