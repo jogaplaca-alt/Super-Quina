@@ -25,9 +25,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Requisição inválida." }, { status: 403 });
     }
 
-    // Behind Railway's reverse proxy, nextUrl.origin can reflect the internal
-    // request URL rather than the public hostname sent by the browser. Compare
-    // the browser Origin to the incoming Host instead of the reconstructed URL.
+    // Compare the browser Origin with the incoming Host to reject cross-origin requests.
     const requestHost = request.headers.get("host");
     if (!requestHost || originHost !== requestHost) {
       return NextResponse.json({ error: "Requisição inválida." }, { status: 403 });
