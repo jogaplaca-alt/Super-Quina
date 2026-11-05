@@ -174,3 +174,77 @@ A camada de encoder deve ser independente da ponte SPP e receber o DTO autentica
 Validar impressoras representativas de diferentes fabricantes e firmwares, cobrindo 58 mm e 80 mm, SPP/RFCOMM, reconexão, acentuação portuguesa, números com zeros à esquerda, QR de verificação, dispositivos com e sem corte e falhas de conexão/escrita.
 
 A meta é ampla interoperabilidade com o subconjunto ESC/POS comum, não uma promessa de compatibilidade absoluta com implementações proprietárias, firmware incompleto ou dispositivos que apenas anunciem compatibilidade.
+
+## Diretriz de configuração aplicada ao Super Quina
+
+Esta seção substitui qualquer exemplo genérico de hospedagem ou permissões que venha de instruções externas. Os valores abaixo são os do projeto e respeitam a arquitetura já existente.
+
+### Configuração real de `capacitor.config.ts`
+
+O arquivo já está criado na raiz e deve permanecer com esta configuração:
+
+```ts
+const config = {
+  appId: "com.superquina.app",
+  appName: "Super Quina",
+  webDir: "www",
+  server: {
+    url: "https://superquina.com",
+    cleartext: false,
+  },
+  android: {
+    allowMixedContent: false,
+  },
+};
+
+export default config;
+```
+
+Justificativas específicas:
+- `https://superquina.com` é o domínio de produção do Super Quina na AquaCloud. Não usar `https://vercel.app` nem URL de exemplo.
+- O Next.js continua executando no servidor. Não configurar `output: "export"`, não gerar site estático e não mover rotas de API para o APK.
+- `webDir: "www"` é o diretório local exigido pelo CLI para a configuração atual; não é instrução para exportar o Next.js. Manter esse valor até a inicialização/sincronização real do Capacitor confirmar a estrutura necessária.
+- Não habilitar `cleartext` nem `allowMixedContent`: produção usa HTTPS integralmente.
+- O app continua usando as rotas remotas autenticadas por cookies/sessão. Não embutir credenciais do banco ou do Mercado Pago no aplicativo.
+
+### Manifest Android: permissões mínimas para a primeira versão
+
+O projeto Android ainda não foi gerado; portanto, ainda não existe `android/app/src/main/AndroidManifest.xml` para editar. Quando o Capacitor criar a plataforma, revisar o Manifest e adicionar dentro de `<manifest>`, antes de `<application>`, somente as permissões necessárias ao fluxo escolhido:
+
+```xml
+<uses-permission
+    android:name="android.permission.BLUETOOTH"
+    android:maxSdkVersion="30" />
+<uses-permission
+    android:name="android.permission.BLUETOOTH_CONNECT" />
+
+<uses-feature
+    android:name="android.hardware.bluetooth"
+    android:required="false" />
+```
+
+Decisão funcional da primeira versão: o usuário pareia a impressora nas configurações Bluetooth do Android e o Super Quina lista/conecta dispositivos já pareados. Por isso:
+- Não solicitar `BLUETOOTH_SCAN`, `ACCESS_FINE_LOCATION` ou `ACCESS_COARSE_LOCATION` sem implementar descoberta ativa de dispositivos próximos.
+- Não solicitar `BLUETOOTH_ADMIN` se o app não iniciar pareamento/descoberta nem alterar configurações Bluetooth.
+- Solicitar `BLUETOOTH_CONNECT` em tempo de execução no Android 12 (API 31) ou superior, tratar recusa e explicar ao usuário por que a permissão é necessária.
+- A permissão legada `BLUETOOTH` fica limitada ao Android 11/API 30 e anteriores.
+- Usar sempre o atributo XML `android:name`; a forma `android:permission="android:permission.BLUETOOTH"` do exemplo genérico está incorreta para declarar permissões.
+
+Se uma etapa futura realmente exigir descoberta ativa, reavaliar separadamente permissões de scan e localização conforme o SDK-alvo e as versões Android suportadas. Não ampliar permissões preventivamente.
+
+### Gatilho de impressão após Pix: sequência obrigatória
+
+O pedido para imprimir automaticamente após o Pix é um objetivo funcional, não autorização para imprimir com base apenas na tela de sucesso. No Super Quina, a ordem de implementação é:
+
+1. Preservar a confirmação definitiva no backend existente, incluindo reconciliação autenticada com o Mercado Pago e transação idempotente.
+2. Usar o recibo oficial de `GET /api/player/purchases/[purchaseId]/receipt`, que valida sessão, propriedade e confirmação.
+3. Implementar registro persistente de reserva única `AUTO_RECEIPT` por compra. A restrição única no banco impede duas instâncias/pollings de reservar o mesmo recibo.
+4. Implementar encoder ESC/POS puro a partir do DTO oficial do recibo e perfis configuráveis de 58 mm/80 mm.
+5. Implementar ponte Android RFCOMM/SPP e testar conexão, envio, falhas e reconexão em impressoras reais.
+6. Só então conectar a reserva confirmada ao envio Bluetooth automático. Manter reimpressão manual explícita e separada.
+
+Não disparar impressão a partir de `already_confirmed`, do desaparecimento do QR Code, da reabertura da tela ou de respostas repetidas do polling. Se o envio falhar em estado incerto, não repetir automaticamente: a impressora pode ter recebido os bytes. A compra e o pagamento permanecem confirmados independentemente da impressora.
+
+### Limite de execução nesta alteração
+
+A configuração do Capacitor já existente foi conferida e está alinhada com esta diretriz; não precisou ser substituída. O Manifest ainda não pode ser editado porque a plataforma Android não existe na branch. Também não executar `npx cap sync android` até instalar Capacitor com atualização real e coerente de `package.json`/ `package-lock.json` e inicializar a plataforma Android em ambiente Node/Gradle/JDK.
