@@ -21,6 +21,7 @@ suite("PostgreSQL wallet withdrawal concurrency", () => {
   const suffix = randomUUID();
   const playerId = `it-wallet-player-${suffix}`;
   const adminId = `it-wallet-admin-${suffix}`;
+  const adminRacePlayerId = `it-wallet-admin-race-player-${suffix}`;
   const withdrawalIds: string[] = [];
 
   beforeAll(async () => {
@@ -28,6 +29,7 @@ suite("PostgreSQL wallet withdrawal concurrency", () => {
     await prisma.user.createMany({ data: [
       { id: playerId, username: `it-wallet-player-${suffix}`, passwordHash: "integration-test", role: "PLAYER" },
       { id: adminId, username: `it-wallet-admin-${suffix}`, passwordHash: "integration-test", role: "ADMIN" },
+      { id: adminRacePlayerId, username: `it-wallet-admin-race-player-${suffix}`, passwordHash: "integration-test", role: "PLAYER" },
     ] });
   });
 
@@ -39,7 +41,8 @@ suite("PostgreSQL wallet withdrawal concurrency", () => {
       await prisma.withdrawal.deleteMany({ where: { id: { in: withdrawalIds } } });
     }
     await prisma.ledgerEntry.deleteMany({ where: { userId: playerId } });
-    await prisma.user.deleteMany({ where: { id: { in: [playerId, adminId] } } });
+    await prisma.ledgerEntry.deleteMany({ where: { userId: adminRacePlayerId } });
+    await prisma.user.deleteMany({ where: { id: { in: [playerId, adminId, adminRacePlayerId] } } });
     await prisma.$disconnect();
   });
 
@@ -86,8 +89,12 @@ suite("PostgreSQL wallet withdrawal concurrency", () => {
   });
 
   it("allows only one administrator action to close a pending withdrawal", async () => {
+    await prisma.ledgerEntry.create({ data: {
+      userId: adminRacePlayerId, type: "DEPOSIT", amountCents: 7500,
+      idempotencyKey: `it-wallet-admin-deposit-${suffix}`, description: "Integration test funding",
+    } });
     const withdrawal = await prisma.withdrawal.create({ data: {
-      userId: playerId, amountCents: 7500, pixKeyEncrypted: "integration-test-encrypted",
+      userId: adminRacePlayerId, amountCents: 7500, pixKeyEncrypted: "integration-test-encrypted",
       idempotencyKey: `it-wallet-admin-race-${suffix}`,
     } });
     withdrawalIds.push(withdrawal.id);
@@ -98,7 +105,7 @@ suite("PostgreSQL wallet withdrawal concurrency", () => {
       if (current.status !== "PENDING") throw new Error("INVALID_STATE");
       await tx.withdrawal.update({ where: { id: withdrawal.id }, data: { status: "PAID", reviewedById: adminId } });
       await tx.ledgerEntry.create({ data: {
-        userId: playerId, withdrawalId: withdrawal.id, type: "WITHDRAWAL_PAID",
+        userId: adminRacePlayerId, withdrawalId: withdrawal.id, type: "WITHDRAWAL_PAID",
         amountCents: 0, idempotencyKey: `withdrawal-paid:${withdrawal.id}`,
         description: "Integration test external payout record",
       } });
