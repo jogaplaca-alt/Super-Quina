@@ -41,7 +41,7 @@ describe("admin prize rules API", () => {
     mocks.getSessionUser.mockResolvedValue(null);
     expect((await GET(request()))!.status).toBe(401);
     mocks.getSessionUser.mockResolvedValue({ id: "player", role: "PLAYER", mustChangePassword: false });
-    expect((await GET(request())).status).toBe(403);
+    expect((await GET(request()))!.status).toBe(403);
     expect(mocks.settingFindUnique).not.toHaveBeenCalled();
   });
 
