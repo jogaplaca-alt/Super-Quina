@@ -48,17 +48,17 @@ describe("admin prize rules API", () => {
 
   it("blocks admins who must change their password", async () => {
     mocks.getSessionUser.mockResolvedValue({ id: "admin-1", role: "ADMIN", mustChangePassword: true });
-    const response = await PUT(request("PUT", valid));
+    const response = (await PUT(request("PUT", valid)))!;
     expect(response.status).toBe(403);
     expect(mocks.transaction).not.toHaveBeenCalled();
   });
 
   it("rejects updates without a same-origin header", async () => {
-    const response = await PUT(new NextRequest("https://example.test/api/admin/prize-rules", {
+    const response = (await PUT(new NextRequest("https://example.test/api/admin/prize-rules", {
       method: "PUT",
       headers: { host: "example.test", "content-type": "application/json" },
       body: JSON.stringify(valid),
-    }));
+    })))!;
     expect(response.status).toBe(403);
     expect(mocks.transaction).not.toHaveBeenCalled();
   });
