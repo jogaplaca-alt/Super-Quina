@@ -31,17 +31,29 @@ export async function GET(request: NextRequest) {
   const auth = await requireAdmin(request);
   if (auth.response) return auth.response;
   try {
-    const cashiers = await authPrisma.user.findMany({
-      where: { role: "CASHIER" },
-      select: { id: true, username: true, fullName: true, whatsapp: true, commissionRateBasisPoints: true, status: true, mustChangePassword: true, createdAt: true },
-      orderBy: [{ status: "asc" }, { username: "asc" }],
-      take: 500,
-    });
+    const params = request.nextUrl.searchParams;
+    const requestedPage = Number(params.get("page") ?? "1");
+    const requestedLimit = Number(params.get("limit") ?? "50");
+    if (!Number.isSafeInteger(requestedPage) || requestedPage < 1 ||
+        !Number.isSafeInteger(requestedLimit) || requestedLimit < 1 || requestedLimit > 100) {
+      return NextResponse.json({ error: "Parâmetros de paginação inválidos." }, { status: 400, headers });
+    }
+    const [total, cashiers] = await Promise.all([
+      authPrisma.user.count({ where: { role: "CASHIER" } }),
+      authPrisma.user.findMany({
+        where: { role: "CASHIER" },
+        select: { id: true, username: true, fullName: true, whatsapp: true, commissionRateBasisPoints: true, status: true, mustChangePassword: true, createdAt: true },
+        orderBy: [{ status: "asc" }, { username: "asc" }, { id: "asc" }],
+        skip: (requestedPage - 1) * requestedLimit,
+        take: requestedLimit,
+      }),
+    ]);
+    const totalPages = Math.ceil(total / requestedLimit);
     return NextResponse.json({ cashiers: cashiers.map((cashier) => ({
       ...cashier,
       commissionPercent: cashier.commissionRateBasisPoints / 100,
       createdAt: cashier.createdAt.toISOString(),
-    })) }, { headers });
+    })), pagination: { page: requestedPage, limit: requestedLimit, total, totalPages, hasPreviousPage: requestedPage > 1, hasNextPage: requestedPage < totalPages } }, { headers });
   } catch {
     return NextResponse.json({ error: "Não foi possível carregar os cambistas." }, { status: 500, headers });
   }
