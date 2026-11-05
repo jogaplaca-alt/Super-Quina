@@ -1,8 +1,10 @@
+> **Registro histórico:** esta auditoria foi feita antes da consolidação do repositório. A única branch oficial atual é `Principal`. As referências a `recovery/super-quina` e às branches usadas na comparação descrevem somente o contexto histórico de 2026-11-04; não são instruções para o fluxo atual.
+
 # Auditoria seletiva — recovery/super-quina
 
 Data da comparação: 2026-11-04
 Repositório: `jpveiculos/Super-Quina`
-Branch de destino/base protegida: `setup/super-quina`
+Branch de destino/base protegida: `Principal`
 Branch sob avaliação: `recovery/super-quina`
 
 ## Regra de identidade e aproveitamento
@@ -11,10 +13,10 @@ A branch de recuperação é apenas fonte de ideias e código genérico. É proi
 
 ## Resultado estrutural da comparação
 
-Comparação GitHub: `setup/super-quina...recovery/super-quina`.
+Comparação GitHub: `Principal...recovery/super-quina`.
 
 - Estado: `diverged`.
-- `recovery/super-quina` está 11 commits à frente e 144 commits atrás de `setup/super-quina`.
+- `recovery/super-quina` está 11 commits à frente e 144 commits atrás de `Principal`.
 - A comparação retornou 11 arquivos alterados.
 - Isso representa 11 commits exclusivos em relação ao ancestral comum, não o total histórico de commits da branch.
 - Não fazer merge. A diferença de 144 commits atrás indica que a recuperação não é uma atualização linear da branch de trabalho.
@@ -62,7 +64,7 @@ Nenhum código funcional foi alterado. Nenhuma migration foi aplicada. Nenhum da
 
 ## Parecer final de valor — revisão aprofundada em 2026-11-04
 
-A branch `recovery/super-quina` foi avaliada com o critério de que a branch `setup/super-quina` já está em estágio avançado e só deve receber melhorias realmente relevantes.
+A branch `recovery/super-quina` foi avaliada com o critério de que a branch `Principal` já está em estágio avançado e só deve receber melhorias realmente relevantes.
 
 ### Pontos que pareceram interessantes, mas não justificam integração
 
@@ -102,7 +104,7 @@ Decisão do responsável pelo projeto: encerrar o trabalho de avaliação da bra
 - Não realizar merge ou cherry-pick.
 - Não continuar novas auditorias nela, salvo se surgir uma necessidade concreta.
 - Preservar a branch temporariamente como referência recuperável até a exclusão autorizada.
-- A branch `setup/super-quina` permanece como única base ativa de desenvolvimento.
+- Na data desta auditoria, a antiga branch `setup/super-quina` era a base ativa. Atualmente, a única branch oficial é `Principal`.
 - A exclusão remota da branch recovery **não foi executada** neste encerramento; permanece pendente de ação/autorização específica.
 
 Status: **AVALIAÇÃO ENCERRADA — AGUARDANDO EXCLUSÃO**.
