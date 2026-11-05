@@ -216,13 +216,9 @@ export async function createPixOrder(input: {
     throw new Error(`Mercado Pago could not create the Pix order (${response.status})`);
   }
 
-  const checkout = parseOrder(await response.json() as MercadoPagoOrder);
-  if (!checkout.qrCode) {
-    // Preserve the order ID in the caller before treating a missing QR as a failure.
-    // The caller stores IDs only after this function returns, so reject incomplete responses.
-    throw new Error("Mercado Pago order did not include Pix copy-and-paste data");
-  }
-  return checkout;
+  // Persist the provider order ID even if the immediate response omits QR data.
+  // A later retry can retrieve the same order by ID instead of creating a new one.
+  return parseOrder(await response.json() as MercadoPagoOrder);
 }
 
 export async function getPixOrder(orderId: string): Promise<PixCheckout> {
