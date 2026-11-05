@@ -177,7 +177,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
           setNumbers([]); setNumberInput(""); setParticipationCount(1);
           setNotice("Pagamento recebido e compra registrada. Aguardando a alocação automática nas próximas rodadas; o recibo será liberado depois.");
         } else {
-          if (mode === "CASHIER") setReceiptPurchaseId(created.id);
+          setReceiptPurchaseId(created.id);
           idempotency.current = null;
           setNumbers([]); setNumberInput(""); setParticipationCount(1);
           setNotice("Compra confirmada. Sua aposta foi registrada.");
