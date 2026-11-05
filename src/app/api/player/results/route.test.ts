@@ -39,6 +39,21 @@ describe("GET /api/player/results", () => {
     expect(mocks.roundFindMany).toHaveBeenCalledOnce();
   });
 
+
+  it("allows ADMIN to view the same recent published results", async () => {
+    mocks.getSessionUser.mockResolvedValue({ id: "admin-1", username: "admin", role: "ADMIN", status: "ACTIVE", mustChangePassword: false });
+    const response = await GET(request());
+    expect(response.status).toBe(200);
+    expect(mocks.roundFindMany).toHaveBeenCalledOnce();
+  });
+
+  it("blocks every role while the initial password change is required", async () => {
+    mocks.getSessionUser.mockResolvedValue({ id: "admin-1", username: "admin", role: "ADMIN", status: "ACTIVE", mustChangePassword: true });
+    const response = await GET(request());
+    expect(response.status).toBe(403);
+    expect(mocks.roundFindMany).not.toHaveBeenCalled();
+  });
+
   it("returns the single numeric result from the last 24 hours without caching", async () => {
     const response = await GET(request());
     expect(response.status).toBe(200);
