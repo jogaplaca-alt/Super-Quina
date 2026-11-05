@@ -1,6 +1,7 @@
 import { Prisma, type PrismaClient } from "@/generated/prisma/client";
 import { classifyPixOrderStatus, getVerifiedPixOrder } from "@/modules/payments/mercado-pago";
 import { confirmPixPayment } from "@/modules/payments/confirm-payment";
+import { recordUnexpectedExternalRefund } from "@/modules/payments/record-unexpected-refund";
 
 export type PixReconciliationOutcome =
   | "confirmed"
@@ -69,19 +70,8 @@ export async function reconcilePixPaymentFromProvider(
   }
 
   if (normalizedStatus === "refunded") {
-    await prisma.$transaction(async (tx) => {
-      const prior = await tx.auditEvent.findFirst({
-        where: { action: "UNEXPECTED_EXTERNAL_REFUND_REPORTED", entityType: "Purchase", entityId: payment.purchaseId },
-        select: { id: true },
-      });
-      if (!prior) await tx.auditEvent.create({
-        data: {
-          action: "UNEXPECTED_EXTERNAL_REFUND_REPORTED",
-          entityType: "Purchase",
-          entityId: payment.purchaseId,
-          metadata: { paymentId: payment.id, providerStatus, source: "status_fallback", note: "Manual financial review required; purchase and prizes were not reversed." },
-        },
-      });
+    await recordUnexpectedExternalRefund(prisma, {
+      purchaseId: payment.purchaseId, paymentId: payment.id, providerStatus, source: "status_fallback",
     });
     return "still_pending";
   }
