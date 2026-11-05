@@ -26,7 +26,8 @@ export async function GET(request: NextRequest) {
         } },
       },
       select: {
-        id: true, numberValue: true, prizeCents: true, createdAt: true,
+        id: true, numberValue: true, prizeCents: true, prizeCreditedAt: true, createdAt: true,
+        prizePayout: { select: { channel: true, paidAt: true } },
         participation: { select: {
           id: true, round: { select: { id: true, code: true, resultAt: true, resultNumber: true } },
           purchase: { select: { id: true, createdAt: true, playerId: true, player: { select: { username: true } } } },
@@ -44,8 +45,13 @@ export async function GET(request: NextRequest) {
         username: line.participation.purchase.player?.username ?? "Conta indisponível",
         ledgerEntryExists: Boolean(entry),
         ledgerMatches: Boolean(entry && entry.userId === line.participation.purchase.playerId &&
-          entry.amountCents === line.prizeCents && entry.type === "PRIZE_CREDIT" &&
+          entry.purchaseId === line.participation.purchase.id && entry.amountCents === line.prizeCents &&
+          entry.currency === "BRL" && entry.type === "PRIZE_CREDIT" &&
           entry.participationId === line.participation.id),
+        prizeCreditedAt: line.prizeCreditedAt?.toISOString() ?? null,
+        payoutExists: Boolean(line.prizePayout),
+        payoutChannel: line.prizePayout?.channel ?? null,
+        payoutAt: line.prizePayout?.paidAt.toISOString() ?? null,
       };
     }));
     return NextResponse.json({ items, count: items.length, limit: 200 }, { headers });
@@ -83,7 +89,7 @@ export async function POST(request: NextRequest) {
     const result = await authPrisma.$transaction(async (tx) => {
       const line = await tx.numericParticipationLine.findUnique({
         where: { id: parsed.data.lineId },
-        include: { participation: { include: { round: true, purchase: { include: { player: true } } } } },
+        include: { prizePayout: true, participation: { include: { round: true, purchase: { include: { player: true } } } } },
       });
       if (!line) throw new Error("LINE_NOT_FOUND");
       const purchase = line.participation.purchase;
@@ -91,6 +97,7 @@ export async function POST(request: NextRequest) {
       const playerId = purchase.playerId;
       if (!playerId || purchase.cashierId !== null || !purchase.player || purchase.status !== "CONFIRMED" ||
           line.participation.status !== "CONFIRMED" || round.status !== "COMPLETED" || !round.resultNumber) throw new Error("NOT_ELIGIBLE");
+      if (line.prizePayout) throw new Error("ALREADY_PAID");
       if (line.prizeCents === null || line.prizeCents <= 0) throw new Error("NO_PRIZE");
       let recalculated: number;
       try {
@@ -105,7 +112,8 @@ export async function POST(request: NextRequest) {
       const existing = await tx.ledgerEntry.findUnique({ where: { idempotencyKey } });
       let creditedNow = false;
       if (existing) {
-        if (existing.userId !== playerId || existing.amountCents !== recalculated ||
+        if (existing.userId !== playerId || existing.purchaseId !== purchase.id ||
+            existing.amountCents !== recalculated || existing.currency !== purchase.currency ||
             existing.type !== "PRIZE_CREDIT" || existing.participationId !== line.participationId) throw new Error("LEDGER_CONFLICT");
       } else {
         await tx.ledgerEntry.create({ data: {
@@ -133,6 +141,7 @@ export async function POST(request: NextRequest) {
     if (code === "LINE_NOT_FOUND") return NextResponse.json({ error: "Prêmio não encontrado." }, { status: 404, headers });
     if (code === "NOT_ELIGIBLE") return NextResponse.json({ error: "Este registro não é elegível para crédito corretivo de prêmio online." }, { status: 409, headers });
     if (code === "NO_PRIZE") return NextResponse.json({ error: "A linha não possui prêmio positivo apurado." }, { status: 409, headers });
+    if (code === "ALREADY_PAID") return NextResponse.json({ error: "Este prêmio já possui pagamento registrado por Pix ou dinheiro; o crédito corretivo foi bloqueado." }, { status: 409, headers });
     if (code === "PRIZE_MISMATCH" || code === "LEDGER_CONFLICT") return NextResponse.json({ error: "Divergência financeira detectada. O crédito foi bloqueado para auditoria." }, { status: 409, headers });
     return NextResponse.json({ error: "Não foi possível realizar a correção do crédito." }, { status: 500, headers });
   }
