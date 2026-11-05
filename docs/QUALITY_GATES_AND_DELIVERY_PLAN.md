@@ -424,3 +424,37 @@ Esta seção registra auditoria estática inicial. Nenhum código ou banco foi a
 - Nenhuma migration, alteração de banco, secret, deploy ou operação em produção foi realizada.
 
 **Status:** auditoria estática e correção do limite de pendentes realizadas; testes focados/CI e testes de concorrência PostgreSQL ainda pendentes. Bloco permanece PARCIAL, não aprovado.
+
+
+## 16. Auditoria incremental — Bloco 8: cadastro, financeiro e acertos de cambistas no ADMIN (2026-11-05)
+
+**Escopo:** painel `AdminCashierManager`, cadastro/edição de cambistas, página financeira individual, API de acerto e modelos `CashierCommission`, `CashierSettlement` e `NumericPrizePayout`. Não inclui revisão completa do fluxo de vendas do CASHIER nem pagamento de prêmios do ADMIN.
+
+### Fluxos confirmados
+
+- A página ADMIN e a página financeira individual usam `requireRole("ADMIN")`. As APIs de listagem, criação, edição e acerto validam sessão, papel ADMIN e bloqueiam `mustChangePassword`.
+- Cadastro cria usuário com papel CASHIER, status ACTIVE e `mustChangePassword: true`; senha é armazenada por hash. Username é normalizado para minúsculas; WhatsApp é armazenado apenas com dígitos; comissão aceita de 0% a 100%, com até duas casas decimais.
+- Edição é restrita a registros com papel CASHIER, permite bloquear/ativar, redefinir senha e alterar comissão. Redefinição força troca no próximo acesso. Criação e edição registram evento de auditoria com valores anteriores/novos; senha/hash não é gravada na auditoria.
+- A comissão é materializada em `CashierCommission` por compra, com taxa em basis points e valor em centavos, evitando recalcular vendas antigas pela taxa atual. A comissão não é misturada ao ledger/saldo de saque do PLAYER.
+- A página financeira individual tem paginação de 25 vendas e 25 acertos. Exibe vendas confirmadas, pendentes, canceladas e estornadas, além de comissão, forma de pagamento, cliente, recibo e jogos.
+- O acerto é protegido por Origin/Host, sessão ADMIN e transação serializável. Bloqueia a linha do cambista, determina o último acerto, fixa um cutoff pelo relógio do banco e calcula vendas confirmadas em dinheiro e Pix, comissão, jogos e prêmios em dinheiro pagos pelo cambista.
+- O acerto grava um snapshot imutável em `CashierSettlement`, associa os pagamentos de prêmios em dinheiro ainda não vinculados ao snapshot e grava `CASHIER_SETTLEMENT_RECORDED`. O histórico anterior permanece disponível; não apaga vendas nem comissões.
+- A interface explica que prêmios pagos em dinheiro pelo cambista são adiantamentos de recursos da plataforma e ficam discriminados para reposição de caixa, não sendo comissão nem despesa própria do cambista.
+
+### Achados e pendências
+
+1. **Listagem de cambistas limitada a 500:** `GET /api/admin/cashiers` usa `take: 500` sem paginação ou indicação de lista parcial. Com mais de 500 contas, o ADMIN não consegue localizar todos pelo seletor. Prioridade média; implementar paginação ou busca.
+2. **Falta de teste dedicado visível para o endpoint de acerto:** o arquivo `src/app/api/admin/cashiers/[cashierId]/settlements/route.ts` não tem teste correspondente no caminho esperado. A lógica financeira é sensível e deve ter testes de autorização, cutoff, ausência de vendas, soma de dinheiro/Pix, comissão, prêmios, associação única dos payouts e rollback.
+3. **Concorrência do acerto não comprovada em PostgreSQL:** bloqueio da linha do cambista e isolamento serializável estão implementados, mas ainda falta teste real com duas chamadas simultâneas para provar que não criam dois snapshots cobrindo o mesmo intervalo nem associam um mesmo prêmio a dois acertos.
+4. **Vendas posteriores ao cutoff:** a consulta usa intervalo `confirmedAt > since AND confirmedAt <= cutoff`; prêmios pagos usam `paidAt` no mesmo intervalo e apenas payouts sem `settlementId`. Essa separação é coerente com o snapshot, mas precisa de teste de fronteira para garantir que operação concorrente após o cutoff permaneça no próximo acerto.
+5. **Comissão histórica:** a taxa e o valor são persistidos por compra, então mudar a taxa do cambista não reescreve comissões antigas. Manter essa regra; não recalcular o passado com a taxa atual.
+6. **Estados de venda:** a página lista compras não confirmadas e estornadas para histórico, mas elas não entram nos agregados de acerto, que filtram `status: CONFIRMED`; Pix exige também pagamento `CONFIRMED`. Isso evita tratar Pix pendente como venda recebida.
+7. **Validação da taxa zero:** cadastro e edição permitem 0%. É comportamento explícito da validação; confirmar decisão comercial antes de restringir. Não alterar por inferência.
+8. **Sem prova ponta a ponta de fechamento financeiro:** a revisão estática não confirma que cada forma de venda do CASHIER cria exatamente uma comissão e que os pagamentos Pix tardios são reconhecidos no intervalo correto. Exige teste integrado do ciclo de venda e acerto.
+
+### Decisão
+
+- Não foi identificada falha comprovada de autorização nem mistura do saldo de PLAYER com comissão de CASHIER nesta inspeção.
+- A separação entre histórico de vendas, comissão materializada e snapshot de acerto está implementada.
+- **Status: PARCIAL.** Antes de encerrar, criar testes de rota e integração PostgreSQL para o acerto, concorrência e fronteiras temporais; avaliar paginação da listagem de cambistas.
+- Nenhuma alteração de código, schema, migration, banco, secret, deploy ou produção foi realizada neste bloco.
