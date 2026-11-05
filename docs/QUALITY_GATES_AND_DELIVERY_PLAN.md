@@ -273,3 +273,39 @@ Esta seção registra auditoria estática inicial. Nenhum código ou banco foi a
 - **Próximo bloco recomendado: “Rodadas e sorteios” — painel ADMIN + GET/POST das rotas close/draw/settle + serviços de domínio e testes correspondentes.** Manter o escopo restrito ao ciclo da rodada; não misturar saques, cadastro de cambistas ou pagamento Pix.
 - Antes de marcar este bloco como concluído, executar testes focados e CI no commit correspondente. A inspeção estática não substitui execução.
 - Nenhuma migration, alteração de banco, secret, deploy ou operação em produção foi realizada nesta etapa.
+
+
+## 10. Auditoria incremental — Bloco 4: ciclo de rodadas e sorteios no ADMIN (2026-11-04)
+
+**Escopo:** painel ADMIN de rodadas, rotas POST de fechamento/sorteio/apuração, serviços de domínio, integração com scheduler e testes relacionados. Não inclui saques, cadastro/acerto de cambistas ou revisão geral de pagamentos.
+
+### Fluxo confirmado
+
+- `src/components/admin/admin-round-manager.tsx` apresenta status da rodada, horários, participações, resultado oficial e ações manuais. A interface pede confirmação antes de fechar, sortear ou apurar e atualiza o painel após a operação.
+- `close/route.ts`, `draw/route.ts` e `settle/route.ts` validam Origin/Host, sessão, papel ADMIN, troca obrigatória de senha e identificador. As respostas são `no-store`; tentativas de papel insuficiente são auditadas.
+- As três rotas chamam os mesmos serviços de domínio utilizados pelo scheduler: `closeRound`, `drawRoundResults` e `settleNumericRoundPrizes`. Não foi identificada uma implementação paralela para a ação manual.
+- `closeRound` bloqueia a linha da rodada, só aceita estados SCHEDULED/OPEN e usa o relógio do banco para impedir fechamento antes do cutoff. Repetir o fechamento de rodada já CLOSED é no-op idempotente, com evento de auditoria para ação manual.
+- `drawRoundResults` bloqueia a rodada, exige status CLOSED e horário de resultado alcançado pelo relógio do banco. Gera um único resultado usando `node:crypto.randomInt(100000)`, convertido para string de cinco posições, preservando zeros à esquerda. Resultado já existente com rodada COMPLETED é devolvido sem novo sorteio; estado incompatível é bloqueado como inconsistência.
+- `settleNumericRoundPrizes` bloqueia rodada e linhas elegíveis, exige resultado publicado, recalcula prêmio a partir do snapshot histórico e rejeita divergência. Créditos de PLAYER usam chave de idempotência `numeric-prize-credit:<lineId>` na mesma transação; compras de CASHIER ficam como pagamento manual pendente.
+- O scheduler chama esses mesmos serviços em sequência: fecha rodadas vencidas, abre as programadas, sorteia rodadas fechadas no horário e tenta apurar rodadas concluídas sem auditoria de liquidação. Falhas são reportadas e as tarefas elegíveis podem ser retomadas na execução seguinte.
+- `docs/PRODUCT_RULES.md` define um único número oficial de cinco algarismos por rodada. A tela/serviço atuais usam `resultNumber` singular; não alterar para dois resultados independentes.
+
+### Achados e pendências
+
+1. **Cobertura insuficiente dos serviços de domínio:** os testes das rotas validam autorização e mapeamento de respostas, mas mockam os serviços. Não há, neste bloco, testes PostgreSQL específicos demonstrando concorrência real no fechamento, sorteio único e liquidação/ledger. Prioridade alta antes de homologação financeira.
+2. **Sorteio concorrente:** o bloqueio por linha e a transação impedem que duas chamadas válidas sorteiem a mesma rodada duas vezes. Ainda falta teste de integração com duas requisições simultâneas e verificação de um único resultado/evento de auditoria.
+3. **Liquidação concorrente e rollback:** a chave única de idempotência e a transação serializável são proteções implementadas, mas faltam cenários PostgreSQL que comprovem um único crédito por linha, rollback sem crédito parcial e retentativa posterior.
+4. **Falha de serialização no sorteio:** ao contrário de fechamento e liquidação, o serviço de sorteio não faz retry local explícito de conflito serializável. O scheduler pode tentar novamente no minuto seguinte e a ação manual pode ser repetida, mas isso deve ser testado; avaliar retry curto e limitado somente se a integração demonstrar falha operacional relevante.
+5. **UX de fechamento antecipado:** a interface mostra “Fechar apostas” tanto para SCHEDULED quanto OPEN, mesmo antes do cutoff. O servidor bloqueia corretamente com HTTP 409, portanto não é bypass de regra, mas a interface pode oferecer uma ação que será recusada. Ajustar a disponibilidade/estado do botão ou explicar que o fechamento só é possível no horário; incluir teste de interface.
+6. **Lista de rodadas limitada:** permanece o achado do bloco 3: API retorna no máximo 100 rodadas, sem paginação/total, e a tela não sinaliza lista parcial. Tratar com paginação estável em subbloco próprio do painel.
+7. **Contadores sem período:** os totais de compras aguardando pagamento e confirmadas continuam sem recorte temporal nem indicação de que são totais históricos. A decisão de produto sobre o período ainda está pendente.
+8. **Formatação de horário:** painel usa fuso fixo UTC−03 (`Etc/GMT+3`), consistente com a regra atual do scheduler. Manter centralização dessa regra e testar fronteiras; não substituir por timezone inferido do dispositivo.
+9. **Terminologia de legado:** os arquivos inspecionados neste bloco usam “rodada”, “resultado”, “aposta/participação” e “número”; não foi encontrado texto explícito de placas/Joga Placas no painel/rotas/serviços analisados. Isso não substitui a varredura global.
+
+### Decisão
+
+- Nenhuma falha de autorização ou duplicação de fluxo foi comprovada na leitura estática; não foi feita alteração de lógica de produção.
+- O bloco fica **PARCIAL — fluxo manual/automático alinhado e proteções identificadas; validação de concorrência PostgreSQL e pequenos ajustes de UX/paginação pendentes**.
+- Próxima ação recomendada: criar testes de integração PostgreSQL para fechamento concorrente, sorteio único, liquidação concorrente/rollback e retentativa; depois ajustar o botão de fechamento para não oferecer ação antes do cutoff e planejar paginação da lista de rodadas.
+- O CI do commit anterior `9d9175bc` estava em execução durante esta inspeção; resultado ainda não confirmado neste registro. Nenhum teste foi executado nesta sessão.
+- Nenhuma migration, alteração de banco, secret, deploy ou operação em produção foi realizada.
