@@ -86,7 +86,7 @@ export async function reconcilePixPaymentFromProvider(
         : null;
   if (!terminalStatus) return "still_pending";
 
-  await cancelPendingPixPurchase(prisma, {
+  const cancelled = await cancelPendingPixPurchase(prisma, {
     paymentId: payment.id,
     purchaseId: payment.purchaseId,
     terminalStatus,
@@ -94,5 +94,14 @@ export async function reconcilePixPaymentFromProvider(
     providerStatusDetail: order.statusDetail,
     source: "status_fallback",
   });
-  return "terminal";
+  if (cancelled) return "terminal";
+
+  // Approval may have won the lock race. Report the committed state rather
+  // than claiming a cancellation that the conditional transition did not make.
+  const latest = await prisma.payment.findUnique({
+    where: { id: payment.id },
+    select: { status: true, purchase: { select: { status: true } } },
+  });
+  if (latest?.status === "CONFIRMED" && latest.purchase.status === "CONFIRMED") return "already_confirmed";
+  return "not_pending";
 }
