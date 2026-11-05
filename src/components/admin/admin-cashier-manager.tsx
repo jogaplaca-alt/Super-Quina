@@ -47,6 +47,7 @@ export function AdminCashierManager() {
     loadController.current?.abort();
     const controller = new AbortController();
     loadController.current = controller;
+    setLoading(true);
     setError("");
     try {
       const response = await fetch("/api/admin/cashiers?page=" + page + "&limit=50", { cache: "no-store", signal: controller.signal });
