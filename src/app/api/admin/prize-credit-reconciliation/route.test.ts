@@ -44,7 +44,7 @@ describe("admin prize credit reconciliation API", () => {
     mocks.ledgerCreate.mockResolvedValue({});
     mocks.lineUpdate.mockResolvedValue({});
     mocks.auditCreate.mockResolvedValue({});
-    mocks.transaction.mockImplementation(async (callback, options) => callback({
+    mocks.transaction.mockImplementation(async (callback) => callback({
       numericParticipationLine: { findUnique: mocks.lineFindUnique, update: mocks.lineUpdate },
       ledgerEntry: { findUnique: mocks.ledgerFindUnique, create: mocks.ledgerCreate },
       auditEvent: { create: mocks.auditCreate },
