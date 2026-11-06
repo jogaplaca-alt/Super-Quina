@@ -113,18 +113,18 @@ export function AdminPrizePayout() {
     <p>Todos os ganhadores das rodadas concluídas ficam reunidos aqui. Faça o Pix fora da plataforma e confirme somente depois que a transferência estiver concluída.</p>
 
     {tab === "pending" && <div className="admin-prize-total-panel" style={{
-      margin: "1.25rem 0", padding: "1.5rem", borderRadius: "20px",
+      margin: "1rem 0", padding: "1rem 1.1rem", borderRadius: "16px",
       border: "1px solid rgba(66, 211, 242, .55)",
       background: "linear-gradient(135deg, rgba(0, 139, 190, .24), rgba(22, 35, 57, .96))",
       boxShadow: "0 8px 24px rgba(0, 0, 0, .18)",
     }}>
-      <span style={{ display: "block", fontSize: "1rem", fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", color: "#62d8f4" }}>
+      <span style={{ display: "block", fontSize: ".8rem", fontWeight: 700, letterSpacing: ".07em", textTransform: "uppercase", color: "#62d8f4" }}>
         Total de Pix a pagar
       </span>
-      <strong style={{ display: "block", marginTop: ".35rem", fontSize: "clamp(2.25rem, 8vw, 3rem)", lineHeight: 1.15, color: "#fff", fontVariantNumeric: "tabular-nums" }}>
+      <strong style={{ display: "block", marginTop: ".2rem", fontSize: "clamp(1.7rem, 6vw, 2.2rem)", lineHeight: 1.1, color: "#fff", fontVariantNumeric: "tabular-nums" }}>
         {money(totalToPayCents)}
       </strong>
-      <span style={{ display: "block", marginTop: ".5rem", color: "#c5d2e4", fontSize: "1rem" }}>
+      <span style={{ display: "block", marginTop: ".35rem", color: "#c5d2e4", fontSize: ".85rem" }}>
         {manualPending.length} {manualPending.length === 1 ? "prêmio aguardando Pix" : "prêmios aguardando Pix"}
       </span>
       {reviewPending.length > 0 && <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid rgba(255,255,255,.16)" }}>
