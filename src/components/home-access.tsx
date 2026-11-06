@@ -21,6 +21,11 @@ export function HomeAccess() {
       <div className="home-header-wrap">
         <SiteHeader />
       </div>
+      <div className="home-access-footer">
+        <button className="home-footer-access" type="button" onClick={() => setIsOpen(true)} aria-haspopup="dialog" aria-expanded={isOpen}>
+          Entrar
+        </button>
+      </div>
       {isOpen ? (
         <div className="home-access-backdrop" onMouseDown={(event) => {
           if (event.target === event.currentTarget) setIsOpen(false);
