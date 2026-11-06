@@ -1951,3 +1951,39 @@ p, .intro, .auth-description, .area-description, .feature-card p,
     min-height: 0;
   }
 }
+
+
+/* Ajuste definitivo: cabeçalho 40% mais baixo, preservando o tamanho horizontal da logomarca.
+   A arte mantém a largura total; o recorte fica somente no fundo superior/inferior. */
+.site-header.site-header-scenery {
+  width: 100%;
+  height: auto !important;
+  min-height: 0 !important;
+  aspect-ratio: 5 / 1;
+  overflow: hidden;
+  padding: 0;
+}
+
+.site-header.site-header-scenery .site-header-scenery-image {
+  display: block;
+  width: 100%;
+  height: 100% !important;
+  min-height: 0 !important;
+  object-fit: cover;
+  object-position: center center;
+}
+
+@media (max-width: 600px) {
+  .site-header.site-header-scenery {
+    width: 100%;
+    aspect-ratio: 5 / 1;
+    height: auto !important;
+  }
+
+  .site-header.site-header-scenery .site-header-scenery-image {
+    width: 100%;
+    height: 100% !important;
+    object-fit: cover;
+    object-position: center center;
+  }
+}
