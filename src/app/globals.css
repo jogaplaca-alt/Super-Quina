@@ -2290,3 +2290,28 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   padding-left:28px;
   padding-right:28px;
 }
+
+
+/* Forma de pagamento: mesma altura compacta do seletor de repetições. */
+.round-payment-fieldset{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  column-gap:24px;
+  row-gap:8px;
+  padding:18px 16px 16px!important;
+  min-height:0;
+}
+.round-payment-fieldset>legend{flex:0 0 100%;}
+.round-payment-fieldset>label{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  margin:0;
+  line-height:1.25;
+}
+.round-payment-fieldset>label input[type="radio"]{margin:0;}
+@media(max-width:600px){
+  .round-payment-fieldset{padding:16px 12px 14px!important;}
+  .round-payment-fieldset>label{font-size:1rem;}
+}
