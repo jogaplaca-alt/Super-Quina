@@ -1061,7 +1061,7 @@ p, .intro, .auth-description, .area-description, .feature-card p,
 .home-entry{
   width:min(100%,760px);
   margin:0 auto;
-  padding:4px clamp(14px,3vw,24px) 36px;
+  padding:4px clamp(14px,3vw,24px) 16px;
 }
 .home-entry .home-how-infographic{
   margin:0;
@@ -2086,7 +2086,7 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   justify-content:center;
   width:100%;
   padding:0;
-  margin:4px 0 0;
+  margin:12px 0 0;
 }
 .home-page-compact{
   min-height:0;
@@ -2125,12 +2125,3 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   }
 }
 
-
-/* Remove a sobra de espaço abaixo do botão no fim da página inicial. */
-.home-entry{
-  padding-bottom:0;
-}
-.home-access-footer{
-  padding-bottom:0;
-  margin-bottom:0;
-}
