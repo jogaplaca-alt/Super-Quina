@@ -135,8 +135,8 @@ export function AdminPrizePayout() {
             : <>
               {winner.manualEligible ? <>
                 <label htmlFor={"winner-reference-" + winner.id}>Referência do comprovante (opcional)</label>
-                <input id={"winner-reference-" + winner.id} value={reference}
-                  onChange={(event) => setReference(event.target.value)} maxLength={300}
+                <input id={"winner-reference-" + winner.id} value={references[winner.id] ?? ""}
+                  onChange={(event) => setReferences((current) => ({ ...current, [winner.id]: event.target.value }))} maxLength={300}
                   placeholder="Identificador do Pix" />
                 <button type="button" disabled={Boolean(busy)} onClick={() => void confirmPaid(winner)}>
                   {busy === winner.id ? "Registrando…" : "Confirmar Pix pago"}
