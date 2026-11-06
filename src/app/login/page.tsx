@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { LoginForm } from "@/components/auth/login-form";
 import { SiteHeader } from "@/components/site-header";
 
@@ -13,6 +14,7 @@ export default function LoginPage() {
         <h1 id="login-title">Entrar</h1>
         <p className="auth-description">Entre com suas credenciais para acessar a área correspondente à sua conta.</p>
         <LoginForm />
+        <p className="security-note">Ainda não tem uma conta? <Link href="/cadastro">Criar conta</Link></p>
         <p className="security-note">O acesso é validado no servidor. Não compartilhe sua senha com ninguém.</p>
         <p className="security-note">As regras completas do jogo e os termos de uso serão publicados após a conclusão e validação do funcionamento da plataforma.</p>
       </section>
