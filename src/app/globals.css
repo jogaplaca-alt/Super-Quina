@@ -2054,3 +2054,27 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   height:auto;
   object-fit:contain;
 }
+
+
+/* Botão Entrar mais discreto no cabeçalho, com texto legível. */
+.home-header-access{
+  min-width:88px;
+  min-height:36px;
+  padding:6px 15px;
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:1rem;
+  line-height:1.1;
+  font-weight:900;
+  letter-spacing:.015em;
+  white-space:nowrap;
+  text-shadow:0 1px 0 rgb(255 255 255 / 35%);
+  box-shadow:0 3px 10px rgb(0 0 0 / 25%);
+}
+@media(max-width:600px){
+  .home-header-access{
+    min-width:82px;
+    min-height:34px;
+    padding:6px 12px;
+    font-size:.95rem;
+  }
+}
