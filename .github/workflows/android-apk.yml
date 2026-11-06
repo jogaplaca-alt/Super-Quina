@@ -45,7 +45,7 @@ jobs:
       # Keep the initial Android toolchain isolated from the web app's
       # package manifest until the Capacitor version is formally adopted.
       - name: Install temporary Capacitor 7 toolchain
-        run: npm install --no-save --package-lock=false @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
+        run: npm install --no-save --package-lock=false @capacitor/core@7.6.10 @capacitor/cli@7.6.10 @capacitor/android@7.6.10
 
       - name: Prepare Capacitor web directory
         run: |
