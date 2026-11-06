@@ -2118,3 +2118,13 @@ p, .intro, .auth-description, .area-description, .feature-card p,
     font-size:.95rem;
   }
 }
+
+
+/* Remove a sobra de espaço abaixo do botão no fim da página inicial. */
+.home-entry{
+  padding-bottom:0;
+}
+.home-access-footer{
+  padding-bottom:0;
+  margin-bottom:0;
+}
