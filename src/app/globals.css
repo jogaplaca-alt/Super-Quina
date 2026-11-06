@@ -2218,7 +2218,7 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   overflow:hidden;
 }
 .home-entry > .home-promo{
-  margin-top:10px;
+  margin-top:0;
   margin-bottom:0;
   padding:clamp(7px,2vw,12px);
   border:1px solid #d7e3ef;
