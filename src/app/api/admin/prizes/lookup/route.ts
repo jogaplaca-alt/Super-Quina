@@ -14,8 +14,8 @@ export async function GET(request: NextRequest) {
   if (!/^SQ-[A-Z0-9]{8,32}$/.test(receiptCode)) return NextResponse.json({ error: "Informe o código completo do recibo iniciado por SQ-." }, { status: 400, headers });
 
   try {
-    const purchase = await authPrisma.purchase.findUnique({
-      where: { receiptCode },
+    const purchase = await authPrisma.purchase.findFirst({
+      where: { receiptCode, cashierId: { not: null }, playerId: null },
       select: {
         receiptCode: true, status: true, confirmedAt: true, paymentMethod: true,
         payment: { select: { status: true, confirmedAt: true } },
