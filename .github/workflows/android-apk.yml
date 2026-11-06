@@ -36,6 +36,8 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
 
       - name: Install project dependencies
         run: npm ci
@@ -48,7 +50,7 @@ jobs:
       - name: Prepare Capacitor web directory
         run: |
           mkdir -p www
-          printf '%s\n' '<!doctype html><html><head><meta charset="utf-8"><title>Super Quina</title></head><body></body></html>' > www/index.html
+          printf '%s\\n' '<!doctype html><html><head><meta charset="utf-8"><title>Super Quina</title></head><body></body></html>' > www/index.html
 
       - name: Generate Android project
         run: npx cap add android
