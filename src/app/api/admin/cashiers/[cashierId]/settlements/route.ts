@@ -36,10 +36,21 @@ export async function POST(request: NextRequest, context: { params: Promise<{ ca
       const [cash, pix, commissions, games, cashPrizePayouts, eligibleSales] = await Promise.all([
         tx.purchase.aggregate({ where: { ...eligible, paymentMethod: "CASH" }, _sum: { totalCents: true }, _count: { _all: true } }),
         tx.purchase.aggregate({ where: { ...eligible, paymentMethod: "PIX", payment: { is: { status: "CONFIRMED" } } }, _sum: { totalCents: true }, _count: { _all: true } }),
-        tx.cashierCommission.aggregate({ where: { cashierId, purchase: { is: { ...eligible, OR: [
-          { paymentMethod: "CASH" },
-          { paymentMethod: "PIX", payment: { is: { status: "CONFIRMED" } } },
-        ] } }, _sum: { amountCents: true } }),
+        tx.cashierCommission.aggregate({
+          where: {
+            cashierId,
+            purchase: {
+              is: {
+                ...eligible,
+                OR: [
+                  { paymentMethod: "CASH" },
+                  { paymentMethod: "PIX", payment: { is: { status: "CONFIRMED" } } },
+                ],
+              },
+            },
+          },
+          _sum: { amountCents: true },
+        }),
         tx.numericParticipationLine.count({ where: { participation: { is: { status: "CONFIRMED", purchase: { is: { cashierId, status: "CONFIRMED", confirmedAt: { gt: since, lte: cutoff } } } } } } }),
         tx.numericPrizePayout.aggregate({ where: { cashierId, channel: "CASHIER_CASH", settlementId: null, paidAt: { gt: since, lte: cutoff } }, _sum: { amountCents: true }, _count: { _all: true } }),
         tx.purchase.findMany({
