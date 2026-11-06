@@ -2221,3 +2221,47 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   border-radius: 0 0 18px 18px;
   box-shadow: 0 7px 18px rgb(0 0 0 / 22%);
 }
+
+/* Valor da aposta e total em uma única faixa compacta. */
+.numeric-stake-summary-row{
+  display:grid;
+  grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);
+  align-items:end;
+  gap:12px;
+  width:100%;
+  min-width:0;
+}
+.numeric-stake-control{min-width:0;display:grid;gap:7px}
+.numeric-stake-control label{
+  margin:0!important;
+  font-weight:800;
+}
+.numeric-game-purchase .numeric-stake-control input#numeric-stake{
+  width:100%;
+  min-width:0;
+  min-height:62px;
+  padding:12px 14px;
+}
+.numeric-total-box{
+  display:flex;
+  min-width:0;
+  min-height:62px;
+  flex-direction:column;
+  justify-content:center;
+  gap:3px;
+  padding:8px 14px;
+  border:1px solid #59d5f2;
+  border-radius:12px;
+  background:#0f1a29;
+  color:#f4f6fb;
+}
+.numeric-total-box span{
+  color:#9edff0;
+  font-size:.9rem;
+  font-weight:800;
+}
+.numeric-total-box strong{
+  overflow-wrap:anywhere;
+  font-size:clamp(1rem,3.8vw,1.25rem);
+  line-height:1.2;
+}
