@@ -1,7 +1,7 @@
 # Auditoria do fluxo de recibo e impressão — Android
 
 Data: 2026-11-05  
-Branch: `main`
+Branch: `feature/android-apk-printer` (auditoria e desenvolvimento isolados; `main` não foi alterada)
 
 ## Resultado da auditoria
 
@@ -71,6 +71,7 @@ O recibo HTML atual não é conteúdo válido para envio direto à impressora. C
 - [ ] Implementar trava de consulta concorrente no polling, com teste de componente.
 - [ ] Definir e testar encoder ESC/POS com amostras do DTO oficial.
 - [ ] Implementar tabela/serviço de reserva idempotente e testes concorrentes no PostgreSQL.
+- [ ] Inicializar e persistir a plataforma Capacitor/Android na branch de desenvolvimento, com dependências e lockfile coerentes.
 - [ ] Inicializar Capacitor/Android em ambiente Node, JDK e Gradle real.
 - [ ] Implementar e testar a ponte RFCOMM/SPP em aparelho e matriz de impressoras físicas.
 
