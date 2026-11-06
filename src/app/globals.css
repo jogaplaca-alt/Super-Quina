@@ -1120,8 +1120,8 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   border-color:rgba(134,239,172,.35)!important;
 }
 @media(max-width:420px){
-  .home-entry-actions{grid-template-columns:1fr;gap:10px;margin-top:16px}
-  .home-entry-actions>a{min-height:54px}
+  .home-entry-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}
+  .home-entry-actions>a{min-height:54px;padding:10px 8px;font-size:.95rem}
 }
 @media(prefers-reduced-motion:reduce){
   .home-entry-actions>a{transition:none}
