@@ -2378,9 +2378,11 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   .area-page-compact .numeric-game-purchase .round-repeat-fieldset>.round-repeat-select{min-height:44px!important;}
 }
 
-/* Cabeçalho infinito: ocupa a largura total da tela, sem moldura lateral ou superior. */
+/* Cabeçalho fixo e infinito: permanece visível durante a rolagem em todas as páginas. */
 .site-header.site-header-scenery {
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
   left: 50%;
   width: 100vw !important;
   max-width: none !important;
