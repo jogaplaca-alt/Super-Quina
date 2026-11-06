@@ -2315,3 +2315,38 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   .round-payment-fieldset{padding:16px 12px 14px!important;}
   .round-payment-fieldset>label{font-size:1rem;}
 }
+
+
+/* Compacta o campo de pagamento: remove a altura extra dos radios e do espaçamento interno. */
+.area-page-compact .numeric-game-purchase .round-payment-fieldset{
+  box-sizing:border-box;
+  min-height:0!important;
+  padding:8px 16px 10px!important;
+  row-gap:4px;
+}
+.area-page-compact .numeric-game-purchase .round-payment-fieldset>legend{
+  margin:0;
+  padding:0 9px!important;
+  line-height:1.2;
+}
+.area-page-compact .numeric-game-purchase .round-payment-fieldset>label{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  min-height:28px;
+  margin:0;
+  padding:0;
+  line-height:1.2;
+}
+.area-page-compact .numeric-game-purchase .round-payment-fieldset>label input[type="radio"]{
+  box-sizing:border-box;
+  width:22px!important;
+  height:22px!important;
+  min-width:22px;
+  min-height:22px!important;
+  margin:0!important;
+  padding:0!important;
+}
+@media(max-width:600px){
+  .area-page-compact .numeric-game-purchase .round-payment-fieldset{padding:8px 12px 10px!important;}
+}
