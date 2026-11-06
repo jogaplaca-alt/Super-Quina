@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
         manualEligible: Boolean(line.participation.purchase.cashierId && !line.participation.purchase.playerId),
         paid: Boolean(line.prizePayout || line.prizeCreditedAt),
         payoutChannel: line.prizePayout?.channel ?? (line.prizeCreditedAt ? "WALLET" : null),
-        paidAt: line.prizePayout?.paidAt.toISOString() ?? null,
+        paidAt: line.prizePayout?.paidAt.toISOString() ?? line.prizeCreditedAt?.toISOString() ?? null,
         reference: line.prizePayout?.reference ?? null,
       })),
     }, { headers: { "Cache-Control": "no-store, private" } });
