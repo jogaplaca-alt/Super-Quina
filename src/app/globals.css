@@ -2492,3 +2492,13 @@ p, .intro, .auth-description, .area-description, .feature-card p,
     padding-top: 90px !important;
   }
 }
+
+
+/* Reserva o mesmo espaço do cabeçalho fixo em todas as páginas que o utilizam.
+   Evita que o conteúdo público, autenticação e consultas comece atrás da faixa. */
+.home-page:has(.site-header.site-header-scenery),
+.auth-layout:has(> .site-header.site-header-scenery),
+.site-page-shell:has(> .site-header.site-header-scenery) {
+  box-sizing: border-box;
+  padding-block-start: 90px !important;
+}
