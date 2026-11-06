@@ -1817,8 +1817,20 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   line-height: 1.2;
   margin: 10px 0 20px;
 }
+.area-page-compact .numeric-game-purchase {
+  margin-top: 0;
+  padding-top: 8px;
+}
+.area-page-compact .numeric-game-purchase .numeric-game-heading {
+  margin: 0 0 4px;
+  font-size: .9rem;
+  line-height: 1.2;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
 .area-page-compact .numeric-game-purchase form {
-  gap: 20px;
+  gap: 12px;
+  margin-top: 0;
 }
 .area-page-compact .numeric-game-purchase form > label,
 .area-page-compact .cashier-prize-lookup-form label {
