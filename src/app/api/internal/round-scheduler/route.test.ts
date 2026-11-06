@@ -71,7 +71,7 @@ describe("POST /api/internal/round-scheduler", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-10-25T15:29:00.000Z")); // 12:29 in Brasília (UTC-03:00)
     mocks.findUnique.mockImplementation(({ where }: { where: { code: string } }) =>
-      where.code === "JN-20261025-1230" ? null : { id: "already-scheduled" },
+      where.code === "SQ-20261025-1230" ? null : { id: "already-scheduled" },
     );
 
     const response = await POST(request("Bearer test-secret-long-enough"));
@@ -79,7 +79,7 @@ describe("POST /api/internal/round-scheduler", () => {
     expect(response.status).toBe(200);
     expect(mocks.createRound).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
-        code: "JN-20261025-1230",
+        code: "SQ-20261025-1230",
         startsAt: new Date("2026-10-25T15:01:00.000Z"),
         cutoffAt: new Date("2026-10-25T15:29:00.000Z"),
         resultAt: new Date("2026-10-25T15:30:00.000Z"),
@@ -100,7 +100,7 @@ describe("POST /api/internal/round-scheduler", () => {
 
     expect(response.status).toBe(200);
     expect(mocks.createRound.mock.calls.some((call) =>
-      (call[0] as { data: { code: string } }).data.code === "JN-20261025-1230",
+      (call[0] as { data: { code: string } }).data.code === "SQ-20261025-1230",
     )).toBe(false);
     vi.useRealTimers();
   });
