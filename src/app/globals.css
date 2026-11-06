@@ -2038,3 +2038,19 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   .home-header-access{right:10px;min-width:88px;min-height:36px;padding:7px 14px;font-size:.9rem}
   .home-access-dialog{padding:32px 20px 22px}
 }
+
+
+/* Espaço reservado para a campanha do kit de ponto credenciado na página inicial. */
+.home-promo{
+  width:100%;
+  margin:clamp(18px,3vw,30px) auto 0;
+  overflow:hidden;
+  border-radius:clamp(10px,1.5vw,18px);
+}
+.home-promo-image{
+  display:block;
+  width:100%;
+  max-width:100%;
+  height:auto;
+  object-fit:contain;
+}
