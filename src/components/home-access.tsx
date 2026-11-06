@@ -5,6 +5,14 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 
 export function HomeAccess() {
+  return (
+    <div className="home-header-wrap">
+      <SiteHeader />
+    </div>
+  );
+}
+
+export function HomeAccessFooter() {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -18,9 +26,6 @@ export function HomeAccess() {
 
   return (
     <>
-      <div className="home-header-wrap">
-        <SiteHeader />
-      </div>
       <div className="home-access-footer">
         <button className="home-footer-access" type="button" onClick={() => setIsOpen(true)} aria-haspopup="dialog" aria-expanded={isOpen}>
           Entrar
