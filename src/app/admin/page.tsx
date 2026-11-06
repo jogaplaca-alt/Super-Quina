@@ -18,7 +18,7 @@ export default async function AdminPage() {
         <div className="admin-accordion-content"><AdminRoundManager /></div>
       </details>
       <details className="admin-accordion">
-        <summary><span>Últimos resultados</span><span className="admin-accordion-description">Consultar os 10 sorteios publicados mais recentes</span></summary>
+        <summary><span>Últimos resultados</span><span className="admin-accordion-description">Consultar os 48 sorteios publicados mais recentes nas últimas 24 horas</span></summary>
         <div className="admin-accordion-content"><PlayerRecentResults /></div>
       </details>
       <details className="admin-accordion">
