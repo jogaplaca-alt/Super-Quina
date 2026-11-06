@@ -3,8 +3,10 @@ import Image from "next/image";
 import { HomeAccess, HomeAccessFooter } from "@/components/home-access";
 
 export const metadata: Metadata = {
-  title: "Super Quina | Jogo numérico",
-  description: "Escolha cinco números e concorra a cinco categorias de premiação.",
+  title: "Super Quina | Jogo Numérico e Credenciamento de Pontos",
+  description: "Seja um ponto credenciado Super Quina. Solicite seu kit gratuito, gerencie suas apostas de forma segura e faça parte da nossa rede.",
+  alternates: { canonical: "/" },
+  robots: { index: true, follow: true },
 };
 
 export default function HomePage() {
