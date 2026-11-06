@@ -1740,6 +1740,18 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   width: 100%;
 }
 
+.cashier-prize-payout-heading {
+  margin: 0 0 8px;
+  padding: 0;
+}
+.cashier-prize-payout-heading .player-collapsible-label {
+  display: block;
+  margin: 0;
+}
+.cashier-prize-lookup-form {
+  margin-top: 0;
+}
+
 .cashier-prize-payout-heading h2,
 .cashier-prize-payout-heading p {
   overflow-wrap: anywhere;
