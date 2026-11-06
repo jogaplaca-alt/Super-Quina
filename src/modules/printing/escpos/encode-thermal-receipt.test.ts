@@ -52,7 +52,7 @@ describe("encodeThermalReceipt", () => {
 
   it("sends the configured partial-cut command only when requested", () => {
     const bytes = encodeThermalReceipt(receipt, { ...profile, cutMode: "partial" });
-    expect(Array.from(bytes.slice(-5))).toEqual([0x0a, 0x0a, 0x0a, 0x1d, 0x56]);
+    expect(Array.from(bytes.slice(-5))).toEqual([0x0a, 0x0a, 0x1d, 0x56, 0x01]);
     expect(bytes[bytes.length - 1]).toBe(0x01);
   });
 
