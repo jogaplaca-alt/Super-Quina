@@ -28,7 +28,7 @@ export function PlayerRecentResults() {
     <div className="recent-results-content">
       {loading ? <p>Carregando sorteios…</p> : error ? <p role="alert" className="note-inline">{error}</p> : results.length === 0 ? (
         <p>Ainda não há sorteios publicados nas últimas 24 horas.</p>
-      ) : <div className="recent-results-list">{results.slice(0, 10).map((result) => (
+      ) : <div className="recent-results-list">{results.slice(0, 48).map((result) => (
         <article className="recent-result" key={result.id}>
           <div className="recent-result-heading"><strong>Rodada {result.code}</strong><time dateTime={result.resultAt}>{formatDate(result.resultAt)}</time></div>
           <div className="numeric-result-display" aria-label={"Número sorteado: " + result.number}>{result.number}</div>
