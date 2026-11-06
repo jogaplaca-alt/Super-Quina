@@ -13,10 +13,9 @@ export default function HomePage() {
     <div className="home-page home-page-compact">
       <SiteHeader />
       <main className="home-entry">
-        <p className="home-eyebrow">Como funciona</p>
         <figure className="home-how-infographic numeric-game-infographic">
           <Image
-            src="/images/brand/super-quina-inicio.PNG"
+            src="/images/brand/super-quina-inicio.webp"
             alt="Como funciona o jogo Super Quina"
             className="home-how-infographic-image"
             width={1200}
