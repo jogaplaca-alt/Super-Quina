@@ -48,8 +48,8 @@ export function AdminRoundManager() {
     return () => { window.clearTimeout(timer); loadController.current?.abort(); };
   }, [load]);
 
-  async function perform(round: Round, action: "close" | "draw" | "settle") {
-    const labels = { close: "fechar as apostas desta rodada", draw: "sortear o número desta rodada", settle: "apurar os prêmios desta rodada" };
+  async function perform(round: Round, action: "close" | "draw") {
+    const labels = { close: "fechar as apostas desta rodada", draw: "sortear o número desta rodada" };
     if (!window.confirm("Confirma " + labels[action] + " " + round.code + "?")) return;
     setBusy(round.id + action); setError(""); setNotice("");
     try {
@@ -58,7 +58,7 @@ export function AdminRoundManager() {
       });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "A operação não foi concluída.");
-      setNotice(action === "close" ? "Rodada fechada." : action === "draw" ? "Número sorteado e publicado." : "Apuração concluída.");
+      setNotice(action === "close" ? "Rodada fechada." : "Número sorteado e publicado.");
       await load();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Falha ao executar a operação.");
@@ -89,7 +89,7 @@ export function AdminRoundManager() {
         <div className="round-options">
           {(round.status === "SCHEDULED" || round.status === "OPEN") && <button type="button" disabled={busy !== null} onClick={() => void perform(round, "close")}>{busy === round.id + "close" ? "Fechando…" : "Fechar apostas"}</button>}
           {round.status === "CLOSED" && <button type="button" disabled={busy !== null} onClick={() => void perform(round, "draw")}>{busy === round.id + "draw" ? "Sorteando…" : "Sortear número"}</button>}
-          {round.status === "COMPLETED" && <button type="button" disabled={busy !== null} onClick={() => void perform(round, "settle")}>{busy === round.id + "settle" ? "Apurando…" : "Apurar prêmios"}</button>}
+          
         </div>
       </article>)}
     </div>}
