@@ -39,6 +39,8 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [purchase, setPurchase] = useState<Purchase | null>(null);
+  const [backgroundPurchases, setBackgroundPurchases] = useState<Purchase[]>([]);
+  const [readyReceiptIds, setReadyReceiptIds] = useState<string[]>([]);
   const [pixCheckout, setPixCheckout] = useState<PixCheckout | null>(null);
   const [pixModalOpen, setPixModalOpen] = useState(false);
   const [pixCopied, setPixCopied] = useState(false);
@@ -64,6 +66,48 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
       window.removeEventListener("superquina:player-wallet-updated", updateBalance);
     };
   }, [mode]);
+
+  useEffect(() => {
+    if (mode !== "PLAYER" || backgroundPurchases.length === 0) return;
+    let active = true;
+    let checking = false;
+    const checkPendingPurchases = async () => {
+      if (!active || checking) return;
+      checking = true;
+      try {
+        const results = await Promise.all(backgroundPurchases.map(async (item) => {
+          try {
+            const response = await fetch(`/api/player/purchases/${encodeURIComponent(item.id)}/status`, { cache: "no-store" });
+            if (!response.ok) return { id: item.id, state: "pending" as const };
+            const body = await response.json();
+            if (body.receiptReady) return { id: item.id, state: "ready" as const };
+            if (body.paymentTerminal || ["FAILED", "CANCELLED", "EXPIRED"].includes(body.paymentStatus ?? "") || body.purchaseStatus === "CANCELLED") {
+              return { id: item.id, state: "failed" as const };
+            }
+            return { id: item.id, state: "pending" as const };
+          } catch {
+            return { id: item.id, state: "pending" as const };
+          }
+        }));
+        if (!active) return;
+        const ready = results.filter((item) => item.state === "ready").map((item) => item.id);
+        const finished = results.filter((item) => item.state !== "pending").map((item) => item.id);
+        if (ready.length) setReadyReceiptIds((current) => [...current, ...ready.filter((id) => !current.includes(id))]);
+        if (finished.length) setBackgroundPurchases((current) => current.filter((item) => !finished.includes(item.id)));
+      } finally {
+        checking = false;
+      }
+    };
+    void checkPendingPurchases();
+    const timer = window.setInterval(() => { void checkPendingPurchases(); }, 3000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [mode, backgroundPurchases]);
+
+  useEffect(() => {
+    if (receiptPurchaseId || readyReceiptIds.length === 0) return;
+    setReceiptPurchaseId(readyReceiptIds[0]);
+    setReadyReceiptIds((current) => current.slice(1));
+  }, [receiptPurchaseId, readyReceiptIds]);
 
   useEffect(() => {
     if (!purchase?.id || (mode === "PLAYER" && paymentMethod !== "PIX")) return;
@@ -144,6 +188,30 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
     if (numbers.includes(normalized)) { setError("Esse número já foi adicionado."); return; }
     setNumbers((current) => [...current, normalized]);
     setNumberInput("");
+  }
+
+  function resetGameForm() {
+    idempotency.current = null;
+    setNumbers([]);
+    setNumberInput("");
+    setStake("1,00");
+    setParticipationCount(1);
+    setPaymentMethod("PIX");
+    setError("");
+    setNotice("");
+    setPurchaseMessage("");
+    setPixCheckout(null);
+    setPixCopied(false);
+    setReconciliationRequired(false);
+  }
+
+  function leavePixWindow() {
+    if (purchase && mode === "PLAYER") {
+      setBackgroundPurchases((current) => current.some((item) => item.id === purchase.id) ? current : [...current, purchase]);
+    }
+    setPixModalOpen(false);
+    setPurchase(null);
+    resetGameForm();
   }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -306,11 +374,14 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
               setPixCopied(false);
             }
           }}>{pixCopied ? "Código copiado!" : "Copiar código Pix"}</button>}
-          <button type="button" className="secondary-button pix-close-button" onClick={() => setPixModalOpen(false)}>Fechar</button>
+          <button type="button" className="secondary-button pix-close-button" onClick={leavePixWindow}>Sair</button>
         </section>
       </div>}
 
-      {receiptPurchaseId && <PlayerPurchaseReceipt purchaseId={receiptPurchaseId} autoOpen onClose={() => setReceiptPurchaseId(null)} />}
+      {receiptPurchaseId && <PlayerPurchaseReceipt purchaseId={receiptPurchaseId} autoOpen onClose={() => {
+        setReceiptPurchaseId(null);
+        resetGameForm();
+      }} />}
     </section>
   );
 }
