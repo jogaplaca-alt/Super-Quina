@@ -2430,7 +2430,7 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   overflow: hidden;
   border: 0 !important;
   border-radius: 0 !important;
-  background: #07172b;
+  background: var(--background);
   box-shadow: none !important;
   transform: none !important;
   transition: none !important;
