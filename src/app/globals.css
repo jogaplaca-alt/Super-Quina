@@ -1912,3 +1912,42 @@ p, .intro, .auth-description, .area-description, .feature-card p,
     padding: 16px;
   }
 }
+
+/* Cabeçalho responsivo final: arte inteira, em largura total e proporção original (3:1). */
+.site-header.site-header-scenery {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  background: #07358f;
+  line-height: 0;
+}
+
+.site-header.site-header-scenery .site-header-scenery-image {
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: auto !important;
+  min-height: 0;
+  object-fit: contain;
+  object-position: center;
+}
+
+@media (max-width: 600px) {
+  .site-header.site-header-scenery {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    padding: 0;
+  }
+
+  .site-header.site-header-scenery .site-header-scenery-image {
+    width: 100%;
+    height: auto !important;
+    min-height: 0;
+  }
+}
