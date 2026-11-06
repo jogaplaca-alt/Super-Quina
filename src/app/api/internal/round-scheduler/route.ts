@@ -13,7 +13,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const TIME_ZONE = "Etc/GMT+3"; // Fixed UTC-03:00, as specified by MANUAL_TECNICO.md
+const TIME_ZONE = "Etc/GMT+3"; // Fixed UTC-03:00, as specified in docs/PRODUCT_SPEC.md
 const HALF_HOUR_MS = 30 * 60_000;
 const MINUTE_MS = 60_000;
 const MAX_FUTURE_ROUNDS = 48;
