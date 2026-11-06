@@ -41,6 +41,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
   const [purchase, setPurchase] = useState<Purchase | null>(null);
   const [pixCheckout, setPixCheckout] = useState<PixCheckout | null>(null);
   const [pixModalOpen, setPixModalOpen] = useState(false);
+  const [pixCopied, setPixCopied] = useState(false);
   const [purchaseMessage, setPurchaseMessage] = useState("");
   const [receiptPurchaseId, setReceiptPurchaseId] = useState<string | null>(null);
   const idempotency = useRef<{ signature: string; key: string } | null>(null);
@@ -285,8 +286,6 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
       {purchase && pixModalOpen && <div className="modal-backdrop" role="presentation">
         <section className="modal-panel pix-modal" role="dialog" aria-modal="true" aria-labelledby="numeric-pix-heading">
           <h3 id="numeric-pix-heading">Pagamento Pix</h3>
-          <p>Status: {reconciliationRequired ? "pagamento confirmado; finalizando o registro da aposta" : "aguardando confirmação do pagamento"}</p>
-          <p>{purchaseMessage}</p>
           <p>Total: <strong>{money(purchase.totalCents)}</strong></p>
           {purchase.numericIntent && <p>Repetições: {purchase.numericIntent.repetitionCount} {purchase.numericIntent.repetitionCount === 1 ? "vez" : "vezes"}</p>}
           {purchase.numericIntent ? purchase.numericIntent.numbers.map((number, index) => <div key={"intent-" + number + "-" + index}>
@@ -296,12 +295,18 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
             <small>Unidade {money(line.allocationCents.unit)} · Dezena {money(line.allocationCents.tens)} · Centena {money(line.allocationCents.hundreds)} · Milhar {money(line.allocationCents.thousands)} · Quina {money(line.allocationCents.quina)}</small>
           </div>))}
           {!reconciliationRequired && pixCheckout?.qrCodeBase64 && <div className="pix-checkout">
-            <h4>Escaneie o QR Code Pix</h4>
             <img src={"data:image/png;base64," + pixCheckout.qrCodeBase64} alt="QR Code para pagar a compra via Pix" width={240} height={240} />
           </div>}
-          {pixCheckout?.copyPaste && <button type="button" className="secondary-button" onClick={() => void navigator.clipboard.writeText(pixCheckout.copyPaste!)}>Copiar código Pix</button>}
-          <p>Não faça outro pagamento. Esta tela será atualizada após a confirmação do provedor.</p>
-          <button type="button" className="secondary-button" onClick={() => setPixModalOpen(false)}>Fechar</button>
+          {pixCheckout?.copyPaste && <button type="button" className={`secondary-button pix-copy-button${pixCopied ? " is-copied" : ""}`} onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(pixCheckout.copyPaste!);
+              setPixCopied(true);
+              window.setTimeout(() => setPixCopied(false), 2200);
+            } catch {
+              setPixCopied(false);
+            }
+          }}>{pixCopied ? "Código copiado!" : "Copiar código Pix"}</button>}
+          <button type="button" className="secondary-button pix-close-button" onClick={() => setPixModalOpen(false)}>Fechar</button>
         </section>
       </div>}
 
