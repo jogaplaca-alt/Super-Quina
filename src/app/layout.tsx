@@ -1,16 +1,21 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
+const siteUrl = "https://superquina.com";
+
 const icon = "/images/brand/super-quina-icon.webp";
 const favicon = "/_next/image?url=%2Fimages%2Fbrand%2Fsuper-quina-icon.webp&w=64&q=75";
 const appleIcon = "/_next/image?url=%2Fimages%2Fbrand%2Fsuper-quina-icon.webp&w=180&q=75";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
+  alternates: { canonical: "/" },
+  robots: { index: true, follow: true },
   title: {
-    default: "Super Quina",
+    default: "Super Quina | Jogo Numérico e Credenciamento de Pontos",
     template: "%s | Super Quina",
   },
-  description: "Jogue cinco números e concorra a cinco categorias de prêmios na Super Quina.",
+  description: "Seja um ponto credenciado Super Quina. Solicite seu kit gratuito, gerencie suas apostas de forma segura e faça parte da nossa rede.",
   applicationName: "Super Quina",
   appleWebApp: {
     capable: true,
@@ -26,8 +31,9 @@ export const metadata: Metadata = {
     type: "website",
     locale: "pt_BR",
     siteName: "Super Quina",
-    title: "Super Quina",
-    description: "Jogue cinco números e concorra a cinco categorias de prêmios.",
+    title: "Super Quina | Jogo Numérico",
+    description: "Seja um ponto credenciado Super Quina. Solicite seu kit gratuito.",
+    url: siteUrl,
     images: [{ url: icon, alt: "Super Quina" }],
   },
   twitter: {
