@@ -2399,3 +2399,54 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   width: 100% !important;
   max-width: none !important;
 }
+
+
+/* Cabeçalho fixo no topo: evita o efeito elástico do sticky durante a rolagem no celular. */
+.site-header.site-header-scenery {
+  position: fixed !important;
+  top: 0 !important;
+  left: 50% !important;
+  z-index: 1000 !important;
+  width: 100vw !important;
+  height: 100px !important;
+  min-height: 100px !important;
+  margin: 0 0 0 -50vw !important;
+  padding: 0 !important;
+  overflow: hidden;
+  border: 0 !important;
+  border-bottom: 1px solid #d7e3ef !important;
+  border-radius: 0 !important;
+  background: #07172b;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+}
+.site-header.site-header-scenery .site-header-home-link {
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+.site-header.site-header-scenery .site-header-scenery-image {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  border-radius: 0 !important;
+  object-fit: cover;
+  object-position: center;
+}
+.site-page-shell:has(> .site-header.site-header-scenery) {
+  padding-top: 110px !important;
+}
+@media(max-width:600px) {
+  .site-header.site-header-scenery {
+    height: 100px !important;
+    min-height: 100px !important;
+  }
+  .site-page-shell:has(> .site-header.site-header-scenery) {
+    padding-top: 110px !important;
+  }
+}
