@@ -159,7 +159,7 @@ h1 {
 .recent-result-heading time{color:var(--muted);font-size:.9rem}
 
 
-.public-results-page{width:100%;min-height:100vh;margin:0 auto;padding:clamp(16px,3vw,36px);background:#f3f6f8;color:#17212b}
+.public-results-page{width:100%;min-height:100vh;margin:0 auto;padding:clamp(16px,3vw,36px);background:transparent;color:inherit}
 .public-results-header,.public-results-main,.public-winners-section,.public-results-footer{width:min(100%,1280px);margin:0 auto}
 .public-results-header{padding-bottom:20px;border-bottom:1px solid #d8e0e7}
 .public-results-brand{font-size:1.05rem;font-weight:900;letter-spacing:-.04em}.public-results-brand span{color:#176b45}
@@ -529,7 +529,7 @@ h1 {
 
 
 /* Página principal pública da Super Quina */
-.home-page{min-height:100vh;background:#07172b;color:#f4f6fb}
+.home-page{min-height:100vh;background:transparent;color:#f4f6fb}
 .home-header{width:min(100%,1240px);margin:0 auto;padding:18px clamp(18px,4vw,48px);display:flex;align-items:center;justify-content:space-between;gap:20px}
 .home-brand{display:inline-flex;align-items:center;gap:0;text-decoration:none;color:#123c70;font-size:1.65rem;font-weight:900;letter-spacing:-.055em;white-space:nowrap}
 /* Wordmark legado mantido apenas para compatibilidade visual durante a troca da marca. */
@@ -627,13 +627,7 @@ h1 {
   --accent: #59d5f2;
   --accent-soft: #1b2a3c;
 }
-html, body { background: #07172b !important; color: #f4f6fb; }
-body {
-  background:
-    radial-gradient(ellipse at 78% 32%, rgb(33 65 91 / 34%), transparent 43%),
-    #07172b;
-  color: #f4f6fb;
-}
+body { color: #f4f6fb; }
 .page-shell, .auth-page, .area-page { color: #f4f6fb; }
 .welcome-card, .auth-card, .feature-card, .ticket-check,
 .player-history-purchase, .recent-result, .ticket-check-result,
@@ -694,7 +688,7 @@ p, .intro, .auth-description, .area-description, .feature-card p,
 .status-nao_premiada { color: #a0adbf; }
 .status-aguardando_resultado, .status-compra_pendente { color: #f5cb75; }
 .form-error { background: #351d27; border-color: #78404c; color: #ffb9c2; }
-.home-page { background: #07172b !important; color: #f4f6fb; }
+.home-page { background: transparent; color: #f4f6fb; }
 .home-header, .home-ticket-section, .home-results-section { color: #f4f6fb; }
 .home-brand { color: #f4f6fb; }
 .home-brand span { color: #59d5f2; }
@@ -715,7 +709,7 @@ p, .intro, .auth-description, .area-description, .feature-card p,
 .home-rules-note a, .home-results-link a { color: #59d5f2; }
 .home-footer { background: #10151e; border-top-color: #2b3546; }
 .home-footer p { color: #8998ad; }
-.public-results-page { background: #07172b !important; color: #f4f6fb; }
+.public-results-page { background: transparent; color: #f4f6fb; }
 .public-results-header, .public-winners-section, .public-results-footer { border-color: #2b3546; }
 .public-result-row, .public-state, .public-winner-card, .public-winners-empty {
   background: #141b26;
@@ -2504,12 +2498,3 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   padding-block-start: 90px !important;
 }
 
-
-/* Fundo global azul-marinho, integrado à identidade visual do cabeçalho. */
-html,
-body {
-  background-color: #07172b !important;
-}
-
-
-/* O fundo é herdado do tema global; contêineres de página permanecem transparentes. */
