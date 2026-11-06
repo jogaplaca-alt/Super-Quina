@@ -68,7 +68,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
   }, [mode]);
 
   useEffect(() => {
-    if (mode !== "PLAYER" || backgroundPurchases.length === 0) return;
+    if (backgroundPurchases.length === 0) return;
     let active = true;
     let checking = false;
     const checkPendingPurchases = async () => {
@@ -77,7 +77,10 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
       try {
         const results = await Promise.all(backgroundPurchases.map(async (item) => {
           try {
-            const response = await fetch(`/api/player/purchases/${encodeURIComponent(item.id)}/status`, { cache: "no-store" });
+            const endpoint = mode === "PLAYER"
+              ? `/api/player/purchases/${encodeURIComponent(item.id)}/status`
+              : `/api/cashier/purchases/${encodeURIComponent(item.id)}/status`;
+            const response = await fetch(endpoint, { cache: "no-store" });
             if (!response.ok) return { id: item.id, state: "pending" as const };
             const body = await response.json();
             if (body.receiptReady) return { id: item.id, state: "ready" as const };
@@ -206,7 +209,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
   }
 
   function leavePixWindow() {
-    if (purchase && mode === "PLAYER") {
+    if (purchase) {
       setBackgroundPurchases((current) => current.some((item) => item.id === purchase.id) ? current : [...current, purchase]);
     }
     setPixModalOpen(false);
