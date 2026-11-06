@@ -61,7 +61,7 @@ export function CashierPrizePayout() {
   return <section className="player-collapsible-section cashier-prize-payout" aria-label="Pagamento de prêmios em dinheiro">
     <div className="cashier-prize-payout-heading">
       <span className="player-collapsible-label">Premiações</span>
-      <h2>Registrar prêmio pago em dinheiro</h2>
+      <h2>Pagar prêmio</h2>
     </div>
     <form onSubmit={lookup} className="cashier-prize-lookup-form">
       <label htmlFor="cashier-prize-receipt">Código do recibo</label>
