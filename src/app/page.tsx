@@ -40,8 +40,8 @@ export default function HomePage() {
             sizes="(max-width: 768px) 100vw, 988px"
           />
         </a>
+        <HomeAccessFooter />
       </main>
-      <HomeAccessFooter />
     </div>
   );
 }
