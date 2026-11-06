@@ -6,12 +6,14 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
-      allow: ["/", "/login", "/cadastro"],
+      allow: ["/", "/login", "/cadastro", "/consulta", "/verificar-recibo/"],
       disallow: [
         "/admin",
         "/administrador",
         "/dashboard",
+        "/cashier",
         "/cambista",
+        "/player",
         "/jogador",
         "/api",
       ],
