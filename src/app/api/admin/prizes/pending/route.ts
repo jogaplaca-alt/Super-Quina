@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
           is: {
             status: "CONFIRMED",
             round: { is: { status: "COMPLETED" } },
-            purchase: { is: { status: "CONFIRMED", cashierId: { not: null }, playerId: null } },
+            purchase: { is: { status: "CONFIRMED",  } },
           },
         },
       },
@@ -35,6 +35,9 @@ export async function GET(request: NextRequest) {
             purchase: {
               select: {
                 receiptCode: true,
+                playerId: true,
+                cashierId: true,
+                player: { select: { username: true, fullName: true } },
                 customer: { select: { name: true, phone: true } },
                 cashier: { select: { username: true, fullName: true } },
               },
@@ -54,11 +57,15 @@ export async function GET(request: NextRequest) {
         resultNumber: line.participation.round.resultNumber,
         resultAt: line.participation.round.resultAt.toISOString(),
         receiptCode: line.participation.purchase.receiptCode,
-        playerName: line.participation.purchase.customer?.name ?? "Cliente sem nome cadastrado",
+        playerName: line.participation.purchase.player?.fullName
+          ?? line.participation.purchase.player?.username
+          ?? line.participation.purchase.customer?.name
+          ?? "Cliente sem nome cadastrado",
         phone: line.participation.purchase.customer?.phone ?? null,
         cashierName: line.participation.purchase.cashier?.fullName
           ?? line.participation.purchase.cashier?.username
-          ?? "Cambista",
+          ?? null,
+        manualEligible: Boolean(line.participation.purchase.cashierId && !line.participation.purchase.playerId),
         paid: Boolean(line.prizePayout || line.prizeCreditedAt),
         payoutChannel: line.prizePayout?.channel ?? (line.prizeCreditedAt ? "WALLET" : null),
         paidAt: line.prizePayout?.paidAt.toISOString() ?? null,
