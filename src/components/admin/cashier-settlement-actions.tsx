@@ -12,7 +12,7 @@ export function CashierSettlementActions({ cashierId }: { cashierId: string }) {
   const [notice, setNotice] = useState("");
 
   async function settle() {
-    if (!window.confirm("Registrar o acerto deste cambista? O fechamento incluirá as vendas, a comissão e os prêmios pagos em dinheiro pelo cambista, para conferência e reposição do caixa. O histórico será preservado.")) return;
+    if (!window.confirm("Registrar o acerto deste cambista e iniciar um novo período? O fechamento incluirá as vendas, a comissão e os prêmios pagos em dinheiro pelo cambista, para conferência e reposição do caixa. O histórico será preservado.")) return;
     setBusy(true); setError(""); setNotice("");
     try {
       const response = await fetch("/api/admin/cashiers/" + encodeURIComponent(cashierId) + "/settlements", {
@@ -31,7 +31,7 @@ export function CashierSettlementActions({ cashierId }: { cashierId: string }) {
   return <section className="feature-card admin-settlement-action">
     <h2>Acerto financeiro</h2>
     <p>O acerto inclui vendas, comissão e valores de prêmios pagos em dinheiro pelo cambista. Esses prêmios são adiantamentos de recursos da plataforma, não comissão nem despesa do cambista; o valor fica discriminado para reposição do caixa. Nenhum histórico é apagado.</p>
-    <button type="button" className="primary-button" disabled={busy} onClick={settle}>{busy ? "Registrando…" : "Zerar para novo acerto"}</button>
+    <button type="button" className="primary-button" disabled={busy} onClick={settle}>{busy ? "Registrando…" : "Registrar acerto e iniciar novo período"}</button>
     {error && <p role="alert" className="form-error">{error}</p>}
     {notice && <p role="status" className="note-inline">{notice}</p>}
   </section>;
