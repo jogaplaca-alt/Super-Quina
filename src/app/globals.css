@@ -1,5 +1,5 @@
 :root {
-  color-scheme: light;
+  color-scheme: dark;
   --background: #07172b;
   --surface: #ffffff;
   --text: #17212b;
@@ -20,7 +20,8 @@ body {
 }
 
 body {
-  background: #07172b;
+  min-height: 100vh;
+  background: var(--background);
   color: var(--text);
   font-family: Arial, Helvetica, sans-serif;
   line-height: 1.5;
@@ -2511,15 +2512,4 @@ body {
 }
 
 
-/* Garante o azul-marinho também nos contêineres de página, não só no body. */
-html,
-body,
-#__next,
-main,
-.home-page,
-.page-shell,
-.auth-page,
-.area-page,
-.site-page-shell {
-  background-color: #07172b !important;
-}
+/* O fundo é herdado do tema global; contêineres de página permanecem transparentes. */
