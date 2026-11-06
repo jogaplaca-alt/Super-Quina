@@ -1,6 +1,6 @@
 :root {
   color-scheme: light;
-  --background: #f4f6f8;
+  --background: #07172b;
   --surface: #ffffff;
   --text: #17212b;
   --muted: #5b6875;
@@ -20,7 +20,7 @@ body {
 }
 
 body {
-  background: var(--background);
+  background: #07172b;
   color: var(--text);
   font-family: Arial, Helvetica, sans-serif;
   line-height: 1.5;
@@ -2501,4 +2501,11 @@ p, .intro, .auth-description, .area-description, .feature-card p,
 .site-page-shell:has(> .site-header.site-header-scenery) {
   box-sizing: border-box;
   padding-block-start: 90px !important;
+}
+
+
+/* Fundo global azul-marinho, integrado à identidade visual do cabeçalho. */
+html,
+body {
+  background-color: #07172b !important;
 }
