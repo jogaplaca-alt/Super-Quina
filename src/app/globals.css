@@ -2444,14 +2444,14 @@ p, .intro, .auth-description, .area-description, .feature-card p,
 }
 .site-header.site-header-scenery .site-header-scenery-image {
   display: block;
-  width: 100% !important;
-  height: 100% !important;
-  max-width: none !important;
-  max-height: none !important;
+  width: auto !important;
+  height: 80px !important;
+  max-width: 100% !important;
+  max-height: 80px !important;
   margin: 0 auto !important;
   border-radius: 0 !important;
-  object-fit: cover;
-  object-position: 50% 42%;
+  object-fit: contain;
+  object-position: center;
 }
 
 /* O cabeçalho é fixo; o espaço precisa ser reservado no contêiner real das áreas. */
