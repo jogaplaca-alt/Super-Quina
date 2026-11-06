@@ -24,7 +24,13 @@ export default function HomePage() {
           />
         </figure>
 
-        <section className="home-promo" aria-label="Seja um ponto credenciado">
+        <a
+          className="home-promo"
+          href="https://wa.me/5577991601217?text=Quero%20ser%20um%20ponto%20credenciado%20da%20Superquina."
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Fale com a Super Quina pelo WhatsApp para ser um ponto credenciado"
+        >
           <Image
             src="/images/brand/super-quina-kit-credenciado.webp"
             alt="Seja um ponto credenciado Super Quina. Solicite seu kit gratuito."
@@ -33,7 +39,7 @@ export default function HomePage() {
             height={1254}
             sizes="(max-width: 768px) 100vw, 988px"
           />
-        </section>
+        </a>
       </main>
     </div>
   );
