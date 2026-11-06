@@ -106,11 +106,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
     return () => { active = false; window.clearInterval(timer); };
   }, [mode, backgroundPurchases]);
 
-  useEffect(() => {
-    if (receiptPurchaseId || readyReceiptIds.length === 0) return;
-    setReceiptPurchaseId(readyReceiptIds[0]);
-    setReadyReceiptIds((current) => current.slice(1));
-  }, [receiptPurchaseId, readyReceiptIds]);
+  const activeReceiptPurchaseId = receiptPurchaseId ?? readyReceiptIds[0] ?? null;
 
   useEffect(() => {
     if (!purchase?.id || (mode === "PLAYER" && paymentMethod !== "PIX")) return;
@@ -381,8 +377,9 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
         </section>
       </div>}
 
-      {receiptPurchaseId && <PlayerPurchaseReceipt purchaseId={receiptPurchaseId} autoOpen onClose={() => {
-        setReceiptPurchaseId(null);
+      {activeReceiptPurchaseId && <PlayerPurchaseReceipt purchaseId={activeReceiptPurchaseId} autoOpen onClose={() => {
+        if (receiptPurchaseId) setReceiptPurchaseId(null);
+        else setReadyReceiptIds((current) => current.slice(1));
         resetGameForm();
       }} />}
     </section>
