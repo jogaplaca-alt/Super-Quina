@@ -23,6 +23,17 @@ export default function HomePage() {
             sizes="(max-width: 768px) 100vw, 1100px"
           />
         </figure>
+
+        <section className="home-promo" aria-label="Seja um ponto credenciado">
+          <Image
+            src="/images/brand/super-quina-kit-credenciado.webp"
+            alt="Seja um ponto credenciado Super Quina. Solicite seu kit gratuito."
+            className="home-promo-image"
+            width={1254}
+            height={1254}
+            sizes="(max-width: 768px) 100vw, 988px"
+          />
+        </section>
       </main>
     </div>
   );
