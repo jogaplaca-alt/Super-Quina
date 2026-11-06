@@ -1,0 +1,77 @@
+name: Initialize persistent Capacitor Android project
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type INITIALIZE to add Capacitor and the generated Android project to this feature branch"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: super-quina-capacitor-bootstrap-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  initialize-android:
+    if: ${{ inputs.confirm == 'INITIALIZE' && github.ref == 'refs/heads/feature/android-apk-printer' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/android-apk-printer
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Install project dependencies
+        run: npm ci
+
+      - name: Add pinned Capacitor dependencies and update lockfile
+        run: npm install --save-exact @capacitor/core@7.6.10 @capacitor/cli@7.6.10 @capacitor/android@7.6.10
+
+      - name: Prepare local web directory
+        run: |
+          mkdir -p www
+          printf '%s\\n' '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Super Quina</title></head><body>Super Quina</body></html>' > www/index.html
+
+      - name: Generate and synchronize Android platform
+        run: |
+          npx cap add android
+          npx cap sync android
+
+      - name: Build Android debug APK
+        working-directory: android
+        run: ./gradlew --no-daemon assembleDebug
+
+      - name: Commit persistent Capacitor setup to feature branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json www android
+          if git diff --cached --quiet; then
+            echo "No persistent Capacitor changes to commit."
+            exit 0
+          fi
+          git commit -m "Initialize persistent Capacitor Android platform"
+          git push origin HEAD:feature/android-apk-printer
