@@ -16,15 +16,45 @@ export async function GET(request: NextRequest) {
   const auth = await adminFromRequest(request);
   if (auth.response) return auth.response;
   try {
-    const lines = await authPrisma.numericParticipationLine.findMany({
-      where: {
-        prizeCents: { gt: 0 }, prizeCreditedAt: null,
-        participation: { is: {
-          status: "CONFIRMED",
-          round: { is: { status: "COMPLETED", resultNumber: { not: null } } },
-          purchase: { is: { status: "CONFIRMED", playerId: { not: null }, cashierId: null } },
-        } },
-      },
+    // Select only winning online-player lines whose credit timestamp or ledger
+    // entry is inconsistent. Paid prizes are deliberately excluded from repair.
+    const candidates = await authPrisma.$queryRaw<Array<{ id: string }>>`
+      SELECT line."id"
+      FROM "NumericParticipationLine" AS line
+      INNER JOIN "PurchaseParticipation" AS participation
+        ON participation."id" = line."participationId"
+      INNER JOIN "Round" AS round
+        ON round."id" = participation."roundId"
+      INNER JOIN "Purchase" AS purchase
+        ON purchase."id" = participation."purchaseId"
+      LEFT JOIN "LedgerEntry" AS ledger
+        ON ledger."idempotencyKey" = 'numeric-prize-credit:' || line."id"
+      LEFT JOIN "NumericPrizePayout" AS payout
+        ON payout."participationLineId" = line."id"
+      WHERE line."prizeCents" > 0
+        AND participation."status" = 'CONFIRMED'
+        AND round."status" = 'COMPLETED'
+        AND round."resultNumber" IS NOT NULL
+        AND purchase."status" = 'CONFIRMED'
+        AND purchase."playerId" IS NOT NULL
+        AND purchase."cashierId" IS NULL
+        AND payout."id" IS NULL
+        AND (
+          line."prizeCreditedAt" IS NULL
+          OR ledger."id" IS NULL
+          OR ledger."userId" IS DISTINCT FROM purchase."playerId"
+          OR ledger."purchaseId" IS DISTINCT FROM purchase."id"
+          OR ledger."amountCents" IS DISTINCT FROM line."prizeCents"
+          OR ledger."currency" IS DISTINCT FROM purchase."currency"
+          OR ledger."type" IS DISTINCT FROM 'PRIZE_CREDIT'
+          OR ledger."participationId" IS DISTINCT FROM participation."id"
+        )
+      ORDER BY line."createdAt" ASC, line."id" ASC
+      LIMIT 200
+    `;
+    const candidateIds = candidates.map((candidate) => candidate.id);
+    const fetchedLines = candidateIds.length ? await authPrisma.numericParticipationLine.findMany({
+      where: { id: { in: candidateIds } },
       select: {
         id: true, numberValue: true, prizeCents: true, prizeCreditedAt: true, createdAt: true,
         prizePayout: { select: { channel: true, paidAt: true } },
@@ -33,7 +63,11 @@ export async function GET(request: NextRequest) {
           purchase: { select: { id: true, createdAt: true, playerId: true, currency: true, player: { select: { username: true } } } },
         } },
       },
-      orderBy: [{ createdAt: "asc" }, { id: "asc" }], take: 200,
+    }) : [];
+    const linesById = new Map(fetchedLines.map((line) => [line.id, line]));
+    const lines = candidateIds.flatMap((id) => {
+      const line = linesById.get(id);
+      return line ? [line] : [];
     });
     const items = await Promise.all(lines.map(async (line) => {
       const entry = await authPrisma.ledgerEntry.findUnique({ where: { idempotencyKey: "numeric-prize-credit:" + line.id } });
