@@ -223,8 +223,16 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
           </div>)}
         </div>}
 
-        <label htmlFor="numeric-stake">Valor por número em cada rodada (R$)</label>
-        <input id="numeric-stake" disabled={Boolean(purchase)} value={stake} onChange={(event) => setStake(event.target.value)} inputMode="decimal" />
+        <div className="numeric-stake-summary-row">
+          <div className="numeric-stake-control">
+            <label htmlFor="numeric-stake">Valor da aposta (R$)</label>
+            <input id="numeric-stake" disabled={Boolean(purchase)} value={stake} onChange={(event) => setStake(event.target.value)} inputMode="decimal" />
+          </div>
+          <div className="numeric-total-box" aria-live="polite">
+            <span>Total</span>
+            <strong>{money(totalEstimate)}</strong>
+          </div>
+        </div>
 
         <fieldset className="round-repeat-fieldset" disabled={Boolean(purchase)}>
           <legend>Repetições</legend>
@@ -246,7 +254,6 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
           <label><input type="radio" name="numeric-payment" checked={paymentMethod === "CASH"} onChange={() => setPaymentMethod("CASH")} /> Dinheiro</label>
         </fieldset>}
 
-        <p><strong>Total estimado: {money(totalEstimate)}</strong></p>
         {error && <p role="alert" className="note-inline form-feedback-error">{error}</p>}
         {notice && <p role="status" className="note-inline form-feedback-success">{notice}</p>}
         <button type="submit" disabled={submitting || Boolean(purchase) || !numbers.length}>
