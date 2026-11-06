@@ -1999,3 +1999,42 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   object-fit:contain;
   object-position:center;
 }
+
+
+/* Acesso da página inicial: um botão no cabeçalho abre as duas opções de conta. */
+.home-header-wrap{position:relative;width:100%}
+.home-header-access{
+  position:absolute;z-index:5;top:50%;right:clamp(12px,3vw,36px);transform:translateY(-50%);
+  min-width:104px;min-height:42px;padding:9px 20px;border:2px solid #fff;border-radius:999px;
+  background:linear-gradient(135deg,#ffe34a,#ffbd16);color:#082c75;font:inherit;font-weight:900;
+  box-shadow:0 4px 16px rgb(0 0 0 / 28%);cursor:pointer
+}
+.home-header-access:focus-visible,.home-access-close:focus-visible,.home-access-options a:focus-visible{
+  outline:3px solid #55d4ef;outline-offset:3px
+}
+.home-access-backdrop{
+  position:fixed;z-index:2000;inset:0;display:grid;place-items:center;padding:18px;
+  background:rgb(3 13 38 / 76%);backdrop-filter:blur(5px)
+}
+.home-access-dialog{
+  position:relative;width:min(100%,420px);padding:34px 24px 26px;border:2px solid #f4cc35;
+  border-radius:20px;background:linear-gradient(155deg,#073b9b,#071b50);color:#fff;
+  text-align:center;box-shadow:0 24px 80px rgb(0 0 0 / 42%)
+}
+.home-access-dialog h2{margin:0;font-size:clamp(1.5rem,5vw,2rem);line-height:1.15}
+.home-access-dialog p{margin:10px 0 24px;color:#dceaff}
+.home-access-close{
+  position:absolute;top:8px;right:12px;width:36px;height:36px;border:0;border-radius:50%;
+  background:rgb(255 255 255 / 12%);color:#fff;font-size:1.7rem;line-height:1;cursor:pointer
+}
+.home-access-options{display:grid;gap:12px}
+.home-access-options a{
+  display:flex;align-items:center;justify-content:center;min-height:54px;padding:12px 18px;
+  border-radius:12px;text-decoration:none;font-weight:900
+}
+.home-access-login{background:#ffcf25;color:#082c75}
+.home-access-register{border:2px solid #fff;background:#fff;color:#073b9b}
+@media(max-width:600px){
+  .home-header-access{right:10px;min-width:88px;min-height:36px;padding:7px 14px;font-size:.9rem}
+  .home-access-dialog{padding:32px 20px 22px}
+}
