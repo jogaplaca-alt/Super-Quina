@@ -80,7 +80,7 @@ export function AdminPrizeCreditReconciliation() {
   return <section className="feature-card" aria-labelledby="admin-prize-reconciliation-heading">
     <span className="feature-label">Carteira digital</span>
     <h2 id="admin-prize-reconciliation-heading">Corrigir créditos de prêmios online</h2>
-    <p>Esta ferramenta procura prêmios positivos apurados em rodadas concluídas que ainda não constam como creditados. O prazo de sete dias não se aplica a falhas técnicas de crédito online. Cada correção recalcula o prêmio com as regras históricas, verifica o livro-razão e registra auditoria; divergências são bloqueadas.</p>
+    <p>Esta ferramenta procura prêmios positivos de jogadores online em rodadas concluídas cujo registro no livro-razão esteja ausente ou divergente, ou cuja marcação de crédito esteja incompleta. Prêmios já pagos por outro canal não aparecem para correção. O prazo de sete dias não se aplica a falhas técnicas de crédito online. Cada correção recalcula o prêmio com as regras históricas, verifica o livro-razão e registra auditoria; divergências são bloqueadas.</p>
     <p className="note-inline">Use apenas para falhas técnicas confirmadas. Prêmios manuais de vendas de cambista não aparecem nesta lista.</p>
     {error && <p role="alert" className="note-inline">{error}</p>}
     {notice && <p role="status" className="note-inline">{notice}</p>}
