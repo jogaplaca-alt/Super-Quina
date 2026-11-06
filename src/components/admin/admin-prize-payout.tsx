@@ -102,19 +102,19 @@ export function AdminPrizePayout() {
   const paid = winners.filter((winner) => winner.paid);
   const visible = tab === "pending" ? pending : paid;
 
-  return <section className="feature-card" aria-labelledby="admin-prize-payout-heading">
+  return <section className="feature-card admin-prize-payout" aria-labelledby="admin-prize-payout-heading">
     <span className="feature-label">Central de pagamentos</span>
     <h2 id="admin-prize-payout-heading">Ganhadores</h2>
     <p>Todos os ganhadores das rodadas concluídas ficam reunidos aqui. Faça o Pix fora da plataforma e confirme somente depois que a transferência estiver concluída.</p>
 
-    <div className="round-options" role="group" aria-label="Filtrar ganhadores">
-      <button type="button" className={tab === "pending" ? "" : "secondary-button"} onClick={() => setTab("pending")}>
+    <div className="round-options admin-prize-tabs" role="group" aria-label="Filtrar ganhadores">
+      <button type="button" className={"admin-prize-tab" + (tab === "pending" ? " is-active" : "")} onClick={() => setTab("pending")}>
         A pagar ({pending.length})
       </button>
-      <button type="button" className={tab === "paid" ? "" : "secondary-button"} onClick={() => setTab("paid")}>
+      <button type="button" className={"admin-prize-tab" + (tab === "paid" ? " is-active" : "")} onClick={() => setTab("paid")}>
         Já pagos ({paid.length})
       </button>
-      <button type="button" className="secondary-button" disabled={loading} onClick={() => { setLoading(true); setError(""); void load(); }}>
+      <button type="button" className="admin-prize-refresh" disabled={loading} onClick={() => { setLoading(true); setError(""); void load(); }}>
         Atualizar
       </button>
     </div>
@@ -124,7 +124,7 @@ export function AdminPrizePayout() {
     {loading ? <p>Carregando ganhadores…</p> : visible.length === 0
       ? <p>{tab === "pending" ? "Nenhum pagamento pendente." : "Nenhum prêmio pago registrado ainda."}</p>
       : <div className="admin-round-list">
-        {visible.map((winner) => <article className="round-option" key={winner.id}>
+        {visible.map((winner) => <article className="round-option admin-prize-card" key={winner.id}>
           <strong>{winner.playerName}</strong>
           <p>Prêmio: <strong>{money(winner.prizeCents)}</strong> · Número: {winner.numberValue}</p>
           <p>Rodada: {winner.roundCode} · Horário: {dateTime(winner.resultAt)} · Resultado: {winner.resultNumber ?? "—"}</p>
@@ -135,10 +135,10 @@ export function AdminPrizePayout() {
             : <>
               {winner.manualEligible ? <>
                 <label htmlFor={"winner-reference-" + winner.id}>Referência do comprovante (opcional)</label>
-                <input id={"winner-reference-" + winner.id} value={references[winner.id] ?? ""}
+                <input className="admin-prize-reference" id={"winner-reference-" + winner.id} value={references[winner.id] ?? ""}
                   onChange={(event) => setReferences((current) => ({ ...current, [winner.id]: event.target.value }))} maxLength={300}
                   placeholder="Identificador do Pix" />
-                <button type="button" disabled={Boolean(busy)} onClick={() => void confirmPaid(winner)}>
+                <button className="admin-prize-confirm" type="button" disabled={Boolean(busy)} onClick={() => void confirmPaid(winner)}>
                   {busy === winner.id ? "Registrando…" : "Confirmar Pix pago"}
                 </button>
               </> : <p role="alert">Crédito automático ainda não confirmado. Conferir este prêmio.</p>}
