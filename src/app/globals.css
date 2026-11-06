@@ -2478,3 +2478,19 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   padding-block-start: 90px !important;
 }
 
+/* Página inicial: remover molduras das imagens promocionais. */
+.home-entry > .home-how-infographic,
+.home-entry > .home-promo {
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+.home-entry > .home-how-infographic img,
+.home-entry > .home-promo img {
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
