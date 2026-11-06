@@ -2377,3 +2377,23 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   .area-page-compact .numeric-game-purchase .round-repeat-fieldset{padding:8px 12px 10px!important;}
   .area-page-compact .numeric-game-purchase .round-repeat-fieldset>.round-repeat-select{min-height:44px!important;}
 }
+
+/* Cabeçalho infinito: ocupa a largura total da tela, sem moldura lateral ou superior. */
+.site-header.site-header-scenery {
+  position: relative;
+  left: 50%;
+  width: 100vw !important;
+  max-width: none !important;
+  margin-left: -50vw !important;
+  margin-right: 0 !important;
+  box-sizing: border-box;
+  border: 0 !important;
+  border-bottom: 1px solid #d7e3ef !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.site-header.site-header-scenery .site-header-scenery-image {
+  display: block;
+  width: 100% !important;
+  max-width: none !important;
+}
