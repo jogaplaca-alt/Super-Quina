@@ -7,11 +7,17 @@ O APK é uma aplicação Android nativa com Capacitor que abre a aplicação Nex
 - Aplicação web de produção: `https://superquina.com`
 - Identificador Android: `com.superquina.app`
 - Nome: `Super Quina`
-- Branch isolada: `main`
+- Branch isolada: `feature/android-apk-printer`
 - Hospedagem autorizada: AquaCloud
 - Não gerar exportação estática do Next.js.
 - Não adicionar URLs, variáveis ou referências a outros provedores de hospedagem.
 - Não alterar `main`.
+
+## Estado da compilação de fumaça (2026-11-06)
+
+O workflow `.github/workflows/android-apk.yml` concluiu com sucesso a execução `42286027465` e publicou o artefato temporário `super-quina-android-debug` (3.693.297 bytes; expiração em 14 dias). Esse resultado valida apenas o toolchain e a compilação Gradle do invólucro gerado no runner.
+
+**Esse artefato não é uma versão instalável aprovada para distribuição:** o workflow cria `www/index.html` mínimo e gera a plataforma Android de forma efêmera. Ele ainda não incorpora uma ponte Bluetooth SPP, nem um projeto Android persistente no repositório, nem foi validado em aparelho e impressora reais. Não publicar esse APK nem apontar a página pública de download para o artefato do Actions.
 
 ## Estado inicial auditado
 
