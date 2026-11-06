@@ -12,7 +12,8 @@ type Winner = {
   receiptCode: string | null;
   playerName: string;
   phone: string | null;
-  cashierName: string;
+  cashierName: string | null;
+  manualEligible: boolean;
   paid: boolean;
   payoutChannel: "PLATFORM_PIX" | "CASHIER_CASH" | "WALLET" | null;
   paidAt: string | null;
@@ -114,18 +115,20 @@ export function AdminPrizePayout() {
           <strong>{winner.playerName}</strong>
           <p>Prêmio: <strong>{money(winner.prizeCents)}</strong> · Número: {winner.numberValue}</p>
           <p>Rodada: {winner.roundCode} · Resultado: {winner.resultNumber ?? "—"}</p>
-          <p>Recibo: {winner.receiptCode ?? "—"} · Cambista: {winner.cashierName}</p>
+          <p>Recibo: {winner.receiptCode ?? "—"} {winner.cashierName ? " · Cambista: " + winner.cashierName : ""}</p>
           {winner.phone && <p>Telefone: {winner.phone}</p>}
           {winner.paid
             ? <p><strong>PIX PAGO</strong>{winner.paidAt ? " · " + dateTime(winner.paidAt) : ""}{winner.reference ? " · Ref.: " + winner.reference : ""}</p>
             : <>
-              <label htmlFor={"winner-reference-" + winner.id}>Referência do comprovante (opcional)</label>
-              <input id={"winner-reference-" + winner.id} value={busy === winner.id ? reference : reference}
-                onChange={(event) => setReference(event.target.value)} maxLength={300}
-                placeholder="Identificador do Pix" />
-              <button type="button" disabled={Boolean(busy)} onClick={() => void confirmPaid(winner)}>
-                {busy === winner.id ? "Registrando…" : "Confirmar Pix pago"}
-              </button>
+              {winner.manualEligible ? <>
+                <label htmlFor={"winner-reference-" + winner.id}>Referência do comprovante (opcional)</label>
+                <input id={"winner-reference-" + winner.id} value={reference}
+                  onChange={(event) => setReference(event.target.value)} maxLength={300}
+                  placeholder="Identificador do Pix" />
+                <button type="button" disabled={Boolean(busy)} onClick={() => void confirmPaid(winner)}>
+                  {busy === winner.id ? "Registrando…" : "Confirmar Pix pago"}
+                </button>
+              </> : <p role="alert">Crédito automático ainda não confirmado. Conferir este prêmio.</p>}
             </>}
         </article>)}
       </div>}
