@@ -111,7 +111,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
   const stakeCents = useMemo(() => parseStake(stake), [stake]);
   const pendingNumber = clearInput(numberInput);
   const hasPendingNumber = numberInput.length > 0;
-  const effectiveNumbers = hasPendingNumber && /^\\d{5}$/.test(pendingNumber)
+  const effectiveNumbers = hasPendingNumber && /^\d{5}$/.test(pendingNumber)
     ? [...numbers, pendingNumber]
     : numbers;
   const totalEstimate = stakeCents !== null ? stakeCents * effectiveNumbers.length * repetitionCount : 0;
@@ -147,7 +147,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError(""); setNotice("");
-    if (hasPendingNumber && !/^\\d{5}$/.test(pendingNumber)) {
+    if (hasPendingNumber && !/^\d{5}$/.test(pendingNumber)) {
       setError("Complete os cinco algarismos do número ou apague o campo para continuar com os números já adicionados.");
       return;
     }
@@ -273,7 +273,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
 
         {error && <p role="alert" className="note-inline form-feedback-error">{error}</p>}
         {notice && <p role="status" className="note-inline form-feedback-success">{notice}</p>}
-        <button type="submit" disabled={submitting || Boolean(purchase) || (!numbers.length && !/^\\d{5}$/.test(pendingNumber))}>
+        <button type="submit" disabled={submitting || Boolean(purchase) || (!numbers.length && !/^\d{5}$/.test(pendingNumber))}>
           {submitting ? "Registrando…" : "Continuar"}
         </button>
       </form>
