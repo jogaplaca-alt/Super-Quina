@@ -2092,7 +2092,7 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   min-height:0;
 }
 .home-page-compact .home-entry{
-  padding-bottom:0 !important;
+  padding-bottom:18px !important;
 }
 .home-footer-access{
   min-width:190px;
