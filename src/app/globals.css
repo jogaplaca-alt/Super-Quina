@@ -618,7 +618,7 @@ h1 {
 /* Identidade visual da Super Quina. Aplicada globalmente sem alterar fluxos, permissões ou regras de negócio. */
 :root {
   color-scheme: dark;
-  --background: #0d111a;
+  --background: #07172b;
   --surface: #141b26;
   --text: #f4f6fb;
   --muted: #a0adbf;
@@ -626,11 +626,11 @@ h1 {
   --accent: #59d5f2;
   --accent-soft: #1b2a3c;
 }
-html, body { background: #0d111a; color: #f4f6fb; }
+html, body { background: #07172b !important; color: #f4f6fb; }
 body {
   background:
     radial-gradient(ellipse at 78% 32%, rgb(33 65 91 / 34%), transparent 43%),
-    #0d111a;
+    #07172b;
   color: #f4f6fb;
 }
 .page-shell, .auth-page, .area-page { color: #f4f6fb; }
@@ -2507,5 +2507,19 @@ p, .intro, .auth-description, .area-description, .feature-card p,
 /* Fundo global azul-marinho, integrado à identidade visual do cabeçalho. */
 html,
 body {
+  background-color: #07172b !important;
+}
+
+
+/* Garante o azul-marinho também nos contêineres de página, não só no body. */
+html,
+body,
+#__next,
+main,
+.home-page,
+.page-shell,
+.auth-page,
+.area-page,
+.site-page-shell {
   background-color: #07172b !important;
 }
