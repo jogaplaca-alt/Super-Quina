@@ -2,12 +2,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
 const mocks = vi.hoisted(() => ({
-  getSessionUser: vi.fn(), lineFindMany: vi.fn(), ledgerFindUnique: vi.fn(),
+  getSessionUser: vi.fn(), queryRaw: vi.fn(), lineFindMany: vi.fn(), ledgerFindUnique: vi.fn(),
   transaction: vi.fn(), lineFindUnique: vi.fn(), ledgerCreate: vi.fn(), lineUpdate: vi.fn(), auditCreate: vi.fn(),
 }));
 vi.mock("@/lib/auth/session", () => ({
   getSessionUser: mocks.getSessionUser, SESSION_COOKIE: "superquina_session",
   authPrisma: {
+    $queryRaw: mocks.queryRaw,
     numericParticipationLine: { findMany: mocks.lineFindMany },
     ledgerEntry: { findUnique: mocks.ledgerFindUnique },
     $transaction: mocks.transaction,
@@ -38,6 +39,7 @@ describe("admin prize credit reconciliation API", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.getSessionUser.mockResolvedValue({ id: "admin-1", role: "ADMIN", mustChangePassword: false });
+    mocks.queryRaw.mockResolvedValue([{ id: "line-123" }]);
     mocks.lineFindMany.mockResolvedValue([line]);
     mocks.ledgerFindUnique.mockResolvedValue(null);
     mocks.lineFindUnique.mockResolvedValue(line);
@@ -67,8 +69,47 @@ describe("admin prize credit reconciliation API", () => {
       count: 1, limit: 200,
       items: [{ lineId: "line-123", playerId: "player-1", username: "player", ledgerEntryExists: false, ledgerMatches: false, payoutExists: false, prizeCreditedAt: null }],
     });
-    expect(mocks.lineFindMany).toHaveBeenCalledWith(expect.objectContaining({ take: 200, where: expect.objectContaining({ prizeCents: { gt: 0 }, prizeCreditedAt: null }) }));
+    expect(mocks.queryRaw).toHaveBeenCalledTimes(1);
+    const sql = mocks.queryRaw.mock.calls[0][0].join("");
+    expect(sql).toContain('line."prizeCreditedAt" IS NULL');
+    expect(sql).toContain('ledger."amountCents" IS DISTINCT FROM line."prizeCents"');
+    expect(sql).toContain('payout."id" IS NULL');
+    expect(mocks.lineFindMany).toHaveBeenCalledWith(expect.objectContaining({ where: { id: { in: ["line-123"] } } }));
     expect(mocks.ledgerFindUnique).toHaveBeenCalledWith({ where: { idempotencyKey: "numeric-prize-credit:line-123" } });
+  });
+
+
+  it("surfaces timestamped credits when the idempotent ledger entry is missing", async () => {
+    const timestampedLine = { ...line, prizeCreditedAt: new Date("2026-01-03T00:00:00Z") };
+    mocks.lineFindMany.mockResolvedValue([timestampedLine]);
+    mocks.ledgerFindUnique.mockResolvedValue(null);
+    const response = await GET(request());
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      count: 1,
+      items: [{ lineId: "line-123", prizeCreditedAt: "2026-01-03T00:00:00.000Z", ledgerEntryExists: false, ledgerMatches: false }],
+    });
+  });
+
+  it("does not offer paid prizes for corrective credit", async () => {
+    mocks.queryRaw.mockResolvedValue([]);
+    mocks.lineFindMany.mockResolvedValue([]);
+    const response = await GET(request());
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ count: 0, items: [] });
+    expect(mocks.lineFindMany).not.toHaveBeenCalled();
+  });
+
+  it("flags an existing but financially mismatched ledger entry", async () => {
+    mocks.ledgerFindUnique.mockResolvedValue({
+      userId: "player-1", purchaseId: "purchase-1", amountCents: 999, currency: "BRL",
+      type: "PRIZE_CREDIT", participationId: "participation-1",
+    });
+    const response = await GET(request());
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      items: [{ ledgerEntryExists: true, ledgerMatches: false }],
+    });
   });
 
   it("rejects invalid origins before processing a repair", async () => {
