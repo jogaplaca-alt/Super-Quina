@@ -89,6 +89,7 @@ describe("createNumericPurchase paid allocation queue", () => {
       auditEvent: { create: auditCreate },
       $queryRaw: vi.fn()
         .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
         .mockResolvedValueOnce([{ decisionTime: new Date("2026-11-03T18:00:00.000Z") }]),
     };
     const prisma = {
