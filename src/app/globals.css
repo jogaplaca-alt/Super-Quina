@@ -2282,3 +2282,11 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   font-size:clamp(1rem,3.8vw,1.25rem);
   line-height:1.2;
 }
+
+
+/* Botão Sair: mais largo, mantendo exatamente a altura atual. */
+.area-logout-footer .logout-button{
+  min-width:120px;
+  padding-left:28px;
+  padding-right:28px;
+}
