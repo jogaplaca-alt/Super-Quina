@@ -2212,3 +2212,12 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   justify-content:center;
 }
 .home-page-compact .home-entry{padding-bottom:18px !important}
+
+/* Moldura inferior do cabeçalho universal, alinhada ao acabamento dos cards da página inicial. */
+.site-header.site-header-scenery {
+  box-sizing: border-box;
+  border: 1px solid #d7e3ef;
+  border-top: 0;
+  border-radius: 0 0 18px 18px;
+  box-shadow: 0 7px 18px rgb(0 0 0 / 22%);
+}
