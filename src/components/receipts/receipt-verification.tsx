@@ -94,6 +94,8 @@ export function ReceiptVerification({ receiptCode }: { receiptCode: string }) {
   if (!data) return <p role="alert" style={{ color: "#b91c1c", fontWeight: 700 }}>Não foi possível consultar o recibo.</p>;
 
   const rounds = data.valid ? data.rounds ?? [] : [];
+  const hasAvailablePrize = rounds.some((round) => round.numbers.some((number) => number.resultStatus === "PREMIADA" && !number.prizePaid));
+  const prizeContactUrl = `${prizeSupportUrl}?text=${encodeURIComponent(`Olá! Consultei o recibo ${data.receiptCode ?? receiptCode.toUpperCase()} e tenho um prêmio disponível. Gostaria de orientação para receber.`)}`;
 
   return (
     <section aria-live="polite" style={{ border: "2px solid #9ca3af", borderRadius: 10, padding: 16, background: "#ffffff", color: "#111827", fontSize: 16, lineHeight: 1.5 }}>
@@ -132,7 +134,7 @@ export function ReceiptVerification({ receiptCode }: { receiptCode: string }) {
                   <strong style={{ display: "block", color: "#111827", marginBottom: 6 }}>Seus números</strong>
                   <div style={{ display: "grid", gap: 6 }}>
                     {round.numbers.map((number, index) => {
-                      const status = number.resultStatus === "PREMIADA" ? (number.prizePaid ? number.payoutChannel === "CASHIER_CASH" ? "PRÊMIO PAGO — dinheiro pelo cambista" : number.payoutChannel === "PLATFORM_PIX" ? "PRÊMIO PAGO — Pix pela plataforma" : "Prêmio creditado na carteira" : "Premiada")
+                      const status = number.resultStatus === "PREMIADA" ? (number.prizePaid ? number.payoutChannel === "CASHIER_CASH" ? "PRÊMIO PAGO — dinheiro pelo cambista" : number.payoutChannel === "PLATFORM_PIX" ? "PRÊMIO PAGO — Pix pela plataforma" : "Prêmio creditado na carteira" : "PRÊMIO DISPONÍVEL")
                         : number.resultStatus === "NAO_PREMIADA" ? "Não premiada"
                           : number.resultStatus === "AGUARDANDO_APURACAO" ? "Aguardando apuração"
                             : round.status === "RODADA_CANCELADA" ? "Rodada cancelada" : round.status === "SORTEIO_AGUARDANDO" ? "Aguardando sorteio" : "Aguardando resultado";
@@ -149,11 +151,11 @@ export function ReceiptVerification({ receiptCode }: { receiptCode: string }) {
           )) : <p style={{ color: "#374151" }}>Nenhuma rodada confirmada para este recibo.</p>}
         </>
       )}
-      <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid #d1d5db", textAlign: "center" }}>
-        <p style={{ margin: "0 0 9px", color: "#374151", fontSize: 14 }}>Precisa de ajuda com seu recibo ou prêmio?</p>
-        <a href={prizeSupportUrl} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", padding: "10px 16px", borderRadius: 7, background: "#15803d", color: "#ffffff", fontWeight: 800, textDecoration: "none" }}>Falar com o suporte pelo WhatsApp</a>
-        <p style={{ margin: "8px 0 0", color: "#6b7280", fontSize: 12 }}>Super Quina · superquina.com</p>
-      </div>
+      {hasAvailablePrize && <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid #d1d5db", textAlign: "center" }}>
+        <p style={{ margin: "0 0 9px", color: "#374151", fontSize: 14 }}>Você tem um prêmio disponível. Entre em contato para combinar o recebimento.</p>
+        <a href={prizeContactUrl} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", padding: "10px 16px", borderRadius: 7, background: "#15803d", color: "#ffffff", fontWeight: 800, textDecoration: "none" }}>Receber prêmio pelo WhatsApp</a>
+      </div>}
+      <p style={{ margin: "14px 0 0", color: "#6b7280", fontSize: 12, textAlign: "center" }}>Super Quina · superquina.com</p>
     </section>
   );
 }
