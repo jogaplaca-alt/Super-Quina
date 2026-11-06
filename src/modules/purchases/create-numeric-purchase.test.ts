@@ -105,7 +105,9 @@ describe("createNumericPurchase paid allocation queue", () => {
       stakeCents: 100,
     });
 
-    const roundLockSql = tx.$queryRaw.mock.calls[1]![0].join(" ");
+    const roundLockCall = tx.$queryRaw.mock.calls.find(([query]) => query.join(" ").includes('FROM "Round"'));
+    expect(roundLockCall).toBeDefined();
+    const roundLockSql = roundLockCall![0].join(" ");
     expect(roundLockSql).toContain("LIMIT");
     expect(roundLockSql).toContain("FOR UPDATE");
     const data = purchaseCreate.mock.calls[0]![0].data;
