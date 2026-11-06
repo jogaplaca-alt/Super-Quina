@@ -72,7 +72,7 @@ function resultSlots(from: Date, through: Date): Date[] {
 }
 function roundCode(date: Date): string {
   const parts = brasiliaParts(date);
-  return `JN-${parts.year}${parts.month}${parts.day}-${parts.hour}${parts.minute}`;
+  return `SQ-${parts.year}${parts.month}${parts.day}-${parts.hour}${parts.minute}`;
 }
 
 /**
