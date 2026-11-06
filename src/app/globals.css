@@ -1026,7 +1026,7 @@ p, .intro, .auth-description, .area-description, .feature-card p,
 
 
 /* Resumo financeiro recolhível do cambista, no rodapé imediatamente acima de Sair. */
-.cashier-summary-menu{width:min(100% - 24px,520px);margin:0 auto 12px;border:1px solid var(--border,#2b394c);border-radius:14px;background:var(--card,#141c28);color:var(--text,#f3f6fb);overflow:hidden}
+.cashier-summary-menu{width:100%;max-width:none;margin:16px 0;border:1px solid var(--border,#2b394c);border-radius:18px;background:var(--card,#141c28);color:var(--text,#f3f6fb);overflow:hidden}
 .cashier-summary-menu>summary{position:relative;display:flex;flex-direction:column;gap:4px;padding:13px 44px 13px 16px;cursor:pointer;list-style:none;touch-action:manipulation}
 .cashier-summary-menu>summary::-webkit-details-marker{display:none}
 .cashier-summary-menu>summary:after{content:"";position:absolute;right:18px;top:50%;width:9px;height:9px;border-right:2px solid var(--accent,#55d4ef);border-bottom:2px solid var(--accent,#55d4ef);transform:translateY(-70%) rotate(45deg);transition:transform .16s ease}
