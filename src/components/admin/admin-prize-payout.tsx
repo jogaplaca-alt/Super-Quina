@@ -118,7 +118,7 @@ export function AdminPrizePayout() {
           <p>Recibo: {winner.receiptCode ?? "—"} {winner.cashierName ? " · Cambista: " + winner.cashierName : ""}</p>
           {winner.phone && <p>Telefone: {winner.phone}</p>}
           {winner.paid
-            ? <p><strong>PIX PAGO</strong>{winner.paidAt ? " · " + dateTime(winner.paidAt) : ""}{winner.reference ? " · Ref.: " + winner.reference : ""}</p>
+            ? <p><strong>{winner.payoutChannel === "WALLET" ? "CRÉDITO NA CARTEIRA" : "PIX PAGO"}</strong>{winner.paidAt ? " · " + dateTime(winner.paidAt) : ""}{winner.reference ? " · Ref.: " + winner.reference : ""}</p>
             : <>
               {winner.manualEligible ? <>
                 <label htmlFor={"winner-reference-" + winner.id}>Referência do comprovante (opcional)</label>
