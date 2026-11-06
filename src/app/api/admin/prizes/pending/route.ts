@@ -15,8 +15,6 @@ export async function GET(request: NextRequest) {
     const lines = await authPrisma.numericParticipationLine.findMany({
       where: {
         prizeCents: { gt: 0 },
-        prizeCreditedAt: null,
-        prizePayout: { is: null },
         participation: {
           is: {
             status: "CONFIRMED",
@@ -29,6 +27,8 @@ export async function GET(request: NextRequest) {
         id: true,
         numberValue: true,
         prizeCents: true,
+        prizeCreditedAt: true,
+        prizePayout: { select: { channel: true, paidAt: true, reference: true } },
         participation: {
           select: {
             round: { select: { code: true, resultNumber: true, resultAt: true } },
@@ -59,6 +59,10 @@ export async function GET(request: NextRequest) {
         cashierName: line.participation.purchase.cashier?.fullName
           ?? line.participation.purchase.cashier?.username
           ?? "Cambista",
+        paid: Boolean(line.prizePayout || line.prizeCreditedAt),
+        payoutChannel: line.prizePayout?.channel ?? (line.prizeCreditedAt ? "WALLET" : null),
+        paidAt: line.prizePayout?.paidAt.toISOString() ?? null,
+        reference: line.prizePayout?.reference ?? null,
       })),
     }, { headers: { "Cache-Control": "no-store, private" } });
   } catch {
