@@ -13,7 +13,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     const purchase = await authPrisma.purchase.findUnique({
       where: { receiptCode },
       select: {
-        receiptCode: true, status: true, paymentMethod: true, totalCents: true, currency: true, confirmedAt: true,
+        receiptCode: true, status: true, paymentMethod: true, totalCents: true, currency: true, confirmedAt: true, cashierId: true, playerId: true,
         payment: { select: { status: true, confirmedAt: true } },
         participations: {
           where: { status: "CONFIRMED" }, orderBy: { round: { resultAt: "asc" } },
@@ -62,6 +62,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     });
     return NextResponse.json({ valid: true, receiptCode: purchase.receiptCode, status: "CONFIRMED",
       paymentMethod: purchase.paymentMethod, totalCents: purchase.totalCents, currency: purchase.currency,
+      manualPayoutEligible: Boolean(purchase.cashierId && !purchase.playerId),
       confirmedAt: purchase.confirmedAt?.toISOString() ?? null,
       rounds,
       message: "Recibo registrado e pagamento confirmado no sistema oficial." }, { headers });
