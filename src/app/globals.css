@@ -2223,10 +2223,11 @@ p, .intro, .auth-description, .area-description, .feature-card p,
 }
 
 /* Valor da aposta e total em uma única faixa compacta. */
+/* Valor da aposta e total com larguras proporcionais e caixas alinhadas. */
 .numeric-stake-summary-row{
   display:grid!important;
-  grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr)!important;
-  align-items:stretch;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  align-items:end;
   gap:10px;
   width:100%;
   min-width:0;
@@ -2247,6 +2248,7 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   display:flex;
   min-width:0;
   min-height:62px;
+  align-self:end;
   flex-direction:column;
   justify-content:center;
   gap:3px;
