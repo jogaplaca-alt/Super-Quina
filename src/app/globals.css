@@ -2405,7 +2405,7 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   margin-right: 0 !important;
   box-sizing: border-box;
   border: 0 !important;
-  border-bottom: 0 !important;
+  border-bottom: 1px solid #d7e3ef !important;
   border-radius: 0 !important;
   box-shadow: none !important;
 }
@@ -2429,7 +2429,6 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   padding: 0 !important;
   overflow: hidden;
   border: 0 !important;
-  border-bottom: 1px solid #d7e3ef !important;
   border-radius: 0 !important;
   background: #07172b;
   box-shadow: none !important;
