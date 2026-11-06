@@ -2434,11 +2434,14 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   height: 100% !important;
   max-width: none !important;
   max-height: none !important;
+  margin: 0 auto !important;
   border-radius: 0 !important;
   object-fit: cover;
-  object-position: center;
+  object-position: 50% 50%;
 }
-.site-page-shell:has(> .site-header.site-header-scenery) {
+
+/* O cabeçalho é fixo; o espaço precisa ser reservado no contêiner real das áreas. */
+.area-page {
   padding-top: 90px !important;
 }
 @media(max-width:600px) {
@@ -2446,7 +2449,7 @@ p, .intro, .auth-description, .area-description, .feature-card p,
     height: 80px !important;
     min-height: 80px !important;
   }
-  .site-page-shell:has(> .site-header.site-header-scenery) {
+  .area-page {
     padding-top: 90px !important;
   }
 }
