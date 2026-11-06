@@ -211,8 +211,10 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
           <input id="numeric-number" aria-label="Número de cinco algarismos" disabled={Boolean(purchase)} value={numberInput}
             onChange={(event) => setNumberInput(clearInput(event.target.value))}
             inputMode="numeric" pattern="[0-9]{5}" maxLength={5} placeholder="00000" autoComplete="off" />
-          <button type="button" className="secondary-button" disabled={Boolean(purchase)} onClick={addNumber}>Adicionar</button>
-          <button type="button" className="secondary-button" disabled={Boolean(purchase)} onClick={generateRandomNumber}>Gerador de números</button>
+          <div className="numeric-entry-actions">
+            <button type="button" className="secondary-button" disabled={Boolean(purchase)} onClick={addNumber}>Adicionar</button>
+            <button type="button" className="secondary-button" disabled={Boolean(purchase)} onClick={generateRandomNumber}>Gerador</button>
+          </div>
         </div>
 
         {numbers.length > 0 && <div className="added-numbers">
