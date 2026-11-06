@@ -2494,3 +2494,35 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   border-radius: 0 !important;
   box-shadow: none !important;
 }
+
+/* Efeito 3D sutil nas duas imagens promocionais da página inicial. */
+.home-entry > .home-how-infographic,
+.home-entry > .home-promo {
+  perspective: 1100px;
+  transform: perspective(1100px) rotateX(1.8deg) translateZ(0);
+  transform-origin: center center;
+  filter: drop-shadow(0 16px 18px rgb(0 0 0 / 30%));
+  transition: transform 380ms ease, filter 380ms ease;
+  will-change: transform;
+}
+.home-entry > .home-how-infographic img,
+.home-entry > .home-promo img {
+  transform: translateZ(18px);
+  backface-visibility: hidden;
+}
+@media (hover: hover) and (pointer: fine) {
+  .home-entry > .home-how-infographic:hover,
+  .home-entry > .home-promo:hover {
+    transform: perspective(1100px) rotateX(0deg) rotateY(-1deg) translateY(-5px) scale(1.012);
+    filter: drop-shadow(0 24px 24px rgb(0 0 0 / 38%));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-entry > .home-how-infographic,
+  .home-entry > .home-promo,
+  .home-entry > .home-how-infographic img,
+  .home-entry > .home-promo img {
+    transition: none !important;
+    transform: none !important;
+  }
+}
