@@ -25,16 +25,15 @@ export function PlayerRecentResults() {
     return () => { active = false; };
   }, []);
   return (
-    <section className="feature-card results-card" aria-labelledby="player-results-heading">
-      <span className="feature-label">Resultados</span><h2 id="player-results-heading">Últimos resultados</h2>
-      {loading ? <p>Carregando resultados…</p> : error ? <p role="alert" className="note-inline">{error}</p> : results.length === 0 ? (
-        <p>Ainda não há resultados publicados nas últimas 24 horas.</p>
+    <div className="recent-results-content">
+      {loading ? <p>Carregando sorteios…</p> : error ? <p role="alert" className="note-inline">{error}</p> : results.length === 0 ? (
+        <p>Ainda não há sorteios publicados nas últimas 24 horas.</p>
       ) : <div className="recent-results-list">{results.slice(0, 10).map((result) => (
         <article className="recent-result" key={result.id}>
           <div className="recent-result-heading"><strong>Rodada {result.code}</strong><time dateTime={result.resultAt}>{formatDate(result.resultAt)}</time></div>
           <div className="numeric-result-display" aria-label={"Número sorteado: " + result.number}>{result.number}</div>
         </article>
       ))}</div>}
-    </section>
+    </div>
   );
 }
