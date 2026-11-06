@@ -15,7 +15,7 @@ export default function HomePage() {
       <main className="home-entry">
         <figure className="home-how-infographic numeric-game-infographic">
           <Image
-            src="/images/brand/super-quina-inicio.webp"
+            src="/images/brand/super-quina-inicio.webp?v=20261106-2300"
             alt="Como funciona o jogo Super Quina"
             className="home-how-infographic-image"
             width={1200}
