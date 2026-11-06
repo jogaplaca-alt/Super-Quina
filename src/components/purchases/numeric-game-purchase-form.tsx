@@ -205,9 +205,6 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
 
   return (
     <section className="feature-card numeric-game-purchase">
-      <span className="feature-label">Jogo</span>
-      <h2>Jogue seu número</h2>
-
       <form onSubmit={submit}>
         <label htmlFor="numeric-number">Número (cinco algarismos)</label>
         <div className="numeric-entry-row">
@@ -215,7 +212,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
             onChange={(event) => setNumberInput(clearInput(event.target.value))}
             inputMode="numeric" pattern="[0-9]{5}" maxLength={5} placeholder="00000" autoComplete="off" />
           <button type="button" className="secondary-button" disabled={Boolean(purchase)} onClick={addNumber}>Adicionar</button>
-          <button type="button" className="secondary-button" disabled={Boolean(purchase)} onClick={generateRandomNumber}>Gerar número</button>
+          <button type="button" className="secondary-button" disabled={Boolean(purchase)} onClick={generateRandomNumber}>Gerador de números</button>
         </div>
 
         {numbers.length > 0 && <div className="added-numbers">
