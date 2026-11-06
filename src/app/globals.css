@@ -2080,13 +2080,19 @@ p, .intro, .auth-description, .area-description, .feature-card p,
 }
 
 
-/* Botão de acesso logo abaixo da última imagem, sem espaço excessivo. */
+/* Botão abaixo da última imagem, sem sobreposição nem sobra no rodapé. */
 .home-access-footer{
   display:flex;
   justify-content:center;
   width:100%;
-  padding:0 12px 4px;
-  margin:-8px 0 0;
+  padding:0;
+  margin:4px 0 0;
+}
+.home-page-compact{
+  min-height:0;
+}
+.home-page-compact .home-entry{
+  padding-bottom:0 !important;
 }
 .home-footer-access{
   min-width:190px;
