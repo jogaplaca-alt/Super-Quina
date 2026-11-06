@@ -15,7 +15,7 @@ O APK é uma aplicação Android nativa com Capacitor que abre a aplicação Nex
 
 ## Estado da compilação de fumaça (2026-11-06)
 
-O workflow `.github/workflows/android-apk.yml` concluiu com sucesso a execução `42286027465` e publicou o artefato temporário `super-quina-android-debug` (3.693.297 bytes; expiração em 14 dias). Esse resultado valida apenas o toolchain e a compilação Gradle do invólucro gerado no runner.
+A execução mais recente, `42287383864`, concluiu com sucesso após as atualizações de documentação. A execução `42287378319` foi cancelada pela política de concorrência do workflow; não representa falha de compilação. A execução de compilação validada anteriormente, `42286027465`, publicou o artefato temporário `super-quina-android-debug` (3.693.297 bytes; expiração em 14 dias). Esses resultados validam apenas o toolchain e a compilação Gradle do invólucro gerado no runner.
 
 **Esse artefato não é uma versão instalável aprovada para distribuição:** o workflow cria `www/index.html` mínimo e gera a plataforma Android de forma efêmera. Ele ainda não incorpora uma ponte Bluetooth SPP, nem um projeto Android persistente no repositório, nem foi validado em aparelho e impressora reais. Não publicar esse APK nem apontar a página pública de download para o artefato do Actions.
 
