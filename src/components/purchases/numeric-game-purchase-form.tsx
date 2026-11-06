@@ -205,10 +205,10 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
 
   return (
     <section className="feature-card numeric-game-purchase">
+      <div className="feature-label numeric-game-heading">NOVO JOGO</div>
       <form onSubmit={submit}>
-        <label htmlFor="numeric-number">Número (cinco algarismos)</label>
         <div className="numeric-entry-row">
-          <input id="numeric-number" disabled={Boolean(purchase)} value={numberInput}
+          <input id="numeric-number" aria-label="Número de cinco algarismos" disabled={Boolean(purchase)} value={numberInput}
             onChange={(event) => setNumberInput(clearInput(event.target.value))}
             inputMode="numeric" pattern="[0-9]{5}" maxLength={5} placeholder="00000" autoComplete="off" />
           <button type="button" className="secondary-button" disabled={Boolean(purchase)} onClick={addNumber}>Adicionar</button>
