@@ -105,7 +105,7 @@ A leitura dos módulos reais confirmou que já existe uma camada de domínio par
 
 ### Consequência para a impressão
 
-O APK não deve chamar `confirmPixPayment`, acessar credenciais do Mercado Pago ou inferir sucesso pelo desaparecimento do QR Code. A impressão deve consumir o recibo já persistido e confirmado pelo servidor. O resultado `already_confirmed` não deve, por si só, provocar uma nova impressão automática em cada consulta/polling; reimpressão deve ser uma ação explícita. O mecanismo final para reservar/registrar uma única impressão automática ainda precisa ser definido depois de localizar a rota de API e a tela que consultam o pagamento.
+O APK não deve chamar `confirmPixPayment`, acessar credenciais do Mercado Pago ou inferir sucesso pelo desaparecimento do QR Code. A impressão deve consumir o recibo já persistido e confirmado pelo servidor. O resultado `already_confirmed` não deve, por si só, provocar uma nova impressão automática em cada consulta/polling; reimpressão deve ser uma ação explícita. A reserva persistente e idempotente de impressão automática já foi implementada no ledger `PrintJob`, com a chave única `AUTO_RECEIPT` por compra e rotas autenticadas descritas adiante. O que ainda falta é ligar o fluxo de pagamento confirmado ao transporte nativo e validar o comportamento em aparelho e impressora reais.
 
 ### Pendência de auditoria de rotas
 
@@ -122,7 +122,7 @@ Correção aplicada na branch:
 - O polling do pagamento agora abre o componente de recibo oficial também para PLAYER quando `receiptReady` chega verdadeiro.
 - Os testes da rota cobrem acesso do próprio jogador e bloqueio de recibo de outro jogador.
 
-Limite desta entrega: isso libera a apresentação e impressão manual do recibo oficial já confirmado. Ainda não habilita impressão automática Bluetooth. A ponte nativa SPP/ESC-POS, a reserva idempotente da impressão automática e a reimpressão explícita ainda dependem da instalação do runtime Capacitor e do serviço nativo Android.
+Limite desta entrega: isso libera a apresentação e impressão manual do recibo oficial já confirmado. Ainda não habilita impressão automática Bluetooth. A reserva idempotente e a auditoria de reimpressão foram implementadas posteriormente no ledger `PrintJob`; a ponte nativa SPP/ESC-POS e a ligação do ledger ao envio Bluetooth continuam pendentes.
 
 ## Avaliação de transporte Bluetooth SPP (2026-11-05)
 
@@ -242,11 +242,11 @@ Se uma etapa futura realmente exigir descoberta ativa, reavaliar separadamente p
 
 ### Gatilho de impressão após Pix: sequência obrigatória
 
-O pedido para imprimir automaticamente após o Pix é um objetivo funcional, não autorização para imprimir com base apenas na tela de sucesso. No Super Quina, a ordem de implementação é:
+O pedido para imprimir automaticamente após o Pix é um objetivo funcional, não autorização para imprimir com base apenas na tela de sucesso. A reserva persistente `AUTO_RECEIPT` e as rotas autenticadas de controle já existem na branch. As etapas restantes para ativar a impressão automática são:
 
 1. Preservar a confirmação definitiva no backend existente, incluindo reconciliação autenticada com o Mercado Pago e transação idempotente.
 2. Usar o recibo oficial de `GET /api/player/purchases/[purchaseId]/receipt`, que valida sessão, propriedade e confirmação.
-3. Implementar registro persistente de reserva única `AUTO_RECEIPT` por compra. A restrição única no banco impede duas instâncias/pollings de reservar o mesmo recibo.
+3. Usar o registro persistente `AUTO_RECEIPT` por compra já implementado. A restrição única no banco impede duas instâncias/pollings de reservar o mesmo recibo.
 4. Implementar encoder ESC/POS puro a partir do DTO oficial do recibo e perfis configuráveis de 58 mm/80 mm.
 5. Implementar ponte Android RFCOMM/SPP e testar conexão, envio, falhas e reconexão em impressoras reais.
 6. Só então conectar a reserva confirmada ao envio Bluetooth automático. Manter reimpressão manual explícita e separada.
@@ -294,7 +294,7 @@ A tela de compra também passou a impedir consultas de status simultâneas: se u
 
 ### Limites desta camada
 
-A estrutura do banco e o serviço de domínio estão preparados, mas ainda não há rota HTTP que reserve o job nem integração com a ponte Bluetooth. Não disparar impressão automática até implementar e validar os endpoints autenticados, a ponte SPP e o tratamento do resultado de escrita. Em caso de resultado de transporte incerto, registrar `UNKNOWN` e exigir ação explícita do usuário; não repetir automaticamente.
+A estrutura do banco, o serviço de domínio e os endpoints HTTP autenticados de reserva/transição já estão implementados na branch. Ainda não há integração com a ponte Bluetooth. Não disparar impressão automática até implementar e validar a ponte SPP e o tratamento do resultado de escrita. Em caso de resultado de transporte incerto, registrar `UNKNOWN` e exigir ação explícita do usuário; não repetir automaticamente.
 
 ### Endpoints internos do ledger
 
