@@ -1453,13 +1453,15 @@ p, .intro, .auth-description, .area-description, .feature-card p,
 /* Interface do jogo numérico de cinco algarismos. */
 .numeric-game-purchase form{display:grid;gap:12px}
 .numeric-game-purchase form>label{font-weight:750;margin-top:8px}
-.numeric-entry-row{display:flex;gap:10px;align-items:stretch}
-.numeric-entry-row input{flex:1;min-width:0;font-size:1.5rem;letter-spacing:.18em;text-align:center;font-weight:850}
+.numeric-entry-row{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;align-items:stretch}
+.numeric-entry-row input{width:100%;min-width:0;font-size:1.5rem;letter-spacing:.18em;text-align:center;font-weight:850}
+.numeric-entry-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0}
+.numeric-entry-actions button{width:100%;min-width:0;padding-inline:10px;white-space:nowrap}
 .numeric-number-chip,.numeric-round-result{display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:900;letter-spacing:.16em}
 .numeric-number-chip{font-size:1.2rem;padding:5px 10px;border-radius:8px;background:#e5e7eb;color:#111827}
 .numeric-round-result{font-size:1.8rem;letter-spacing:.22em;padding:8px 12px}
 .numeric-game-purchase .round-option{display:flex;align-items:center;gap:10px}
-@media(max-width:480px){.numeric-entry-row{flex-direction:column}.numeric-entry-row button{width:100%}}
+@media(max-width:480px){.numeric-entry-actions{gap:8px}.numeric-entry-actions button{font-size:.95rem;padding-inline:6px}}
 
 .numeric-game-infographic{display:grid;gap:18px;justify-items:center}
 .numeric-game-range{display:flex;align-items:center;justify-content:center;gap:clamp(8px,3vw,22px);width:min(100%,620px);padding:clamp(18px,5vw,34px) 12px;border:3px solid #1f2937;border-radius:16px;background:linear-gradient(135deg,#f9fafb,#dbeafe);color:#111827;box-shadow:0 8px 24px rgb(0 0 0 / 14%)}
