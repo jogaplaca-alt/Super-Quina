@@ -101,11 +101,39 @@ export function AdminPrizePayout() {
   const pending = winners.filter((winner) => !winner.paid);
   const paid = winners.filter((winner) => winner.paid);
   const visible = tab === "pending" ? pending : paid;
+  // Only cashier prizes require an outgoing Pix from the administrator.
+  const manualPending = pending.filter((winner) => winner.manualEligible);
+  const totalToPayCents = manualPending.reduce((total, winner) => total + winner.prizeCents, 0);
+  const reviewPending = pending.filter((winner) => !winner.manualEligible);
+  const reviewTotalCents = reviewPending.reduce((total, winner) => total + winner.prizeCents, 0);
 
   return <section className="feature-card admin-prize-payout" aria-labelledby="admin-prize-payout-heading">
     <span className="feature-label">Central de pagamentos</span>
     <h2 id="admin-prize-payout-heading">Ganhadores</h2>
     <p>Todos os ganhadores das rodadas concluídas ficam reunidos aqui. Faça o Pix fora da plataforma e confirme somente depois que a transferência estiver concluída.</p>
+
+    {tab === "pending" && <div className="admin-prize-total-panel" style={{
+      margin: "1.25rem 0", padding: "1.5rem", borderRadius: "20px",
+      border: "1px solid rgba(66, 211, 242, .55)",
+      background: "linear-gradient(135deg, rgba(0, 139, 190, .24), rgba(22, 35, 57, .96))",
+      boxShadow: "0 8px 24px rgba(0, 0, 0, .18)",
+    }}>
+      <span style={{ display: "block", fontSize: "1rem", fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", color: "#62d8f4" }}>
+        Total de Pix a pagar
+      </span>
+      <strong style={{ display: "block", marginTop: ".35rem", fontSize: "clamp(2.25rem, 8vw, 3rem)", lineHeight: 1.15, color: "#fff", fontVariantNumeric: "tabular-nums" }}>
+        {money(totalToPayCents)}
+      </strong>
+      <span style={{ display: "block", marginTop: ".5rem", color: "#c5d2e4", fontSize: "1rem" }}>
+        {manualPending.length} {manualPending.length === 1 ? "prêmio aguardando Pix" : "prêmios aguardando Pix"}
+      </span>
+      {reviewPending.length > 0 && <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid rgba(255,255,255,.16)" }}>
+        <strong style={{ color: "#ffd27a" }}>Em conferência: {money(reviewTotalCents)}</strong>
+        <span style={{ display: "block", marginTop: ".25rem", color: "#c5d2e4" }}>
+          {reviewPending.length} {reviewPending.length === 1 ? "prêmio" : "prêmios"} com crédito automático ainda não confirmado. Não estão incluídos no total de Pix manual.
+        </span>
+      </div>}
+    </div>}
 
     <div className="round-options admin-prize-tabs" role="group" aria-label="Filtrar ganhadores">
       <button type="button" className={"admin-prize-tab" + (tab === "pending" ? " is-active" : "")} onClick={() => setTab("pending")}>
