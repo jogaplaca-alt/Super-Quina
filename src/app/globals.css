@@ -1987,3 +1987,17 @@ p, .intro, .auth-description, .area-description, .feature-card p,
     object-position: center 35%;
   }
 }
+
+
+/* Teste visual: quadro da imagem principal 30% mais baixo, mantendo a largura.
+   A imagem é recortada verticalmente pelo centro, sem alterar a largura do layout. */
+.home-entry .home-how-infographic{
+  aspect-ratio: 10 / 7;
+  overflow: hidden;
+}
+.home-entry .home-how-infographic img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+}
