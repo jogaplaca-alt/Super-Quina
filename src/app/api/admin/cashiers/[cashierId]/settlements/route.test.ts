@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 
 const mocks = vi.hoisted(() => ({
   getSessionUser: vi.fn(), queryRaw: vi.fn(), userFindFirst: vi.fn(), settlementFindFirst: vi.fn(),
-  purchaseAggregate: vi.fn(), commissionAggregate: vi.fn(), lineCount: vi.fn(),
+  purchaseAggregate: vi.fn(), purchaseFindMany: vi.fn(), commissionAggregate: vi.fn(), lineCount: vi.fn(),
   payoutAggregate: vi.fn(), settlementCreate: vi.fn(), payoutUpdateMany: vi.fn(),
   auditCreate: vi.fn(), transaction: vi.fn(),
 }));
@@ -40,6 +40,11 @@ describe("POST admin cashier settlements", () => {
     mocks.purchaseAggregate
       .mockResolvedValueOnce({ _sum: { totalCents: 10000 }, _count: { _all: 2 } })
       .mockResolvedValueOnce({ _sum: { totalCents: 5000 }, _count: { _all: 1 } });
+    mocks.purchaseFindMany.mockResolvedValue([
+      { id: "cash-1", totalCents: 5000, commission: { cashierId, rateBasisPoints: 600, amountCents: 300 } },
+      { id: "cash-2", totalCents: 5000, commission: { cashierId, rateBasisPoints: 600, amountCents: 300 } },
+      { id: "pix-1", totalCents: 5000, commission: { cashierId, rateBasisPoints: 600, amountCents: 300 } },
+    ]);
     mocks.commissionAggregate.mockResolvedValue({ _sum: { amountCents: 900 } });
     mocks.lineCount.mockResolvedValue(7);
     mocks.payoutAggregate.mockResolvedValue({ _sum: { amountCents: 2500 }, _count: { _all: 2 } });
@@ -50,7 +55,7 @@ describe("POST admin cashier settlements", () => {
       $queryRaw: mocks.queryRaw,
       user: { findFirst: mocks.userFindFirst },
       cashierSettlement: { findFirst: mocks.settlementFindFirst, create: mocks.settlementCreate },
-      purchase: { aggregate: mocks.purchaseAggregate },
+      purchase: { aggregate: mocks.purchaseAggregate, findMany: mocks.purchaseFindMany },
       cashierCommission: { aggregate: mocks.commissionAggregate },
       numericParticipationLine: { count: mocks.lineCount },
       numericPrizePayout: { aggregate: mocks.payoutAggregate, updateMany: mocks.payoutUpdateMany },
@@ -93,6 +98,12 @@ describe("POST admin cashier settlements", () => {
       cashierId, status: "CONFIRMED", confirmedAt: { gt: since, lte: cutoff },
       paymentMethod: "PIX", payment: { is: { status: "CONFIRMED" } },
     }, _sum: { totalCents: true }, _count: { _all: true } });
+    expect(mocks.purchaseFindMany).toHaveBeenCalledWith({
+      where: { cashierId, status: "CONFIRMED", confirmedAt: { gt: since, lte: cutoff }, OR: [
+        { paymentMethod: "CASH" }, { paymentMethod: "PIX", payment: { is: { status: "CONFIRMED" } } },
+      ] },
+      select: { id: true, totalCents: true, commission: { select: { cashierId: true, rateBasisPoints: true, amountCents: true } } },
+    });
     expect(mocks.commissionAggregate).toHaveBeenCalledWith({ where: {
       cashierId, purchase: { is: { status: "CONFIRMED", confirmedAt: { gt: since, lte: cutoff } } },
     }, _sum: { amountCents: true } });
@@ -120,6 +131,29 @@ describe("POST admin cashier settlements", () => {
       isolationLevel: "Serializable",
     });
     expect(mocks.queryRaw).toHaveBeenCalledTimes(2);
+  });
+
+  it("blocks settlement when a confirmed sale has no commission and creates no snapshot", async () => {
+    mocks.purchaseFindMany.mockResolvedValueOnce([
+      { id: "cash-without-commission", totalCents: 5000, commission: null },
+    ]);
+    const response = await POST(request(), context);
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({ error: "Acerto bloqueado: existe venda confirmada sem comissão ou com comissão inconsistente. Corrija os dados antes de fechar." });
+    expect(mocks.settlementCreate).not.toHaveBeenCalled();
+    expect(mocks.payoutUpdateMany).not.toHaveBeenCalled();
+  });
+
+  it("blocks a commission with the wrong cashier or an incorrect historical amount", async () => {
+    mocks.purchaseFindMany.mockResolvedValueOnce([
+      { id: "wrong-cashier", totalCents: 5000, commission: { cashierId: "other-cashier", rateBasisPoints: 600, amountCents: 300 } },
+    ]);
+    expect((await POST(request(), context)).status).toBe(409);
+    mocks.purchaseFindMany.mockResolvedValueOnce([
+      { id: "wrong-amount", totalCents: 5000, commission: { cashierId, rateBasisPoints: 600, amountCents: 299 } },
+    ]);
+    expect((await POST(request(), context)).status).toBe(409);
+    expect(mocks.settlementCreate).not.toHaveBeenCalled();
   });
 
   it("uses the epoch as the first settlement boundary and keeps the cutoff from the database clock", async () => {
