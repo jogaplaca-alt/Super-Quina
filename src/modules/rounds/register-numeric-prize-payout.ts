@@ -45,8 +45,10 @@ export async function registerNumericPrizePayout(
 
   const purchase = line.participation.purchase;
   const isCashierTicket = Boolean(purchase.cashierId) && purchase.playerId === null;
+  // Both external payout channels are reserved for cashier-issued physical receipts.
+  // Online-player prizes belong to the wallet and must never be paid through this flow.
   if (
-    (input.channel === "CASHIER_CASH" && !isCashierTicket) ||
+    !isCashierTicket ||
     purchase.status !== "CONFIRMED" ||
     !purchase.confirmedAt ||
     line.participation.status !== "CONFIRMED" ||
