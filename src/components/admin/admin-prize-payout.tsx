@@ -37,8 +37,6 @@ export function AdminPrizePayout() {
   const [notice, setNotice] = useState("");
 
   const load = useCallback(async () => {
-    setLoading(true);
-    setError("");
     try {
       const response = await fetch("/api/admin/prizes/pending", { cache: "no-store" });
       const body = await response.json();
@@ -51,7 +49,22 @@ export function AdminPrizePayout() {
     }
   }, []);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      try {
+        const response = await fetch("/api/admin/prizes/pending", { cache: "no-store" });
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.error ?? "Não foi possível carregar os ganhadores.");
+        if (active) setWinners(body.winners as Winner[]);
+      } catch (reason) {
+        if (active) setError(reason instanceof Error ? reason.message : "Falha ao carregar os ganhadores.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => { active = false; };
+  }, []);
 
   async function confirmPaid(winner: Winner) {
     if (!window.confirm(
@@ -101,7 +114,7 @@ export function AdminPrizePayout() {
       <button type="button" className={tab === "paid" ? "" : "secondary-button"} onClick={() => setTab("paid")}>
         Já pagos ({paid.length})
       </button>
-      <button type="button" className="secondary-button" disabled={loading} onClick={() => void load()}>
+      <button type="button" className="secondary-button" disabled={loading} onClick={() => { setLoading(true); setError(""); void load(); }}>
         Atualizar
       </button>
     </div>
