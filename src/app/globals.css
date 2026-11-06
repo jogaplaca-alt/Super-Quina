@@ -2044,14 +2044,19 @@ p, .intro, .auth-description, .area-description, .feature-card p,
 .home-promo{
   width:100%;
   margin:clamp(18px,3vw,30px) auto 0;
+  padding:clamp(7px,2vw,12px);
   overflow:hidden;
-  border-radius:clamp(10px,1.5vw,18px);
+  border:1px solid #d7e3ef;
+  border-radius:clamp(14px,3vw,22px);
+  background:#07172b;
+  box-shadow:0 16px 42px rgb(0 0 0 / 18%);
 }
 .home-promo-image{
   display:block;
   width:100%;
   max-width:100%;
   height:auto;
+  border-radius:12px;
   object-fit:contain;
 }
 
