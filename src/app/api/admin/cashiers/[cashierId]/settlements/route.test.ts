@@ -105,7 +105,9 @@ describe("POST admin cashier settlements", () => {
       select: { id: true, totalCents: true, commission: { select: { cashierId: true, rateBasisPoints: true, amountCents: true } } },
     });
     expect(mocks.commissionAggregate).toHaveBeenCalledWith({ where: {
-      cashierId, purchase: { is: { status: "CONFIRMED", confirmedAt: { gt: since, lte: cutoff } } },
+      cashierId, purchase: { is: { cashierId, status: "CONFIRMED", confirmedAt: { gt: since, lte: cutoff }, OR: [
+        { paymentMethod: "CASH" }, { paymentMethod: "PIX", payment: { is: { status: "CONFIRMED" } } },
+      ] } },
     }, _sum: { amountCents: true } });
     expect(mocks.lineCount).toHaveBeenCalledWith({ where: {
       participation: { is: { status: "CONFIRMED", purchase: { is: {
