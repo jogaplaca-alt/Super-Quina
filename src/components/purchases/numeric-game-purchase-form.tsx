@@ -109,7 +109,12 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
   }, [mode, paymentMethod, purchase?.id]);
 
   const stakeCents = useMemo(() => parseStake(stake), [stake]);
-  const totalEstimate = stakeCents !== null ? stakeCents * numbers.length * repetitionCount : 0;
+  const pendingNumber = clearInput(numberInput);
+  const hasPendingNumber = numberInput.length > 0;
+  const effectiveNumbers = hasPendingNumber && /^\\d{5}$/.test(pendingNumber)
+    ? [...numbers, pendingNumber]
+    : numbers;
+  const totalEstimate = stakeCents !== null ? stakeCents * effectiveNumbers.length * repetitionCount : 0;
 
   function generateRandomNumber() {
     const existing = new Set(numbers);
@@ -128,27 +133,37 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
     } while (existing.has(generated));
     setNumberInput(generated);
     setError("");
-    setNotice("Número aleatório gerado. Confira e adicione à aposta.");
+    setNotice("Número gerado. Você já pode continuar ou adicionar outros números.");
   }
 
   function addNumber() {
     const normalized = clearInput(numberInput);
     if (!/^\d{5}$/.test(normalized)) { setError("Digite exatamente cinco algarismos, incluindo os zeros à esquerda."); return; }
     setError(""); setNotice("");
+    if (numbers.includes(normalized)) { setError("Esse número já foi adicionado."); return; }
     setNumbers((current) => [...current, normalized]);
     setNumberInput("");
   }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError(""); setNotice("");
-    if (!numbers.length) { setError("Adicione pelo menos um número de cinco algarismos."); return; }
+    if (hasPendingNumber && !/^\\d{5}$/.test(pendingNumber)) {
+      setError("Complete os cinco algarismos do número ou apague o campo para continuar com os números já adicionados.");
+      return;
+    }
+    const numbersToSubmit = hasPendingNumber ? [...numbers, pendingNumber] : numbers;
+    if (!numbersToSubmit.length) { setError("Digite ou gere um número de cinco algarismos para continuar."); return; }
+    if (new Set(numbersToSubmit).size !== numbersToSubmit.length) {
+      setError("Esse número já foi adicionado. Remova a repetição antes de continuar.");
+      return;
+    }
     if (stakeCents === null) { setError("O valor mínimo por número e rodada é R$ 1,00."); return; }
     if (mode === "PLAYER" && paymentMethod === "WALLET" && (walletBalanceCents === null || walletBalanceCents < totalEstimate)) {
       setError("Saldo insuficiente ou indisponível para esta compra."); return;
     }
     setSubmitting(true);
     try {
-      const signature = JSON.stringify({ repetitionCount, numbers, stakeCents, paymentMethod });
+      const signature = JSON.stringify({ repetitionCount, numbers: numbersToSubmit, stakeCents, paymentMethod });
       const idempotencyKey = idempotency.current?.signature === signature
         ? idempotency.current.key
         : crypto.randomUUID();
@@ -161,7 +176,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
         body: JSON.stringify({
           idempotencyKey: idempotencyKey,
           repetitionCount,
-          numbers,
+          numbers: numbersToSubmit,
           stakeCents,
           ...(mode === "PLAYER" ? { paymentMethod } : {}),
         }),
@@ -258,7 +273,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
 
         {error && <p role="alert" className="note-inline form-feedback-error">{error}</p>}
         {notice && <p role="status" className="note-inline form-feedback-success">{notice}</p>}
-        <button type="submit" disabled={submitting || Boolean(purchase) || !numbers.length}>
+        <button type="submit" disabled={submitting || Boolean(purchase) || (!numbers.length && !/^\\d{5}$/.test(pendingNumber))}>
           {submitting ? "Registrando…" : "Continuar"}
         </button>
       </form>
