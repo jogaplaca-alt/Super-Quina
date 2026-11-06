@@ -1,83 +1,133 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-type PrizeLine = {
-  id: string; numberValue: string; roundCode: string; roundCompleted: boolean;
-  prizeCents: number; paid: boolean; payoutChannel: "PLATFORM_PIX" | "CASHIER_CASH" | "WALLET" | null;
+type Winner = {
+  id: string;
+  numberValue: string;
+  prizeCents: number;
+  roundCode: string;
+  resultNumber: string | null;
+  resultAt: string;
+  receiptCode: string | null;
+  playerName: string;
+  phone: string | null;
+  cashierName: string;
+  paid: boolean;
+  payoutChannel: "PLATFORM_PIX" | "CASHIER_CASH" | "WALLET" | null;
+  paidAt: string | null;
+  reference: string | null;
 };
-const money = (cents: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
+
+const money = (cents: number) => new Intl.NumberFormat("pt-BR", {
+  style: "currency", currency: "BRL",
+}).format(cents / 100);
+const dateTime = (value: string) => new Intl.DateTimeFormat("pt-BR", {
+  dateStyle: "short", timeStyle: "short", timeZone: "Etc/GMT+3",
+}).format(new Date(value));
 
 export function AdminPrizePayout() {
-  const [receiptCode, setReceiptCode] = useState("");
+  const [winners, setWinners] = useState<Winner[]>([]);
   const [reference, setReference] = useState("");
-  const [lines, setLines] = useState<PrizeLine[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [tab, setTab] = useState<"pending" | "paid">("pending");
+  const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const lookupController = useRef<AbortController | null>(null);
 
-  useEffect(() => () => lookupController.current?.abort(), []);
-
-  async function lookup(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    lookupController.current?.abort();
-    const controller = new AbortController();
-    lookupController.current = controller;
-    setLoading(true); setError(""); setNotice(""); setLines([]);
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError("");
     try {
-      const response = await fetch("/api/admin/prizes/lookup?q=" + encodeURIComponent(receiptCode), { cache: "no-store", signal: controller.signal });
+      const response = await fetch("/api/admin/prizes/pending", { cache: "no-store" });
       const body = await response.json();
-      if (!response.ok) throw new Error(body.error ?? "Não foi possível consultar o recibo.");
-      if (lookupController.current !== controller) return;
-      setLines(body.lines as PrizeLine[]);
-      setNotice(body.lines.length ? "Confira o recibo físico e confirme a transferência Pix antes de registrar." : "Este recibo não possui participações numéricas confirmadas.");
+      if (!response.ok) throw new Error(body.error ?? "Não foi possível carregar os ganhadores.");
+      setWinners(body.winners as Winner[]);
     } catch (reason) {
-      if (controller.signal.aborted || lookupController.current !== controller) return;
-      setError(reason instanceof Error ? reason.message : "Falha ao consultar o recibo.");
+      setError(reason instanceof Error ? reason.message : "Falha ao carregar os ganhadores.");
     } finally {
-      if (lookupController.current === controller) {
-        lookupController.current = null;
-        setLoading(false);
-      }
+      setLoading(false);
     }
-  }
+  }, []);
 
-  async function pay(line: PrizeLine) {
-    if (!window.confirm("Confirma que o Pix deste prêmio já foi transferido ao ganhador, que o recibo físico foi conferido e que a transferência está comprovada?")) return;
-    setBusy(line.id); setError(""); setNotice("");
+  useEffect(() => { void load(); }, [load]);
+
+  async function confirmPaid(winner: Winner) {
+    if (!window.confirm(
+      "Confirma que você já fez o Pix de " + money(winner.prizeCents) +
+      " para " + winner.playerName + " e conferiu o comprovante?"
+    )) return;
+
+    setBusy(winner.id);
+    setError("");
+    setNotice("");
     try {
-      const response = await fetch("/api/admin/prizes/" + encodeURIComponent(line.id) + "/payout", {
-        method: "POST", headers: { "content-type": "application/json" },
+      const response = await fetch("/api/admin/prizes/" + encodeURIComponent(winner.id) + "/payout", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
         body: JSON.stringify({ reference: reference.trim() || undefined }),
       });
       const body = await response.json();
-      if (!response.ok) throw new Error(body.error ?? "Não foi possível registrar o Pix.");
-      setLines((current) => current.map((item) => item.id === line.id ? { ...item, paid: true, payoutChannel: "PLATFORM_PIX" } : item));
-      setNotice("Pagamento Pix registrado. O prêmio agora consta como pago.");
-    } catch (reason) { setError(reason instanceof Error ? reason.message : "Falha ao registrar o Pix."); }
-    finally { setBusy(""); }
+      if (!response.ok) throw new Error(body.error ?? "Não foi possível registrar o pagamento.");
+      setWinners((current) => current.map((item) =>
+        item.id === winner.id
+          ? { ...item, paid: true, payoutChannel: "PLATFORM_PIX", paidAt: new Date().toISOString(), reference: reference.trim() || null }
+          : item
+      ));
+      setReference("");
+      setNotice("Pix registrado. O ganhador foi movido para o histórico de pagos.");
+      setTab("pending");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Falha ao registrar o pagamento.");
+    } finally {
+      setBusy("");
+    }
   }
 
+  const pending = winners.filter((winner) => !winner.paid);
+  const paid = winners.filter((winner) => winner.paid);
+  const visible = tab === "pending" ? pending : paid;
+
   return <section className="feature-card" aria-labelledby="admin-prize-payout-heading">
-    <span className="feature-label">Pagamento manual</span>
-    <h2 id="admin-prize-payout-heading">Registrar prêmio pago por Pix</h2>
-    <p>Consulte o recibo, confira o comprovante físico e faça a transferência Pix fora da plataforma. Registre somente depois que o ganhador receber.</p>
-    <form onSubmit={lookup} className="cashier-prize-lookup-form">
-      <label htmlFor="admin-prize-receipt">Código do recibo</label>
-      <input id="admin-prize-receipt" value={receiptCode} onChange={(event) => setReceiptCode(event.target.value.toUpperCase())} placeholder="SQ-XXXXXXXX" autoComplete="off" required />
-      <label htmlFor="admin-prize-reference">Referência da transferência (opcional)</label>
-      <input id="admin-prize-reference" value={reference} onChange={(event) => setReference(event.target.value)} maxLength={300} placeholder="Identificador do comprovante Pix" />
-      <button type="submit" disabled={loading}>{loading ? "Consultando…" : "Consultar recibo"}</button>
-    </form>
+    <span className="feature-label">Central de pagamentos</span>
+    <h2 id="admin-prize-payout-heading">Ganhadores</h2>
+    <p>Todos os ganhadores das rodadas concluídas ficam reunidos aqui. Faça o Pix fora da plataforma e confirme somente depois que a transferência estiver concluída.</p>
+
+    <div className="round-options" role="group" aria-label="Filtrar ganhadores">
+      <button type="button" className={tab === "pending" ? "" : "secondary-button"} onClick={() => setTab("pending")}>
+        A pagar ({pending.length})
+      </button>
+      <button type="button" className={tab === "paid" ? "" : "secondary-button"} onClick={() => setTab("paid")}>
+        Já pagos ({paid.length})
+      </button>
+      <button type="button" className="secondary-button" disabled={loading} onClick={() => void load()}>
+        Atualizar
+      </button>
+    </div>
+
     {error && <p role="alert" className="note-inline">{error}</p>}
     {notice && <p role="status" className="note-inline">{notice}</p>}
-    {lines.map((line) => <article className="round-option" key={line.id}>
-      <strong>Número {line.numberValue}</strong><p>Rodada {line.roundCode}</p>
-      {!line.roundCompleted ? <p>Aguardando resultado</p> : line.prizeCents > 0 ? <p>Prêmio: {money(line.prizeCents)}</p> : <p>Não premiado</p>}
-      {line.paid ? <p><strong>PRÊMIO JÁ PAGO</strong> — {line.payoutChannel === "CASHIER_CASH" ? "dinheiro pelo cambista" : line.payoutChannel === "WALLET" ? "crédito na carteira" : "Pix pela plataforma"}</p>
-        : line.roundCompleted && line.prizeCents > 0 && <button type="button" disabled={Boolean(busy)} onClick={() => void pay(line)}>{busy === line.id ? "Registrando…" : "Registrar Pix transferido"}</button>}
-    </article>)}
+    {loading ? <p>Carregando ganhadores…</p> : visible.length === 0
+      ? <p>{tab === "pending" ? "Nenhum pagamento pendente." : "Nenhum prêmio pago registrado ainda."}</p>
+      : <div className="admin-round-list">
+        {visible.map((winner) => <article className="round-option" key={winner.id}>
+          <strong>{winner.playerName}</strong>
+          <p>Prêmio: <strong>{money(winner.prizeCents)}</strong> · Número: {winner.numberValue}</p>
+          <p>Rodada: {winner.roundCode} · Resultado: {winner.resultNumber ?? "—"}</p>
+          <p>Recibo: {winner.receiptCode ?? "—"} · Cambista: {winner.cashierName}</p>
+          {winner.phone && <p>Telefone: {winner.phone}</p>}
+          {winner.paid
+            ? <p><strong>PIX PAGO</strong>{winner.paidAt ? " · " + dateTime(winner.paidAt) : ""}{winner.reference ? " · Ref.: " + winner.reference : ""}</p>
+            : <>
+              <label htmlFor={"winner-reference-" + winner.id}>Referência do comprovante (opcional)</label>
+              <input id={"winner-reference-" + winner.id} value={busy === winner.id ? reference : reference}
+                onChange={(event) => setReference(event.target.value)} maxLength={300}
+                placeholder="Identificador do Pix" />
+              <button type="button" disabled={Boolean(busy)} onClick={() => void confirmPaid(winner)}>
+                {busy === winner.id ? "Registrando…" : "Confirmar Pix pago"}
+              </button>
+            </>}
+        </article>)}
+      </div>}
   </section>;
 }
