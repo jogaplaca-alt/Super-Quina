@@ -22,7 +22,7 @@ export default async function AdminPage() {
         <div className="admin-accordion-content"><PlayerRecentResults /></div>
       </details>
       <details className="admin-accordion">
-        <summary><span>Prêmios e carteira digital</span><span className="admin-accordion-description">Conferência e reconciliação de créditos</span></summary>
+        <summary><span>Ganhadores</span><span className="admin-accordion-description">Todos os prêmios pendentes e o histórico de pagamentos</span></summary>
         <div className="admin-accordion-content"><AdminPrizePayout /><AdminPrizeCreditReconciliation /></div>
       </details>
       <details className="admin-accordion">
