@@ -21,6 +21,7 @@ type VerifiedReceipt = {
   totalCents?: number;
   currency?: string;
   confirmedAt?: string | null;
+  manualPayoutEligible?: boolean;
   rounds?: VerifiedRound[];
   message: string;
 };
@@ -94,7 +95,7 @@ export function ReceiptVerification({ receiptCode }: { receiptCode: string }) {
   if (!data) return <p role="alert" style={{ color: "#b91c1c", fontWeight: 700 }}>Não foi possível consultar o recibo.</p>;
 
   const rounds = data.valid ? data.rounds ?? [] : [];
-  const hasAvailablePrize = rounds.some((round) => round.numbers.some((number) => number.resultStatus === "PREMIADA" && !number.prizePaid));
+  const hasAvailablePrize = Boolean(data.manualPayoutEligible) && rounds.some((round) => round.numbers.some((number) => number.resultStatus === "PREMIADA" && !number.prizePaid));
   const prizeContactUrl = `${prizeSupportUrl}?text=${encodeURIComponent(`Olá! Consultei o recibo ${data.receiptCode ?? receiptCode.toUpperCase()} e tenho um prêmio disponível. Gostaria de orientação para receber.`)}`;
 
   return (
