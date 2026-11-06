@@ -26,7 +26,7 @@ export default function HomePage() {
 
         <a
           className="home-promo"
-          href="https://wa.me/5577991601217?text=Quero%20ser%20um%20ponto%20credenciado%20da%20Superquina."
+          href="https://wa.me/5577991601217?text=Quero%20ser%20um%20ponto%20credenciado%20da%20Super%20Quina."
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Fale com a Super Quina pelo WhatsApp para ser um ponto credenciado"
