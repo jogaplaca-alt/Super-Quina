@@ -1,0 +1,70 @@
+name: Super Quina Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/android-apk-printer
+
+permissions:
+  contents: read
+
+concurrency:
+  group: super-quina-android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-debug-apk:
+    name: Build Android debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install project dependencies
+        run: npm ci
+
+      # Keep the initial Android toolchain isolated from the web app's
+      # package manifest until the Capacitor version is formally adopted.
+      - name: Install temporary Capacitor 7 toolchain
+        run: npm install --no-save --package-lock=false @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
+
+      - name: Prepare Capacitor web directory
+        run: |
+          mkdir -p www
+          printf '%s\n' '<!doctype html><html><head><meta charset="utf-8"><title>Super Quina</title></head><body></body></html>' > www/index.html
+
+      - name: Generate Android project
+        run: npx cap add android
+
+      - name: Synchronize Capacitor Android project
+        run: npx cap sync android
+
+      - name: Build debug APK
+        working-directory: android
+        run: ./gradlew --no-daemon assembleDebug
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: super-quina-android-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
