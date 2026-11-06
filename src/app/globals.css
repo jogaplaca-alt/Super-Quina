@@ -2437,7 +2437,7 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   margin: 0 auto !important;
   border-radius: 0 !important;
   object-fit: cover;
-  object-position: 50% 50%;
+  object-position: 50% 42%;
 }
 
 /* O cabeçalho é fixo; o espaço precisa ser reservado no contêiner real das áreas. */
