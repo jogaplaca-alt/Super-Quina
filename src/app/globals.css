@@ -1387,35 +1387,34 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   .round-repeat-fieldset>.round-repeat-select{min-height:60px;font-size:1.02rem}
 }
 
-/* Cabeçalho fotográfico com a logomarca original posicionada na faixa inferior. */
+/* Cabeçalho com a mesma moldura das imagens da página inicial. */
 .site-header-scenery{
   display:block;
-  width:100%;
+  box-sizing:border-box;
+  width:calc(100% - clamp(28px,6vw,48px));
   height:100px;
   min-height:100px;
-  margin:0;
-  padding:0;
+  margin:8px auto 10px;
+  padding:clamp(7px,2vw,12px);
   overflow:hidden;
-  border:0;
-  background:#07358f;
+  border:1px solid #d7e3ef;
+  border-radius:clamp(14px,3vw,22px);
+  background:#07172b;
+  box-shadow:0 16px 42px rgb(0 0 0 / 18%);
   line-height:0;
 }
 .site-header-scenery-image{
   display:block;
   width:100%;
-  height:100px;
+  height:100%;
+  border-radius:12px;
   object-fit:cover;
   object-position:center;
 }
 @media(max-width:600px){
-  .site-header-scenery,
-  .site-header-scenery-image{
+  .site-header-scenery{
     height:100px;
     min-height:100px;
-  }
-  .site-header-scenery-image{
-    object-fit:cover;
-    object-position:center;
   }
 }
 
