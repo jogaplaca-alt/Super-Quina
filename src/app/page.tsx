@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { HomeAccess } from "@/components/home-access";
+import { HomeAccess, HomeAccessFooter } from "@/components/home-access";
 
 export const metadata: Metadata = {
   title: "Super Quina | Jogo numérico",
@@ -41,6 +41,7 @@ export default function HomePage() {
           />
         </a>
       </main>
+      <HomeAccessFooter />
     </div>
   );
 }
