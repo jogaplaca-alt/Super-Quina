@@ -250,7 +250,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
           <label><input type="radio" name="numeric-payment" checked={paymentMethod === "PIX"} onChange={() => setPaymentMethod("PIX")} /> Pix</label>
           <label><input type="radio" name="numeric-payment" checked={paymentMethod === "WALLET"} onChange={() => setPaymentMethod("WALLET")} /> Saldo da conta</label>
           {paymentMethod === "WALLET" && <p>Saldo disponível: {walletBalanceCents === null ? "indisponível" : money(walletBalanceCents)}</p>}
-        </fieldset> : <fieldset className="round-repeat-fieldset" disabled={Boolean(purchase)}>
+        </fieldset> : <fieldset className="round-repeat-fieldset round-payment-fieldset" disabled={Boolean(purchase)}>
           <legend>Forma de pagamento</legend>
           <label><input type="radio" name="numeric-payment" checked={paymentMethod === "PIX"} onChange={() => setPaymentMethod("PIX")} /> Pix</label>
           <label><input type="radio" name="numeric-payment" checked={paymentMethod === "CASH"} onChange={() => setPaymentMethod("CASH")} /> Dinheiro</label>
