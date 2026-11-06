@@ -29,7 +29,7 @@ const dateTime = (value: string) => new Intl.DateTimeFormat("pt-BR", {
 
 export function AdminPrizePayout() {
   const [winners, setWinners] = useState<Winner[]>([]);
-  const [reference, setReference] = useState("");
+  const [references, setReferences] = useState<Record<string, string>>({});
   const [tab, setTab] = useState<"pending" | "paid">("pending");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
@@ -66,16 +66,16 @@ export function AdminPrizePayout() {
       const response = await fetch("/api/admin/prizes/" + encodeURIComponent(winner.id) + "/payout", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ reference: reference.trim() || undefined }),
+        body: JSON.stringify({ reference: references[winner.id]?.trim() || undefined }),
       });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "Não foi possível registrar o pagamento.");
       setWinners((current) => current.map((item) =>
         item.id === winner.id
-          ? { ...item, paid: true, payoutChannel: "PLATFORM_PIX", paidAt: new Date().toISOString(), reference: reference.trim() || null }
+          ? { ...item, paid: true, payoutChannel: "PLATFORM_PIX", paidAt: new Date().toISOString(), reference: references[winner.id]?.trim() || null }
           : item
       ));
-      setReference("");
+      setReferences((current) => ({ ...current, [winner.id]: "" }));
       setNotice("Pix registrado. O ganhador foi movido para o histórico de pagos.");
       setTab("pending");
     } catch (reason) {
@@ -114,7 +114,7 @@ export function AdminPrizePayout() {
         {visible.map((winner) => <article className="round-option" key={winner.id}>
           <strong>{winner.playerName}</strong>
           <p>Prêmio: <strong>{money(winner.prizeCents)}</strong> · Número: {winner.numberValue}</p>
-          <p>Rodada: {winner.roundCode} · Resultado: {winner.resultNumber ?? "—"}</p>
+          <p>Rodada: {winner.roundCode} · Horário: {dateTime(winner.resultAt)} · Resultado: {winner.resultNumber ?? "—"}</p>
           <p>Recibo: {winner.receiptCode ?? "—"} {winner.cashierName ? " · Cambista: " + winner.cashierName : ""}</p>
           {winner.phone && <p>Telefone: {winner.phone}</p>}
           {winner.paid
