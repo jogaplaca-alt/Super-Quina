@@ -2408,8 +2408,8 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   left: 50% !important;
   z-index: 1000 !important;
   width: 100vw !important;
-  height: 100px !important;
-  min-height: 100px !important;
+  height: 80px !important;
+  min-height: 80px !important;
   margin: 0 0 0 -50vw !important;
   padding: 0 !important;
   overflow: hidden;
@@ -2439,14 +2439,14 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   object-position: center;
 }
 .site-page-shell:has(> .site-header.site-header-scenery) {
-  padding-top: 110px !important;
+  padding-top: 90px !important;
 }
 @media(max-width:600px) {
   .site-header.site-header-scenery {
-    height: 100px !important;
-    min-height: 100px !important;
+    height: 80px !important;
+    min-height: 80px !important;
   }
   .site-page-shell:has(> .site-header.site-header-scenery) {
-    padding-top: 110px !important;
+    padding-top: 90px !important;
   }
 }
