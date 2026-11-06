@@ -16,7 +16,8 @@ Status: regras vigentes do produto. Esta especificação descreve exclusivamente
 
 ## 3. Rodadas e sorteio
 - Cada rodada tem um único resultado numérico de cinco algarismos.
-- O agendador mantém até dez rodadas futuras, com intervalos de 30 minutos.
+- O agendador mantém até 48 rodadas futuras, com intervalos de 30 minutos, cobrindo aproximadamente as próximas 24 horas.
+- O limite de 1 a 10 participações por compra é independente da quantidade de rodadas futuras mantidas pelo agendador.
 - Fuso operacional fixo: UTC−03:00 (`Etc/GMT+3`).
 - Fechamento, sorteio e apuração são etapas distintas.
 - O sorteio deve ser uniforme no intervalo de 00000 a 99999 e preservar zeros à esquerda.
