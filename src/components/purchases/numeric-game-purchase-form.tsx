@@ -321,7 +321,7 @@ export function NumericGamePurchaseForm({ mode }: { mode: Mode }) {
 
         <fieldset className="round-repeat-fieldset" disabled={Boolean(purchase)}>
           <legend>Repetições</legend>
-          <select className="round-repeat-select" aria-label="Repetições" value={String(repetitionCount)}
+          <select aria-label="Repetições" value={String(repetitionCount)}
             onChange={(event) => setParticipationCount(Math.max(1, Math.min(10, Number(event.target.value) || 1)))}>
             {Array.from({ length: 10 }, (_, index) => index + 1)
               .map((count) => <option key={count} value={count}>{count} {count === 1 ? "vez" : "vezes"}</option>)}
