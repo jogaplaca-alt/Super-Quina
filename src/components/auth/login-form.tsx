@@ -1,10 +1,11 @@
 "use client";
 import { FormEvent, useState } from "react";
 
-type SessionResponse = { authenticated: true; user: { role: "PLAYER" | "CASHIER" | "ADMIN"; mustChangePassword: boolean } };
+type UserRole = "PLAYER" | "CASHIER" | "ADMIN";
+type SessionResponse = { authenticated: true; user: { role: UserRole; mustChangePassword: boolean } };
 const destinationByRole = { PLAYER: "/player", CASHIER: "/cashier", ADMIN: "/admin" } as const;
 
-export function LoginForm() {
+export function LoginForm({ allowedRole }: { allowedRole?: UserRole } = {}) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -27,6 +28,11 @@ export function LoginForm() {
         return;
       }
       const session = await response.json() as SessionResponse;
+      if (allowedRole && session.user.role !== allowedRole) {
+        await fetch("/api/auth/logout", { method: "POST" });
+        setError("Este aplicativo é exclusivo para cambistas. Use uma conta de cambista para entrar.");
+        return;
+      }
       window.location.assign(session.user.mustChangePassword ? "/change-password" : destinationByRole[session.user.role]);
     } catch {
       setError("Falha de conexão. Verifique sua internet e tente novamente.");
