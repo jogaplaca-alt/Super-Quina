@@ -350,3 +350,18 @@ Nenhuma alteração foi feita em `main`, em produção, em pagamentos ou nas reg
 - Foram acrescentados testes unitários para o perfil 58 mm, presença dos comandos QR e rejeição de URL não confiável. **Os testes ainda precisam ser executados em CI**.
 
 A largura de 58 mm não identifica fabricante, firmware, code page ou suporte real ao comando QR. O perfil não habilita corte automático nem define code page sem confirmação. A compatibilidade do QR e a qualidade física da impressão precisam ser verificadas na impressora real antes de ligar o botão Bluetooth ao recibo oficial.
+
+## Integração manual do recibo com Bluetooth — 07/11/2026
+
+A tela PlayerPurchaseReceipt agora oferece, somente no Android nativo, a ação de localizar dispositivos Bluetooth clássicos já pareados, selecionar a impressora e enviar o recibo oficial pelo perfil inicial de 58 mm.
+
+Fluxo implementado:
+1. O cliente carrega o recibo pela rota autenticada existente; nenhum dado de pagamento é recalculado.
+2. O encoder monta os bytes ESC/POS e o QR aponta para a rota real /verificar-recibo/[receiptCode] no domínio oficial.
+3. A ação explícita cria um registro MANUAL_REPRINT, disputa RESERVED -> SENDING, envia via RFCOMM/SPP e tenta registrar SENT.
+4. Se o resultado do transporte ficar incerto após iniciar o envio, registra UNKNOWN; não dispara repetição automática.
+5. A interface informa que o envio foi concluído e pede conferência física do papel. SENT significa bytes enviados ao socket, não confirmação de que a impressora imprimiu.
+
+O workflow Android foi ampliado para executar npm run typecheck e npm test antes de sincronizar e compilar o APK. Também observa alterações do encoder e da tela de recibo.
+
+Ainda pendente: execução bem-sucedida do CI deste commit, teste em Android físico, pareamento/permissão real, conferência do QR impresso e compatibilidade do comando QR com o firmware específico. A seleção 58 mm/32 colunas é um perfil inicial, não garantia universal. Nenhuma impressão automática foi ativada.
