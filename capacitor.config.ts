@@ -1,12 +1,10 @@
 const config = {
-  appId: "com.superquina.app",
-  appName: "Super Quina",
-  // Capacitor requires a webDir even when loading the hosted Next.js application.
-  // Keep a minimal directory available for native project synchronization.
+  appId: "com.superquina.cashier",
+  appName: "Super Quina Cambista",
+  // Capacitor loads the dedicated cashier entry point; server-side role checks remain authoritative.
   webDir: "www",
   server: {
-    // The Next.js application and its API routes remain hosted on the server.
-    url: "https://superquina.com",
+    url: "https://superquina.com/cashier-app-login",
     cleartext: false,
   },
   android: {
