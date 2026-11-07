@@ -5,6 +5,13 @@ on:
   push:
     branches:
       - feature/android-apk-printer
+    paths:
+      - '.github/workflows/android-apk.yml'
+      - 'android/**'
+      - 'capacitor.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'www/**'
 
 permissions:
   contents: read
@@ -42,23 +49,13 @@ jobs:
       - name: Install project dependencies
         run: npm ci
 
-      # Keep the initial Android toolchain isolated from the web app's
-      # package manifest until the Capacitor version is formally adopted.
-      - name: Install temporary Capacitor 7 toolchain
-        run: npm install --no-save --package-lock=false @capacitor/core@7.6.10 @capacitor/cli@7.6.10 @capacitor/android@7.6.10
-
-      - name: Prepare Capacitor web directory
+      - name: Verify persistent Capacitor Android project
         run: |
-          mkdir -p www
-          printf '%s\\n' '<!doctype html><html><head><meta charset="utf-8"><title>Super Quina</title></head><body></body></html>' > www/index.html
+          test -f android/gradlew
+          test -f android/app/src/main/AndroidManifest.xml
+          npx cap sync android
 
-      - name: Generate Android project
-        run: npx cap add android
-
-      - name: Synchronize Capacitor Android project
-        run: npx cap sync android
-
-      - name: Build debug APK
+      - name: Build Android debug APK
         working-directory: android
         run: ./gradlew --no-daemon assembleDebug
 
