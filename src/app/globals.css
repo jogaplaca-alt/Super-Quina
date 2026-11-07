@@ -3384,3 +3384,29 @@ body:has(.site-header.site-header-scenery) {
   object-fit: contain !important;
   object-position: center center !important;
 }
+
+
+/* Cabeçalho: usar toda a largura disponível; não limitar a imagem ao tamanho natural do link. */
+.site-header.site-header-scenery {
+  width: 100% !important;
+  min-width: 100% !important;
+  overflow: hidden !important;
+}
+
+.site-header.site-header-scenery .site-header-home-link {
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: none !important;
+  flex: 1 1 100% !important;
+  align-self: stretch !important;
+}
+
+.site-header.site-header-scenery .site-header-scenery-image {
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  max-height: none !important;
+  object-fit: fill !important;
+  object-position: center center !important;
+}
