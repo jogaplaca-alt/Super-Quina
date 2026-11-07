@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authPrisma, getSessionUser, SESSION_COOKIE } from "@/lib/auth/session";
+import { getNumericPrizeReview, NUMERIC_PRIZE_CATEGORY_LABELS } from "@/domain/numeric-prize-review";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,13 +18,19 @@ export async function GET(request: NextRequest) {
     const purchase = await authPrisma.purchase.findFirst({
       where: { receiptCode, cashierId: user.id, playerId: null, status: "CONFIRMED", confirmedAt: { not: null } },
       select: {
-        receiptCode: true,
+        receiptCode: true, totalCents: true,
         participations: {
           where: { status: "CONFIRMED" },
           select: {
-            round: { select: { code: true, status: true } },
+            totalCents: true,
+            round: { select: { code: true, status: true, resultNumber: true, resultAt: true } },
             numericLines: {
-              select: { id: true, numberValue: true, prizeCents: true, prizeCreditedAt: true, prizePayout: { select: { channel: true, amountCents: true, paidAt: true } } },
+              select: {
+                id: true, numberValue: true, unitCents: true, tensCents: true,
+                hundredsCents: true, thousandsCents: true, quinaCents: true,
+                ruleVersion: true, ruleSnapshot: true, prizeCents: true, prizeCreditedAt: true,
+                prizePayout: { select: { channel: true, amountCents: true, paidAt: true } },
+              },
             },
           },
         },
@@ -31,17 +38,39 @@ export async function GET(request: NextRequest) {
     });
     if (!purchase) return NextResponse.json({ error: "Recibo não encontrado ou não pertence ao seu ponto de venda." }, { status: 404, headers });
 
-    const lines = purchase.participations.flatMap((participation) => participation.numericLines.map((line) => ({
-      id: line.id,
-      numberValue: line.numberValue,
-      roundCode: participation.round.code,
-      roundCompleted: participation.round.status === "COMPLETED",
-      prizeCents: participation.round.status === "COMPLETED" && (line.prizeCents ?? 0) > 0 ? line.prizeCents : 0,
-      paid: Boolean(line.prizeCreditedAt || line.prizePayout),
-      payoutChannel: line.prizePayout?.channel ?? (line.prizeCreditedAt ? "WALLET" : null),
-      paidAt: line.prizePayout?.paidAt.toISOString() ?? null,
-    })));
-    return NextResponse.json({ receiptCode: purchase.receiptCode, lines }, { headers });
+    const lines = purchase.participations.flatMap((participation) => participation.numericLines.map((line) => {
+      const round = participation.round;
+      const review = round.status === "COMPLETED" ? getNumericPrizeReview({
+        numberValue: line.numberValue,
+        unitCents: line.unitCents, tensCents: line.tensCents,
+        hundredsCents: line.hundredsCents, thousandsCents: line.thousandsCents,
+        quinaCents: line.quinaCents, ruleVersion: line.ruleVersion,
+        ruleSnapshot: line.ruleSnapshot,
+      }, round.resultNumber) : null;
+      const prizeCents = round.status === "COMPLETED" ? (line.prizeCents ?? 0) : 0;
+      return {
+        id: line.id,
+        numberValue: line.numberValue,
+        stakeCents: line.unitCents + line.tensCents + line.hundredsCents + line.thousandsCents + line.quinaCents,
+        prizeCategory: review?.category ?? null,
+        prizeCategoryLabel: review ? NUMERIC_PRIZE_CATEGORY_LABELS[review.category] : null,
+        categoryStakeCents: review?.stakeCents ?? null,
+        multiplier: review?.multiplier ?? null,
+        calculatedPrizeCents: review?.calculatedPrizeCents ?? null,
+        calculationConsistent: prizeCents > 0 && Boolean(review?.calculationConsistent && review.calculatedPrizeCents === prizeCents),
+        roundCode: round.code,
+        roundCompleted: round.status === "COMPLETED",
+        resultNumber: round.resultNumber,
+        resultAt: round.resultAt.toISOString(),
+        participationTotalCents: participation.totalCents,
+        purchaseTotalCents: purchase.totalCents,
+        prizeCents,
+        paid: Boolean(line.prizeCreditedAt || line.prizePayout),
+        payoutChannel: line.prizePayout?.channel ?? (line.prizeCreditedAt ? "WALLET" : null),
+        paidAt: line.prizePayout?.paidAt.toISOString() ?? null,
+      };
+    }));
+    return NextResponse.json({ receiptCode: purchase.receiptCode, purchaseTotalCents: purchase.totalCents, lines }, { headers });
   } catch {
     return NextResponse.json({ error: "Não foi possível consultar o recibo agora." }, { status: 500, headers });
   }
