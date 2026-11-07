@@ -12,6 +12,7 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'www/**'
+      - 'src/modules/printing/native/**'
 
 permissions:
   contents: read
