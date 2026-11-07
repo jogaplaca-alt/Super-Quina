@@ -1,5 +1,5 @@
 const config = {
-  appId: "com.superquina.public",
+  appId: "com.superquina.app.publico",
   appName: "Super Quina",
   // Public application uses the full Super Quina experience.
   webDir: "www",
