@@ -35,7 +35,7 @@ th{color:#aebcdb}
 .error{color:#ff9aa8}
 .small{font-size:12px;color:#91a3ca}
 [hidden]{display:none!important}
-@media(max-width:480px){body{padding:16px 11px 32px}.panel{padding:12px}.grid{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.metric strong{font-size:17px}.table-wrap{overflow-x:hidden}th,td{font-size:clamp(9px,2.7vw,12px);padding:8px 3px;line-height:1.25}.tier-table th:nth-child(1),.tier-table td:nth-child(1){width:25%}.tier-table th:nth-child(2),.tier-table td:nth-child(2){width:15%}.tier-table th:nth-child(3),.tier-table td:nth-child(3){width:22%}.tier-table th:nth-child(4),.tier-table td:nth-child(4){width:38%}.sample-table th:nth-child(1),.sample-table td:nth-child(1),.sample-table th:nth-child(2),.sample-table td:nth-child(2){width:19%}.sample-table th:nth-child(3),.sample-table td:nth-child(3){width:30%}.sample-table th:nth-child(4),.sample-table td:nth-child(4){width:32%}}
+@media(max-width:480px){body{padding:16px 11px 32px}.panel{padding:12px}.grid{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.metric strong{font-size:17px}.table-wrap{overflow-x:hidden}th,td{font-size:clamp(9px,2.7vw,12px);padding:8px 3px;line-height:1.25}.tier-table th:nth-child(1),.tier-table td:nth-child(1){width:25%}.tier-table th:nth-child(2),.tier-table td:nth-child(2){width:15%}.tier-table th:nth-child(3),.tier-table td:nth-child(3){width:22%}.tier-table th:nth-child(4),.tier-table td:nth-child(4){width:38%}}
 </style>
 </head>
 <body>
@@ -71,7 +71,7 @@ th{color:#aebcdb}
 <section id="results" hidden>
 <div class="panel"><h2>Resumo financeiro</h2><div class="metrics" id="metrics"></div></div>
 <div class="panel"><h2>Acertos por modalidade</h2><div class="table-wrap"><table class="tier-table"><thead><tr><th>Modalidade</th><th>Acertos</th><th>Frequência</th><th>Prêmios</th></tr></thead><tbody id="tiers"></tbody></table></div></div>
-<div class="panel"><h2>Amostra dos resultados</h2><div class="table-wrap"><table class="sample-table"><thead><tr><th>Aposta</th><th>Sorteado</th><th>Faixa</th><th>Prêmio</th></tr></thead><tbody id="sample"></tbody></table></div></div>
+
 </section>
 <p class="small">Ferramenta de simulação. Não realiza apostas, não acessa contas, não usa banco de dados e não mantém histórico. Ao limpar, atualizar ou fechar a página, os resultados temporários são descartados.</p>
 </main>
@@ -85,7 +85,6 @@ function clear(){
 el("results").hidden=true;
 el("metrics").replaceChildren();
 el("tiers").replaceChildren();
-el("sample").replaceChildren();
 el("error").textContent="";
 }
 el("clear").addEventListener("click",clear);
@@ -105,14 +104,12 @@ const random=()=>{if(!seeded)return Math.random();state=(Math.imul(state,1664525
 const hits=Object.fromEntries(tiers.map(([id])=>[id,0]));
 const prizes=Object.fromEntries(tiers.map(([id])=>[id,0]));
 let totalPrizes=0,totalHits=0;
-const sample=[];
 for(let i=0;i<draws;i++){
 const bet=String(Math.floor(random()*100000)).padStart(5,"0");
 const drawn=String(Math.floor(random()*100000)).padStart(5,"0");
 const match=[...tiers].reverse().find(([id,label,digits])=>bet.slice(-digits)===drawn.slice(-digits));
 let prize=0;
 if(match){const id=match[0];hits[id]++;prize=(stake/5)*multipliers[id];prizes[id]+=prize;totalPrizes+=prize;totalHits++}
-if(sample.length<10)sample.push({bet,drawn,tier:match?match[1]:"Sem acerto",prize});
 }
 const totalBet=draws*stake;
 const commission=totalBet*rate/100;
@@ -120,7 +117,6 @@ const net=totalBet-totalPrizes-commission;
 const cards=[["Total apostado",money(totalBet)],["Prêmios calculados",money(totalPrizes)],["Comissão",money(commission)],["Saldo da simulação",money(net)],["Retorno em prêmios",((totalPrizes/totalBet)*100).toLocaleString("pt-BR",{maximumFractionDigits:2})+"%"],["Apostas com acerto",number(totalHits)]];
 for(const [label,value] of cards){const box=document.createElement("div");box.className="metric";const caption=document.createElement("span");caption.textContent=label;const strong=document.createElement("strong");strong.textContent=value;if(label==="Saldo da simulação"){if(net<0)strong.classList.add("negative");else if(net>0)strong.classList.add("positive")}box.append(caption,strong);el("metrics").append(box)}
 for(const [id,label] of tiers){const row=document.createElement("tr");[label,number(hits[id]),(hits[id]/draws*100).toLocaleString("pt-BR",{maximumFractionDigits:4})+"%",money(prizes[id])].forEach(value=>{const cell=document.createElement("td");cell.textContent=value;row.append(cell)});el("tiers").append(row)}
-for(const item of sample){const row=document.createElement("tr");[item.bet,item.drawn,item.tier,money(item.prize)].forEach(value=>{const cell=document.createElement("td");cell.textContent=value;row.append(cell)});el("sample").append(row)}
 el("results").hidden=false;
 });
 })();
