@@ -2689,3 +2689,44 @@ body:has(.home-page) {
     font-size: 0.84rem;
   }
 }
+
+
+/* Ajuste fino da página inicial: imagens próximas e botão menor com respiro inferior. */
+.home-page.home-page-compact .home-entry {
+  gap: 0 !important;
+  padding-bottom: max(28px, calc(env(safe-area-inset-bottom, 0px) + 22px)) !important;
+}
+
+.home-page.home-page-compact .home-entry > .home-how-infographic,
+.home-page.home-page-compact .home-entry > .home-promo {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.home-page.home-page-compact .home-entry > .home-access-footer {
+  min-height: 0 !important;
+  margin-top: 9px !important;
+  padding: 0 !important;
+}
+
+.home-page.home-page-compact .home-footer-access {
+  width: 108px !important;
+  min-width: 108px !important;
+  min-height: 25px !important;
+  max-height: 25px !important;
+  padding: 2px 12px !important;
+  font-size: .76rem !important;
+  line-height: 1 !important;
+  border-width: 1px !important;
+}
+
+@media (max-width: 600px) {
+  .home-page.home-page-compact .home-footer-access {
+    width: 100px !important;
+    min-width: 100px !important;
+    min-height: 23px !important;
+    max-height: 23px !important;
+    padding: 2px 10px !important;
+    font-size: .72rem !important;
+  }
+}
