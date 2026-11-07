@@ -3174,3 +3174,67 @@ body:has(.home-page) {
 .area-page-compact .numeric-game-purchase {
   margin-bottom: 88px !important;
 }
+
+
+/* Cambista: premiações, resultados e financeiro reunidos em um único painel. */
+.cashier-info-card {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border, #2b394c);
+  border-radius: 18px;
+  background: var(--card, #141c28);
+  color: var(--text, #f3f6fb);
+}
+.cashier-info-card > .cashier-prize-payout,
+.cashier-info-card > .cashier-info-results,
+.cashier-info-card > .cashier-summary-menu {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.cashier-info-card > .cashier-prize-payout {
+  padding: 18px 16px 20px;
+  border-bottom: 1px solid var(--border, #2b394c);
+}
+.cashier-info-card > .cashier-info-results {
+  border-bottom: 1px solid var(--border, #2b394c);
+}
+.cashier-info-card > .cashier-info-results > summary {
+  min-height: 76px;
+  padding: 16px 48px 16px 16px;
+}
+.cashier-info-card > .cashier-info-results .recent-results-content {
+  padding: 0 16px 16px;
+}
+.cashier-info-card > .cashier-summary-menu > summary {
+  padding: 16px 48px 16px 16px;
+}
+.cashier-info-card > .cashier-summary-menu .cashier-compact-summary {
+  padding: 0 16px 18px;
+}
+.cashier-info-card > .cashier-summary-menu .cashier-summary-grid {
+  gap: 10px;
+}
+@media (max-width: 600px) {
+  .cashier-info-card {
+    border-radius: 16px;
+  }
+  .cashier-info-card > .cashier-prize-payout {
+    padding: 16px 14px 18px;
+  }
+  .cashier-info-card > .cashier-info-results > summary,
+  .cashier-info-card > .cashier-summary-menu > summary {
+    padding-left: 14px;
+  }
+  .cashier-info-card > .cashier-info-results .recent-results-content {
+    padding-inline: 14px;
+  }
+  .cashier-info-card > .cashier-summary-menu .cashier-compact-summary {
+    padding-inline: 14px;
+  }
+}
