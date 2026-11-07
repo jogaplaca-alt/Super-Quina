@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 type Multipliers = { unit: number; tens: number; hundreds: number; thousands: number; quina: number };
-const defaults: Multipliers = { unit: 5, tens: 20, hundreds: 200, thousands: 2000, quina: 20000 };
+const defaults: Multipliers = { unit: 5, tens: 50, hundreds: 500, thousands: 5000, quina: 50000 };
 const fields: Array<{ key: keyof Multipliers; label: string }> = [
   { key: "unit", label: "Unidade" },
   { key: "tens", label: "Dezena" },
