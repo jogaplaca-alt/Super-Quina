@@ -31,9 +31,10 @@ const emptyForm: FormState = {
 
 const money = (cents: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
 
-export function AdminCashierManager() {
+export function AdminCashierManager({ mode }: { mode: "create" | "manage" }) {
   const [cashiers, setCashiers] = useState<Cashier[]>([]);
   const [page, setPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -50,7 +51,7 @@ export function AdminCashierManager() {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch("/api/admin/cashiers?page=" + page + "&limit=50", { cache: "no-store", signal: controller.signal });
+      const response = await fetch("/api/admin/cashiers?page=" + page + "&limit=50&q=" + encodeURIComponent(searchTerm.trim()), { cache: "no-store", signal: controller.signal });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "Não foi possível carregar os cambistas.");
       if (!controller.signal.aborted) { setCashiers(body.cashiers as Cashier[]); setPagination(body.pagination as Pagination); }
@@ -59,7 +60,7 @@ export function AdminCashierManager() {
     } finally {
       if (loadController.current === controller) { loadController.current = null; setLoading(false); }
     }
-  }, [page]);
+  }, [page, searchTerm]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void load(); }, 0);
@@ -121,9 +122,10 @@ export function AdminCashierManager() {
 
   return <section className="feature-card" aria-labelledby="admin-cashiers-heading">
     <span className="feature-label">Equipe de vendas</span>
-    <h2 id="admin-cashiers-heading">Cadastro de cambistas</h2>
-    <p>Cadastre cada vendedor com sua própria comissão. Alterar a porcentagem não deve mudar as comissões já registradas em vendas anteriores.</p>
-    <form className="admin-round-create" onSubmit={submit}>
+    <h2 id="admin-cashiers-heading">{mode === "create" ? "Cadastro de cambista" : "Gestão de cambistas"}</h2>
+    {mode === "create" && <p>Cadastre cada vendedor com sua própria comissão. Alterar a porcentagem não muda comissões já registradas em vendas anteriores.</p>}
+    {mode === "manage" && editingId && <p>Edite os dados do cambista selecionado. Para apurações, abra o financeiro e histórico.</p>}
+    {(mode === "create" || (mode === "manage" && Boolean(editingId))) && <form className="admin-round-create" onSubmit={submit}>
       <h3>{editingId ? "Editar cambista" : "Cadastrar novo cambista"}</h3>
       <label>Nome completo
         <input autoComplete="name" value={form.fullName} onChange={(event) => setForm({ ...form, fullName: event.target.value })} minLength={3} maxLength={120} required />
@@ -150,12 +152,14 @@ export function AdminCashierManager() {
         <button type="submit" disabled={busy}>{busy ? "Salvando…" : editingId ? "Salvar alterações" : "Cadastrar cambista"}</button>
         {editingId && <button type="button" className="secondary-button" disabled={busy} onClick={resetForm}>Cancelar edição</button>}
       </div>
-    </form>
+    </form>}
     <div className="form-feedback-slot" aria-live="polite">
       {error && <p role="alert" className="note-inline form-feedback-error" aria-live="assertive">{error}</p>}
       {notice && <p role="status" className="note-inline form-feedback-success" aria-live="polite">{notice}</p>}
     </div>
-    <h3>Cambistas cadastrados</h3>
+    {mode === "manage" && <><h3>Cambistas cadastrados</h3>
+    <label htmlFor="admin-cashier-search">Pesquisar cambista</label>
+    <input id="admin-cashier-search" type="search" value={searchTerm} onChange={(event) => { setPage(1); setSearchTerm(event.target.value); }} placeholder="Nome, usuário ou WhatsApp" />
     {!loading && pagination && pagination.total > 0 && <p aria-live="polite">Exibindo {((page - 1) * pagination.limit) + 1}–{Math.min(page * pagination.limit, pagination.total)} de {pagination.total} cambistas.</p>}
     {!loading && cashiers.length > 0 && <div className="admin-cashier-directory"><label htmlFor="admin-cashier-select">Abrir financeiro e histórico do cambista</label><select id="admin-cashier-select" className="admin-cashier-select" defaultValue="" onChange={(event) => { if (event.target.value) window.location.href = "/admin/cashiers/" + encodeURIComponent(event.target.value); }}><option value="" disabled>Selecione um cambista</option>{cashiers.map((cashier) => <option key={cashier.id} value={cashier.id}>{cashier.fullName || cashier.username} · {cashier.username}</option>)}</select></div>}
     {loading ? <p>Carregando cambistas…</p> : cashiers.length === 0 ? <p>Nenhum cambista cadastrado.</p> : <div className="admin-round-list">
@@ -173,6 +177,6 @@ export function AdminCashierManager() {
       <button type="button" className="secondary-button" disabled={!pagination.hasPreviousPage || busy} onClick={() => setPage((current) => Math.max(1, current - 1))}>Página anterior</button>
       <span aria-live="polite">Página {pagination.page} de {pagination.totalPages}</span>
       <button type="button" className="secondary-button" disabled={!pagination.hasNextPage || busy} onClick={() => setPage((current) => current + 1)}>Próxima página</button>
-    </nav>}
+    </nav>}</>}
   </section>;
 }
