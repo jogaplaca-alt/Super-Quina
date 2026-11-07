@@ -49,6 +49,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const entries = purchase.participations.flatMap((part) => part.numericLines.map((line) => ({
       numberValue: line.numberValue, roundCode: part.round.code, resultAt: part.round.resultAt.toISOString(),
       stakeCents: line.unitCents + line.tensCents + line.hundredsCents + line.thousandsCents + line.quinaCents,
+      unitCents: line.unitCents, tensCents: line.tensCents,
+      hundredsCents: line.hundredsCents, thousandsCents: line.thousandsCents,
+      quinaCents: line.quinaCents,
     })));
     return NextResponse.json({ receipt: {
       purchaseId: purchase.id, receiptCode: purchase.receiptCode, paymentStatus: "CONFIRMED",
