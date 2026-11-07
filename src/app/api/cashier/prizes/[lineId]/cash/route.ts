@@ -40,6 +40,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ li
       if (error.code === "LINE_NOT_FOUND") return NextResponse.json({ error: "Prêmio não encontrado." }, { status: 404, headers });
       if (error.code === "NOT_OWNED") return NextResponse.json({ error: "Este bilhete não pertence ao seu ponto de venda." }, { status: 403, headers });
       if (error.code === "ALREADY_PAID") return NextResponse.json({ error: "Este prêmio já foi pago por um dos canais." }, { status: 409, headers });
+      if (error.code === "INCONSISTENT_PRIZE") return NextResponse.json({ error: "Pagamento bloqueado: o prêmio registrado não confere com o número sorteado, a categoria, o valor apostado e o multiplicador salvo. Solicite conferência da administração." }, { status: 409, headers });
       return NextResponse.json({ error: "Este prêmio ainda não está disponível para pagamento." }, { status: 409, headers });
     }
     if (typeof error === "object" && error !== null && "code" in error && error.code === "P2002") {
