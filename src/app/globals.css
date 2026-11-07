@@ -3270,3 +3270,58 @@ body:has(.home-page) {
   object-fit: cover !important;
   object-position: center center !important;
 }
+
+/* Altura padrão do cabeçalho Super Quina, com a logomarca centralizada. */
+.site-header.site-header-scenery {
+  height: 100px !important;
+  min-height: 100px !important;
+  max-height: 100px !important;
+  padding: 0 !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.site-header.site-header-scenery .site-header-home-link {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  height: 100% !important;
+  flex: 1 1 100% !important;
+  margin: 0 auto !important;
+}
+
+.site-header.site-header-scenery .site-header-scenery-image {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 auto !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+}
+
+body:has(.site-header.site-header-scenery) {
+  padding-top: 100px !important;
+}
+
+.home-page.home-page-compact {
+  height: calc(100dvh - 100px) !important;
+  max-height: calc(100dvh - 100px) !important;
+}
+
+@media (max-width: 600px) {
+  .site-header.site-header-scenery {
+    height: 88px !important;
+    min-height: 88px !important;
+    max-height: 88px !important;
+  }
+
+  body:has(.site-header.site-header-scenery) {
+    padding-top: 88px !important;
+  }
+
+  .home-page.home-page-compact {
+    height: calc(100dvh - 88px) !important;
+    max-height: calc(100dvh - 88px) !important;
+  }
+}
