@@ -2707,24 +2707,29 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   padding-top: clamp(20px, 4vw, 48px) !important;
 }
 
-/* Cabeçalho único, compacto, centralizado e com o azul contínuo da página. */
+/* Cabeçalho global fixo: mesmo tamanho e alinhamento na página inicial e nas áreas autenticadas. */
 .site-header.site-header-scenery {
-  position: relative !important;
-  inset: auto !important;
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  left: 0 !important;
+  z-index: 1500 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  box-sizing: border-box !important;
   width: 100% !important;
-  max-width: 100% !important;
+  max-width: none !important;
   height: 76px !important;
   min-height: 76px !important;
-  margin: 0 auto !important;
+  margin: 0 !important;
   padding: 4px 12px !important;
+  overflow: hidden !important;
   background: #001584 !important;
   border: 0 !important;
+  border-bottom: 0 !important;
   border-radius: 0 !important;
   box-shadow: none !important;
-  overflow: hidden !important;
   transform: none !important;
 }
 
@@ -2734,7 +2739,7 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   justify-content: center !important;
   width: 100% !important;
   height: 100% !important;
-  margin: 0 auto !important;
+  margin: 0 !important;
 }
 
 .site-header.site-header-scenery .site-header-scenery-image {
@@ -2743,9 +2748,21 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   height: auto !important;
   max-width: 100% !important;
   max-height: 68px !important;
+  min-height: 0 !important;
   margin: 0 auto !important;
   object-fit: contain !important;
   object-position: center !important;
+}
+
+/* Reserva exatamente a altura da faixa fixa nos dois layouts que usam o mesmo cabeçalho. */
+.home-page {
+  box-sizing: border-box !important;
+  padding-top: 76px !important;
+}
+
+.area-page {
+  box-sizing: border-box !important;
+  padding-top: 76px !important;
 }
 
 @media (max-width: 600px) {
@@ -2758,5 +2775,10 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   .site-header.site-header-scenery .site-header-scenery-image {
     width: min(180px, calc(100vw - 24px)) !important;
     max-height: 60px !important;
+  }
+
+  .home-page,
+  .area-page {
+    padding-top: 68px !important;
   }
 }
