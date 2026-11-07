@@ -2325,24 +2325,6 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   }
 }
 
-.area-page {
-  padding-top: clamp(20px, 4vw, 48px) !important;
-}
-
-/* Reserva exatamente a altura da faixa fixa nos dois layouts que usam o mesmo cabeçalho. */
-.home-page {
-  box-sizing: border-box !important;
-  padding-top: 76px !important;
-}
-
-@media (max-width: 600px) {
-
-  .home-page,
-  .area-page {
-    padding-top: 68px !important;
-  }
-}
-
 .home-page,
 .auth-layout,
 .site-page-shell {
