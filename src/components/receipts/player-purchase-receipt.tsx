@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { ThermalReceipt } from "@/components/receipts/thermal-receipt";
 import type { ThermalReceiptEntry } from "@/components/receipts/thermal-receipt-types";
+import { createEscPosProfile58mm, encodeThermalReceipt } from "@/modules/printing/escpos/encode-thermal-receipt";
+import { isAndroidBluetoothPrinterAvailable, listPairedBluetoothPrinters, sendEscPosToBluetoothPrinter, type PairedBluetoothPrinter } from "@/modules/printing/native/bluetooth-printer";
 
 type ReceiptData = {
   receiptCode: string;
@@ -33,7 +35,7 @@ export function PlayerPurchaseReceipt({ purchaseId, autoOpen = false, onClose }:
   const loading = loadingState?.purchaseId === purchaseId && loadingState.value;
   const error = errorState?.purchaseId === purchaseId ? errorState.value : "";
   const manualRetries = retryState?.purchaseId === purchaseId ? retryState.value : 0;
-  const loadingRef = useRef(false);
+  const [printers, setPrinters] = useState<PairedBluetoothPrinter[]>([]);\n  const [selectedPrinter, setSelectedPrinter] = useState("");\n  const [printerMessage, setPrinterMessage] = useState("");\n  const [printerBusy, setPrinterBusy] = useState(false);\n  const loadingRef = useRef(false);
   const requestRef = useRef<AbortController | null>(null);
 
   async function loadReceipt(isManualRetry = false) {
