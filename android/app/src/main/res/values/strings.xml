@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">Super Quina</string>
     <string name="title_activity_main">Super Quina</string>
-    <string name="package_name">com.superquina.app</string>
-    <string name="custom_url_scheme">com.superquina.app</string>
+    <string name="package_name">com.superquina.public</string>
+    <string name="custom_url_scheme">com.superquina.public</string>
 </resources>
