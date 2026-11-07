@@ -2671,3 +2671,21 @@ body:has(.home-page) {
     --site-header-height: 100px;
   }
 }
+
+
+/* Botão Entrar da página inicial: tamanho mais compacto. */
+.home-page-compact .home-footer-access {
+  min-width: 142px;
+  min-height: 30px;
+  padding: 4px 22px;
+  font-size: 0.88rem;
+}
+
+@media (max-width: 600px) {
+  .home-page-compact .home-footer-access {
+    min-width: 132px;
+    min-height: 28px;
+    padding: 4px 18px;
+    font-size: 0.84rem;
+  }
+}
