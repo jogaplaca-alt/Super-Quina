@@ -1,10 +1,10 @@
-name: Super Quina Android APK
+name: Super Quina Public Android APK
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - feature/android-apk-printer
+      - feature/android-apk-public
     paths:
       - '.github/workflows/android-apk.yml'
       - 'android/**'
@@ -14,20 +14,17 @@ on:
       - 'prisma/**'
       - 'prisma.config.ts'
       - 'www/**'
-      - 'src/modules/printing/native/**'
-      - 'src/modules/printing/escpos/**'
-      - 'src/components/receipts/player-purchase-receipt.tsx'
 
 permissions:
   contents: read
 
 concurrency:
-  group: super-quina-android-apk-${{ github.ref }}
+  group: super-quina-public-android-apk-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build-debug-apk:
-    name: Build Android debug APK
+    name: Build public Android debug APK
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
@@ -71,14 +68,14 @@ jobs:
           test -f android/app/src/main/AndroidManifest.xml
           npx cap sync android
 
-      - name: Build Android debug APK
+      - name: Build public Android debug APK
         working-directory: android
         run: ./gradlew --no-daemon assembleDebug
 
-      - name: Upload debug APK
+      - name: Upload public debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: super-quina-android-debug
+          name: super-quina-public-android-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
