@@ -35,7 +35,11 @@ export function PlayerPurchaseReceipt({ purchaseId, autoOpen = false, onClose }:
   const loading = loadingState?.purchaseId === purchaseId && loadingState.value;
   const error = errorState?.purchaseId === purchaseId ? errorState.value : "";
   const manualRetries = retryState?.purchaseId === purchaseId ? retryState.value : 0;
-  const [printers, setPrinters] = useState<PairedBluetoothPrinter[]>([]);\n  const [selectedPrinter, setSelectedPrinter] = useState("");\n  const [printerMessage, setPrinterMessage] = useState("");\n  const [printerBusy, setPrinterBusy] = useState(false);\n  const loadingRef = useRef(false);
+  const [printers, setPrinters] = useState<PairedBluetoothPrinter[]>([]);
+  const [selectedPrinter, setSelectedPrinter] = useState("");
+  const [printerMessage, setPrinterMessage] = useState("");
+  const [printerBusy, setPrinterBusy] = useState(false);
+  const loadingRef = useRef(false);
   const requestRef = useRef<AbortController | null>(null);
 
   async function loadReceipt(isManualRetry = false) {
@@ -85,6 +89,76 @@ export function PlayerPurchaseReceipt({ purchaseId, autoOpen = false, onClose }:
   }, [autoOpen, purchaseId]);
 
   const canRetry = manualRetries < MAX_MANUAL_RETRIES;
+  async function loadPrinters() {
+    setPrinterMessage("");
+    try {
+      const devices = await listPairedBluetoothPrinters();
+      setPrinters(devices);
+      setSelectedPrinter((current) => devices.some((device) => device.id === current) ? current : devices[0]?.id ?? "");
+      if (devices.length === 0) setPrinterMessage("Nenhuma impressora pareada. Pareie a impressora nas configurações Bluetooth do Android.");
+    } catch (reason) {
+      setPrinterMessage(reason instanceof Error ? reason.message : "Não foi possível listar as impressoras pareadas.");
+    }
+  }
+
+  async function printViaBluetooth() {
+    if (!receipt || receipt.purchaseId !== purchaseId || !selectedPrinter || printerBusy) return;
+    setPrinterBusy(true);
+    setPrinterMessage("");
+    let jobId: string | null = null;
+    let sendingStarted = false;
+    try {
+      const data = receipt.data;
+      const verificationUrl = "https://superquina.com/verificar-recibo/" + encodeURIComponent(data.receiptCode);
+      const bytes = encodeThermalReceipt({
+        receiptCode: data.receiptCode,
+        paymentStatus: data.paymentStatus,
+        issuedAt: data.issuedAt,
+        paymentMethod: data.paymentMethod,
+        totalCents: data.totalCents,
+        currency: data.currency,
+        customerLabel: data.customerLabel,
+        cashierLabel: data.cashierLabel,
+        entries: data.entries,
+        verificationUrl,
+      }, createEscPosProfile58mm());
+
+      const reservation = await fetch("/api/purchases/" + encodeURIComponent(purchaseId) + "/print-jobs/manual", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: "{}",
+      });
+      const reservationBody = await reservation.json() as { job?: { id: string }; error?: string };
+      if (!reservation.ok || !reservationBody.job?.id) throw new Error(reservationBody.error ?? "Não foi possível registrar a reimpressão.");
+      jobId = reservationBody.job.id;
+
+      const sending = await fetch("/api/print-jobs/" + encodeURIComponent(jobId) + "/transition", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nextStatus: "SENDING", deviceName: printers.find((device) => device.id === selectedPrinter)?.name ?? "Impressora Bluetooth" }),
+      });
+      if (!sending.ok) throw new Error("Não foi possível iniciar o registro da impressão.");
+      sendingStarted = true;
+
+      await sendEscPosToBluetoothPrinter(selectedPrinter, bytes);
+
+      const completed = await fetch("/api/print-jobs/" + encodeURIComponent(jobId) + "/transition", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nextStatus: "SENT" }),
+      });
+      if (!completed.ok) throw new Error("Os dados foram enviados, mas o registro da impressão não foi confirmado. Confira o papel antes de tentar novamente.");
+      setPrinterMessage("Dados enviados à impressora. Confira se o recibo saiu corretamente.");
+    } catch (reason) {
+      if (jobId) {
+        const nextStatus = sendingStarted ? "UNKNOWN" : "FAILED";
+        const errorCode = sendingStarted ? "UNKNOWN_TRANSPORT_RESULT" : "ENCODING_FAILED";
+        await fetch("/api/print-jobs/" + encodeURIComponent(jobId) + "/transition", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nextStatus, errorCode }),
+        }).catch(() => undefined);
+      }
+      setPrinterMessage(reason instanceof Error ? reason.message : "Falha na impressão. Confira a impressora.");
+    } finally {
+      setPrinterBusy(false);
+    }
+  }
+
 
   return (
     <div className="player-purchase-receipt">
@@ -121,6 +195,24 @@ export function PlayerPurchaseReceipt({ purchaseId, autoOpen = false, onClose }:
               paymentLabel={paymentLabels[receipt.data.paymentMethod] ?? "Pagamento confirmado"}
               onClose={() => { setReceipt(null); onClose?.(); }}
             />
+
+            {isAndroidBluetoothPrinterAvailable() && (
+              <div className="thermal-receipt-actions" aria-label="Impressão térmica Bluetooth">
+                <button type="button" onClick={() => { void loadPrinters(); }} disabled={printerBusy}>Localizar impressoras pareadas</button>
+                {printers.length > 0 && (
+                  <>
+                    <label htmlFor="receipt-bluetooth-printer">Impressora Bluetooth (58 mm)</label>
+                    <select id="receipt-bluetooth-printer" value={selectedPrinter} onChange={(event) => setSelectedPrinter(event.target.value)}>
+                      {printers.map((device) => <option key={device.id} value={device.id}>{device.name}</option>)}
+                    </select>
+                    <button type="button" onClick={() => { void printViaBluetooth(); }} disabled={printerBusy || !selectedPrinter}>
+                      {printerBusy ? "Enviando impressão…" : "Imprimir via Bluetooth"}
+                    </button>
+                  </>
+                )}
+                {printerMessage && <p role="status">{printerMessage}</p>}
+              </div>
+            )}
           </section>
         </div>
       )}
