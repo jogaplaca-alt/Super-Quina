@@ -5,6 +5,7 @@ import { AdminWithdrawalManager } from "@/components/admin/admin-withdrawal-mana
 import { AdminCashierManager } from "@/components/admin/admin-cashier-manager";
 import { AdminPrizeRules } from "@/components/admin/admin-prize-rules";
 import { AdminRoundManager } from "@/components/admin/admin-round-manager";
+import { AdminSimulator } from "@/components/admin/admin-simulator";
 import { PlayerRecentResults } from "@/components/player/player-recent-results";
 import { requireRole } from "@/lib/auth/require-role";
 export const dynamic = "force-dynamic";
@@ -28,6 +29,10 @@ export default async function AdminPage() {
       <details className="admin-accordion">
         <summary><span>Multiplicadores de prêmios</span><span className="admin-accordion-description">Alterar e salvar os valores usados nas novas apostas</span></summary>
         <div className="admin-accordion-content"><AdminPrizeRules /></div>
+      </details>
+      <details className="admin-accordion">
+        <summary><span>Simulador matemático</span><span className="admin-accordion-description">Testar probabilidades, prêmios, comissão e resultado da banca sem apostas reais</span></summary>
+        <div className="admin-accordion-content"><AdminSimulator /></div>
       </details>
       <details className="admin-accordion">
         <summary><span>Controle financeiro e saques</span><span className="admin-accordion-description">Analisar solicitações de retirada</span></summary>
