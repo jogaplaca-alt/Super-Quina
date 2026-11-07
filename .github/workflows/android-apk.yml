@@ -14,9 +14,7 @@ on:
       - 'prisma/**'
       - 'prisma.config.ts'
       - 'www/**'
-      - 'src/modules/printing/native/**'
-      - 'src/modules/printing/escpos/**'
-      - 'src/components/receipts/player-purchase-receipt.tsx'
+      - 'src/**'
 
 permissions:
   contents: read
