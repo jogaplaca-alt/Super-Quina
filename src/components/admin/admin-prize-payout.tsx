@@ -6,6 +6,15 @@ type Winner = {
   id: string;
   numberValue: string;
   prizeCents: number;
+  stakeCents: number;
+  prizeCategory: string | null;
+  prizeCategoryLabel: string | null;
+  categoryStakeCents: number | null;
+  multiplier: number | null;
+  calculatedPrizeCents: number | null;
+  calculationConsistent: boolean;
+  participationTotalCents: number;
+  purchaseTotalCents: number;
   roundCode: string;
   resultNumber: string | null;
   resultAt: string;
@@ -24,7 +33,7 @@ const money = (cents: number) => new Intl.NumberFormat("pt-BR", {
   style: "currency", currency: "BRL",
 }).format(cents / 100);
 const dateTime = (value: string) => new Intl.DateTimeFormat("pt-BR", {
-  dateStyle: "short", timeStyle: "short", timeZone: "Etc/GMT+3",
+  dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo",
 }).format(new Date(value));
 
 export function AdminPrizePayout() {
@@ -154,9 +163,13 @@ export function AdminPrizePayout() {
       : <div className="admin-round-list">
         {visible.map((winner) => <article className="round-option admin-prize-card" key={winner.id}>
           <strong>{winner.playerName}</strong>
-          <p>Prêmio: <strong>{money(winner.prizeCents)}</strong> · Número: {winner.numberValue}</p>
-          <p>Rodada: {winner.roundCode} · Horário: {dateTime(winner.resultAt)} · Resultado: {winner.resultNumber ?? "—"}</p>
+          <p><strong>Prêmio: {money(winner.prizeCents)}</strong> · Acerto: <strong>{winner.prizeCategoryLabel ?? "Não identificado"}</strong></p>
+          <p>Número apostado: <strong>{winner.numberValue}</strong> · Número sorteado: <strong>{winner.resultNumber ?? "Indisponível"}</strong></p>
+          <p>Rodada: {winner.roundCode} · Data e horário do sorteio: {dateTime(winner.resultAt)}</p>
+          <p>Valor desta aposta: <strong>{money(winner.stakeCents)}</strong> · Total da rodada nesta compra: {money(winner.participationTotalCents)} · Total do recibo: {money(winner.purchaseTotalCents)}</p>
+          <p>Valor aplicado em {winner.prizeCategoryLabel ?? "modalidade"}: {winner.categoryStakeCents === null ? "Indisponível" : money(winner.categoryStakeCents)} · Multiplicador registrado: {winner.multiplier === null ? "Indisponível" : winner.multiplier + "x"}</p>
           <p>Recibo: {winner.receiptCode ?? "—"} {winner.cashierName ? " · Cambista: " + winner.cashierName : ""}</p>
+          {!winner.calculationConsistent && <p role="alert" style={{ color: "#ffb4a9", fontWeight: 700 }}>REVISÃO NECESSÁRIA: o prêmio registrado não confere com o recálculo usando o valor apostado e a regra salva. Não efetue o pagamento até investigar.</p>}
           {winner.phone && <p>Telefone: {winner.phone}</p>}
           {winner.paid
             ? <p><strong>{winner.payoutChannel === "WALLET" ? "CRÉDITO NA CARTEIRA" : "PIX PAGO"}</strong>{winner.paidAt ? " · " + dateTime(winner.paidAt) : ""}{winner.reference ? " · Ref.: " + winner.reference : ""}</p>
@@ -166,8 +179,8 @@ export function AdminPrizePayout() {
                 <input className="admin-prize-reference" id={"winner-reference-" + winner.id} value={references[winner.id] ?? ""}
                   onChange={(event) => setReferences((current) => ({ ...current, [winner.id]: event.target.value }))} maxLength={300}
                   placeholder="Identificador do Pix" />
-                <button className="admin-prize-confirm" type="button" disabled={Boolean(busy)} onClick={() => void confirmPaid(winner)}>
-                  {busy === winner.id ? "Registrando…" : "Confirmar Pix pago"}
+                <button className="admin-prize-confirm" type="button" disabled={Boolean(busy) || !winner.calculationConsistent} onClick={() => void confirmPaid(winner)}>
+                  {busy === winner.id ? "Registrando…" : winner.calculationConsistent ? "Confirmar Pix pago" : "Pagamento bloqueado — conferir cálculo"}
                 </button>
               </> : <p role="alert">Crédito automático ainda não confirmado. Conferir este prêmio.</p>}
             </>}
