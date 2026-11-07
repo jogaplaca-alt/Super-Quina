@@ -147,7 +147,7 @@ export function PlayerPurchaseReceipt({ purchaseId, autoOpen = false, onClose }:
     } catch (reason) {
       if (jobId) {
         const nextStatus = sendingStarted ? "UNKNOWN" : "FAILED";
-        const errorCode = sendingStarted ? "UNKNOWN_TRANSPORT_RESULT" : "ENCODING_FAILED";
+        const errorCode = sendingStarted ? "UNKNOWN_TRANSPORT_RESULT" : "CONNECTION_FAILED";
         await fetch("/api/print-jobs/" + encodeURIComponent(jobId) + "/transition", {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ nextStatus, errorCode }),
