@@ -3359,3 +3359,28 @@ body:has(.site-header.site-header-scenery) {
     max-height: calc(100dvh - 100px) !important;
   }
 }
+
+
+/* Correção: exibir a arte completa do cabeçalho, sem cortes ou deformação. */
+.site-header.site-header-scenery {
+  overflow: hidden !important;
+  background-color: #071b87 !important;
+}
+
+.site-header.site-header-scenery .site-header-home-link {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  background-color: #071b87 !important;
+}
+
+.site-header.site-header-scenery .site-header-scenery-image {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+}
