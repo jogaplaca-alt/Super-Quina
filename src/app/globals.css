@@ -2863,3 +2863,93 @@ body:has(.site-header.site-header-scenery) {
     padding-top: 8px !important;
   }
 }
+
+
+/* Correção única do cabeçalho compartilhado: home, jogador, cambista e demais rotas.
+   O mesmo componente, dimensões e reserva de espaço são aplicados em todo o site. */
+.site-header.site-header-scenery {
+  position: fixed !important;
+  inset: 0 0 auto 0 !important;
+  z-index: 99999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  height: 68px !important;
+  min-height: 68px !important;
+  max-height: 68px !important;
+  margin: 0 !important;
+  padding: 4px 8px !important;
+  overflow: hidden !important;
+  background: #001584 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.site-header.site-header-scenery .site-header-home-link {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 auto !important;
+  width: 180px !important;
+  height: 60px !important;
+  max-width: calc(100vw - 24px) !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+}
+
+.site-header.site-header-scenery .site-header-scenery-image {
+  display: block !important;
+  width: 180px !important;
+  height: 60px !important;
+  max-width: calc(100vw - 24px) !important;
+  max-height: 60px !important;
+  min-height: 0 !important;
+  margin: 0 auto !important;
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+/* O espaço da faixa fixa é reservado uma única vez no body, não em cada página. */
+body:has(.site-header.site-header-scenery) {
+  padding-top: 68px !important;
+}
+
+.home-page,
+.auth-layout,
+.site-page-shell,
+.area-page {
+  box-sizing: border-box !important;
+  padding-top: 0 !important;
+}
+
+.home-header-wrap {
+  position: static !important;
+  width: 100% !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+@media (max-width: 600px) {
+  .site-header.site-header-scenery {
+    height: 68px !important;
+    min-height: 68px !important;
+    max-height: 68px !important;
+  }
+
+  .site-header.site-header-scenery .site-header-home-link,
+  .site-header.site-header-scenery .site-header-scenery-image {
+    width: 180px !important;
+    height: 60px !important;
+    max-width: calc(100vw - 24px) !important;
+    max-height: 60px !important;
+  }
+
+  body:has(.site-header.site-header-scenery) {
+    padding-top: 68px !important;
+  }
+}
