@@ -34,14 +34,20 @@ export async function GET(request: NextRequest) {
     const params = request.nextUrl.searchParams;
     const requestedPage = Number(params.get("page") ?? "1");
     const requestedLimit = Number(params.get("limit") ?? "50");
+    const search = (params.get("q") ?? "").trim().slice(0, 120);
     if (!Number.isSafeInteger(requestedPage) || requestedPage < 1 ||
         !Number.isSafeInteger(requestedLimit) || requestedLimit < 1 || requestedLimit > 100) {
       return NextResponse.json({ error: "Parâmetros de paginação inválidos." }, { status: 400, headers });
     }
+    const where: Prisma.UserWhereInput = { role: "CASHIER", ...(search ? { OR: [
+      { fullName: { contains: search, mode: "insensitive" } },
+      { username: { contains: search, mode: "insensitive" } },
+      { whatsapp: { contains: search } },
+    ] } : {}) };
     const [total, cashiers] = await Promise.all([
-      authPrisma.user.count({ where: { role: "CASHIER" } }),
+      authPrisma.user.count({ where }),
       authPrisma.user.findMany({
-        where: { role: "CASHIER" },
+        where,
         select: { id: true, username: true, fullName: true, whatsapp: true, commissionRateBasisPoints: true, status: true, mustChangePassword: true, createdAt: true },
         orderBy: [{ status: "asc" }, { username: "asc" }, { id: "asc" }],
         skip: (requestedPage - 1) * requestedLimit,
