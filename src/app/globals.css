@@ -3325,3 +3325,37 @@ body:has(.site-header.site-header-scenery) {
     max-height: calc(100dvh - 88px) !important;
   }
 }
+
+
+/* Altura final do cabeçalho Super Quina: 100px no celular e 120px no desktop. */
+.site-header.site-header-scenery {
+  height: 120px !important;
+  min-height: 120px !important;
+  max-height: 120px !important;
+}
+
+body:has(.site-header.site-header-scenery) {
+  padding-top: 120px !important;
+}
+
+.home-page.home-page-compact {
+  height: calc(100dvh - 120px) !important;
+  max-height: calc(100dvh - 120px) !important;
+}
+
+@media (max-width: 600px) {
+  .site-header.site-header-scenery {
+    height: 100px !important;
+    min-height: 100px !important;
+    max-height: 100px !important;
+  }
+
+  body:has(.site-header.site-header-scenery) {
+    padding-top: 100px !important;
+  }
+
+  .home-page.home-page-compact {
+    height: calc(100dvh - 100px) !important;
+    max-height: calc(100dvh - 100px) !important;
+  }
+}
