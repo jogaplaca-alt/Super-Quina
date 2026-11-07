@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       confirm:
-        description: "Type INITIALIZE to add Capacitor and the generated Android project to this feature branch"
+        description: "Type INITIALIZE to add Capacitor and synchronize the Android project in this feature branch"
         required: true
         type: string
   push:
@@ -60,10 +60,15 @@ jobs:
           mkdir -p www
           printf '%s\\n' '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Super Quina</title></head><body>Super Quina</body></html>' > www/index.html
 
-      - name: Generate and synchronize Android platform
+      - name: Synchronize existing Android platform or generate it if absent
         run: |
-          npx cap add android
-          npx cap sync android
+          if [ -d android ]; then
+            echo "Existing Android project detected; preserving it and synchronizing Capacitor."
+            npx cap sync android
+          else
+            npx cap add android
+            npx cap sync android
+          fi
 
       - name: Build Android debug APK
         working-directory: android
