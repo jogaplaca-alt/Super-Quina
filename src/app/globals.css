@@ -2782,3 +2782,84 @@ p, .intro, .auth-description, .area-description, .feature-card p,
     padding-top: 68px !important;
   }
 }
+
+
+/* Padronização definitiva: o mesmo cabeçalho fixo é usado em todas as rotas. */
+.site-header.site-header-scenery {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  left: 0 !important;
+  z-index: 9999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  height: 76px !important;
+  min-height: 76px !important;
+  margin: 0 !important;
+  padding: 4px 12px !important;
+  background: #001584 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+  transform: none !important;
+}
+
+.site-header.site-header-scenery .site-header-home-link {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+}
+
+.site-header.site-header-scenery .site-header-scenery-image {
+  display: block !important;
+  width: min(210px, calc(100vw - 32px)) !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 68px !important;
+  margin: 0 auto !important;
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+/* O deslocamento fica no body, não em cada página: evita diferenças entre áreas. */
+body:has(.site-header.site-header-scenery) {
+  padding-top: 76px !important;
+}
+
+.home-page,
+.auth-layout,
+.site-page-shell {
+  padding-top: 0 !important;
+}
+
+.area-page {
+  padding-top: 8px !important;
+}
+
+@media (max-width: 600px) {
+  .site-header.site-header-scenery {
+    height: 68px !important;
+    min-height: 68px !important;
+    padding: 3px 8px !important;
+  }
+
+  .site-header.site-header-scenery .site-header-scenery-image {
+    width: min(180px, calc(100vw - 24px)) !important;
+    max-height: 60px !important;
+  }
+
+  body:has(.site-header.site-header-scenery) {
+    padding-top: 68px !important;
+  }
+
+  .area-page {
+    padding-top: 8px !important;
+  }
+}
