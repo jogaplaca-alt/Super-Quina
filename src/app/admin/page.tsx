@@ -4,7 +4,6 @@ import { AdminPrizePayout } from "@/components/admin/admin-prize-payout";
 import { AdminWithdrawalManager } from "@/components/admin/admin-withdrawal-manager";
 import { AdminCashierManager } from "@/components/admin/admin-cashier-manager";
 import { AdminPrizeRules } from "@/components/admin/admin-prize-rules";
-import { AdminRoundManager } from "@/components/admin/admin-round-manager";
 import { PlayerRecentResults } from "@/components/player/player-recent-results";
 import { requireRole } from "@/lib/auth/require-role";
 export const dynamic = "force-dynamic";
@@ -13,10 +12,6 @@ export default async function AdminPage() {
   return <AreaShell title="Administração" username={user.username} description="Configuração e supervisão da plataforma.">
     <div className="admin-page-layout">
     <div className="admin-accordion-list">
-      <details className="admin-accordion">
-        <summary><span>Rodadas e sorteios</span><span className="admin-accordion-description">Acompanhar horários, fechamento, resultados e apuração</span></summary>
-        <div className="admin-accordion-content"><AdminRoundManager /></div>
-      </details>
       <details className="admin-accordion">
         <summary><span>Últimos resultados</span><span className="admin-accordion-description">Consultar os 48 sorteios publicados mais recentes nas últimas 24 horas</span></summary>
         <div className="admin-accordion-content"><PlayerRecentResults /></div>
