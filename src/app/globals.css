@@ -855,8 +855,6 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   font-size:.95rem;
   line-height:1.3;
 }
-@media(max-width:380px){
-}
 
 
 /* Carrossel de rodadas: mostrar a próxima opção para indicar que há mais conteúdo horizontal. */
@@ -967,17 +965,10 @@ p, .intro, .auth-description, .area-description, .feature-card p,
 /* Compacta o espaço acima do formulário do cambista em telas pequenas. */
 .area-content-compact{padding-top:8px}
 .cashier-sale-card{padding-top:10px}
-
-
-/* Cabeçalho compartilhado: geometria única em todas as rotas; apenas a largura se adapta a telas estreitas. */
-.site-header{box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;width:100%;min-height:74px;margin:0 auto;padding:2px clamp(10px,3vw,24px);background:#0d111a;border-bottom:1px solid rgba(148,163,184,.22)}
-.site-header-brand{grid-column:2;display:flex;align-items:center;justify-content:center;width:max-content;max-width:80vw;margin:0;text-decoration:none}
-.site-header-brand img{display:block;width:auto;height:clamp(54px,6vw,66px);max-width:min(72vw,320px);max-height:66px;object-fit:contain}
 .auth-layout{width:min(100%,1120px);min-height:100vh;margin:0 auto;padding:0 clamp(12px,3vw,24px) 28px;box-sizing:border-box}
 .auth-layout .auth-card{margin:clamp(18px,4vh,40px) auto 0}
 .site-page-shell{padding-top:0!important}
-.site-page-shell>.site-header{margin-bottom:24px}
-@media(max-width:480px){.auth-layout{padding-left:10px;padding-right:10px}.site-header{min-height:64px;padding:2px 10px}.site-header-brand{max-width:76vw}.site-header-brand img{height:54px;max-height:54px;max-width:76vw}}
+@media(max-width:480px){.auth-layout{padding-left:10px;padding-right:10px}}
 
 
 /* Página inicial: hero e imagens proporcionais em celular, sem placa cortada. */
@@ -1411,37 +1402,6 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   .round-repeat-fieldset>.round-repeat-select{min-height:60px;font-size:1.02rem}
 }
 
-/* Cabeçalho com a mesma moldura das imagens da página inicial. */
-.site-header-scenery{
-  display:block;
-  box-sizing:border-box;
-  width:calc(100% - clamp(28px,6vw,48px));
-  height:100px;
-  min-height:100px;
-  margin:8px auto 10px;
-  padding:clamp(7px,2vw,12px);
-  overflow:hidden;
-  border:1px solid #d7e3ef;
-  border-radius:clamp(14px,3vw,22px);
-  background:#07172b;
-  box-shadow:0 16px 42px rgb(0 0 0 / 18%);
-  line-height:0;
-}
-.site-header-scenery-image{
-  display:block;
-  width:100%;
-  height:100%;
-  border-radius:12px;
-  object-fit:cover;
-  object-position:center;
-}
-@media(max-width:600px){
-  .site-header-scenery{
-    height:100px;
-    min-height:100px;
-  }
-}
-
 
 /* Seletor de quantidade de rodadas em destaque nas áreas do jogador e cambista. */
 .purchase-form fieldset > select{
@@ -1523,110 +1483,6 @@ p, .intro, .auth-description, .area-description, .feature-card p,
 .cashier-summary-tile{display:grid;gap:5px;padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
 .cashier-summary-tile span{color:var(--muted);font-size:.88rem}
 .cashier-summary-tile strong{font-size:1.2rem;overflow-wrap:anywhere}
-
-/* Cabeçalho da marca mais alto, mantendo a proporção visual em desktop e celular. */
-.site-header-scenery,
-.site-header-scenery-image{
-  height:clamp(110px,15vw,180px);
-  min-height:clamp(110px,15vw,180px);
-}
-.site-header-scenery-image{
-  object-fit:cover;
-  object-position:center;
-}
-
-/* Cabeçalho desktop: exibe a arte inteira em proporção natural, sem recorte. */
-@media screen and (min-width: 900px) {
-  .site-header-scenery {
-    height: auto;
-    min-height: 0;
-  }
-
-  .site-header-scenery-image {
-    display: block;
-    width: 100%;
-    height: auto;
-    min-height: 0;
-    object-fit: contain;
-    object-position: center;
-  }
-}
-
-/* Cabeçalho compacto: reduz a faixa sem deformar a arte da marca. */
-.site-header.site-header-scenery {
-  height: 124px;
-  min-height: 124px;
-  overflow: hidden;
-}
-
-.site-header.site-header-scenery .site-header-scenery-image {
-  width: 100%;
-  height: 124px;
-  min-height: 124px;
-  object-fit: cover;
-  object-position: center 52%;
-}
-
-@media (max-width: 600px) {
-  .site-header.site-header-scenery {
-    height: 82px;
-    min-height: 82px;
-  }
-
-  .site-header.site-header-scenery .site-header-scenery-image {
-    height: 82px;
-    min-height: 82px;
-    object-position: center 52%;
-  }
-}
-
-/* Cabeçalho responsivo: exibe a arte inteira, sem cortar a logomarca. */
-.site-header.site-header-scenery {
-  display: block;
-  width: 100%;
-  height: clamp(112px, 13vw, 150px);
-  min-height: 0;
-  padding: 0;
-  overflow: hidden;
-  background: #07358f;
-}
-
-.site-header.site-header-scenery .site-header-scenery-image {
-  display: block;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  object-fit: fill;
-  object-position: center;
-}
-
-@media (max-width: 600px) {
-  .site-header.site-header-scenery {
-    height: clamp(82px, 22vw, 94px);
-    min-height: 0;
-  }
-}
-
-
-/* Base visual consolidada: evita deformação do cabeçalho e desalinhamento entre áreas. */
-.site-header.site-header-scenery {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: clamp(88px, 12vw, 150px);
-  min-height: 0;
-  padding: 0 clamp(8px, 2vw, 20px);
-  overflow: hidden;
-  background: #07358f;
-}
-.site-header.site-header-scenery .site-header-scenery-image {
-  display: block;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  object-fit: contain;
-  object-position: center;
-}
 .area-page {
   width: min(100%, 1440px);
   min-height: 100vh;
@@ -1685,10 +1541,6 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   width: min(100%, 620px);
 }
 @media (max-width: 600px) {
-  .site-header.site-header-scenery {
-    height: clamp(76px, 20vw, 96px);
-    padding-inline: 6px;
-  }
   .area-page {
     padding: 8px 10px 18px;
   }
@@ -1951,81 +1803,6 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   .area-page-compact .player-collapsible-section > summary {
     min-height: 82px;
     padding: 16px;
-  }
-}
-
-/* Cabeçalho responsivo final: arte inteira, em largura total e proporção original (3:1). */
-.site-header.site-header-scenery {
-  display: block;
-  width: 100%;
-  height: auto;
-  min-height: 0;
-  margin: 0;
-  padding: 0;
-  overflow: visible;
-  border: 0;
-  background: #07358f;
-  line-height: 0;
-}
-
-.site-header.site-header-scenery .site-header-scenery-image {
-  display: block;
-  width: 100%;
-  max-width: none;
-  height: auto !important;
-  min-height: 0;
-  object-fit: contain;
-  object-position: center;
-}
-
-@media (max-width: 600px) {
-  .site-header.site-header-scenery {
-    width: 100%;
-    height: auto;
-    min-height: 0;
-    padding: 0;
-  }
-
-  .site-header.site-header-scenery .site-header-scenery-image {
-    width: 100%;
-    height: auto !important;
-    min-height: 0;
-  }
-}
-
-
-/* Ajuste definitivo: cabeçalho 40% mais baixo, preservando o tamanho horizontal da logomarca.
-   A arte mantém a largura total; o recorte fica somente no fundo superior/inferior. */
-.site-header.site-header-scenery {
-  width: 100%;
-  height: auto !important;
-  min-height: 0 !important;
-  aspect-ratio: 5 / 1;
-  overflow: hidden;
-  padding: 0;
-}
-
-.site-header.site-header-scenery .site-header-scenery-image {
-  display: block;
-  width: 100%;
-  height: 100% !important;
-  min-height: 0 !important;
-  object-fit: cover;
-  object-position: center 35%;
-}
-
-@media (max-width: 600px) {
-  .site-header.site-header-scenery {
-    width: 100%;
-    aspect-ratio: 5 / 1;
-    height: auto !important;
-  }
-
-  .site-header.site-header-scenery .site-header-scenery-image {
-    width: 100%;
-    height: 100% !important;
-    object-fit: cover;
-    object-position: center 35%;
   }
 }
 
@@ -2393,91 +2170,6 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   .area-page-compact .numeric-game-purchase .round-repeat-fieldset>.round-repeat-select{min-height:44px!important;}
 }
 
-/* Cabeçalho fixo e infinito: permanece visível durante a rolagem em todas as páginas. */
-.site-header.site-header-scenery {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  left: 50%;
-  width: 100vw !important;
-  max-width: none !important;
-  margin-left: -50vw !important;
-  margin-right: 0 !important;
-  box-sizing: border-box;
-  border: 0 !important;
-  border-bottom: 1px solid #d7e3ef !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-}
-.site-header.site-header-scenery .site-header-scenery-image {
-  display: block;
-  width: 100% !important;
-  max-width: none !important;
-}
-
-
-/* Cabeçalho fixo no topo: evita o efeito elástico do sticky durante a rolagem no celular. */
-.site-header.site-header-scenery {
-  position: fixed !important;
-  top: 0 !important;
-  left: 50% !important;
-  z-index: 1000 !important;
-  width: 100vw !important;
-  height: 80px !important;
-  min-height: 80px !important;
-  margin: 0 0 0 -50vw !important;
-  padding: 0 !important;
-  overflow: hidden;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: var(--background);
-  box-shadow: none !important;
-  transform: none !important;
-  transition: none !important;
-  animation: none !important;
-}
-.site-header.site-header-scenery .site-header-home-link {
-  display: block;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-}
-.site-header.site-header-scenery .site-header-scenery-image {
-  display: block;
-  width: auto !important;
-  height: 80px !important;
-  max-width: 100% !important;
-  max-height: 80px !important;
-  margin: 0 auto !important;
-  border-radius: 0 !important;
-  object-fit: contain;
-  object-position: center;
-}
-
-/* O cabeçalho é fixo; o espaço precisa ser reservado no contêiner real das áreas. */
-.area-page {
-  padding-top: 90px !important;
-}
-@media(max-width:600px) {
-  .site-header.site-header-scenery {
-    height: 80px !important;
-    min-height: 80px !important;
-  }
-  .area-page {
-    padding-top: 90px !important;
-  }
-}
-
-
-/* Reserva o mesmo espaço do cabeçalho fixo em todas as páginas que o utilizam.
-   Evita que o conteúdo público, autenticação e consultas comece atrás da faixa. */
-.home-page:has(.site-header.site-header-scenery),
-.auth-layout:has(> .site-header.site-header-scenery),
-.site-page-shell:has(> .site-header.site-header-scenery) {
-  box-sizing: border-box;
-  padding-block-start: 90px !important;
-}
-
 /* Página inicial: remover molduras das imagens promocionais. */
 .home-entry > .home-how-infographic,
 .home-entry > .home-promo {
@@ -2633,125 +2325,8 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   }
 }
 
-/* Cabeçalho global Super Quina: centralizado e integrado ao azul da página.
-   Como usa o componente compartilhado, vale para todas as rotas atuais e futuras. */
-.site-header.site-header-scenery {
-  position: relative !important;
-  inset: auto !important;
-  z-index: 10 !important;
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) !important;
-  place-items: center !important;
-  width: 100% !important;
-  height: 84px !important;
-  min-height: 84px !important;
-  margin: 0 auto 10px !important;
-  padding: 4px 12px !important;
-  overflow: hidden !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: var(--background) !important;
-  box-shadow: none !important;
-}
-
-.site-header.site-header-scenery .site-header-home-link {
-  grid-column: 1 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 100% !important;
-  height: 100% !important;
-  margin: 0 auto !important;
-}
-
-.site-header.site-header-scenery .site-header-scenery-image {
-  display: block !important;
-  width: min(228px, calc(100vw - 32px)) !important;
-  height: auto !important;
-  max-width: 100% !important;
-  max-height: 76px !important;
-  min-height: 0 !important;
-  margin: 0 auto !important;
-  border-radius: 0 !important;
-  object-fit: contain !important;
-  object-position: center !important;
-}
-
-.site-page-shell > .site-header.site-header-scenery {
-  margin-bottom: 10px !important;
-}
-
-@media (max-width: 600px) {
-  .site-header.site-header-scenery {
-    height: 76px !important;
-    min-height: 76px !important;
-    margin-bottom: 8px !important;
-    padding: 3px 8px !important;
-  }
-
-  .site-header.site-header-scenery .site-header-scenery-image {
-    width: min(180px, calc(100vw - 24px)) !important;
-    max-height: 68px !important;
-  }
-}
-
-/* Correção definitiva do espaçamento do cabeçalho.
-   O cabeçalho voltou ao fluxo normal; não reservar altura para uma barra fixa. */
-.home-page:has(.site-header.site-header-scenery),
-.auth-layout:has(> .site-header.site-header-scenery),
-.site-page-shell:has(> .site-header.site-header-scenery) {
-  padding-block-start: 0 !important;
-}
-
 .area-page {
   padding-top: clamp(20px, 4vw, 48px) !important;
-}
-
-/* Cabeçalho global fixo: mesmo tamanho e alinhamento na página inicial e nas áreas autenticadas. */
-.site-header.site-header-scenery {
-  position: fixed !important;
-  top: 0 !important;
-  right: 0 !important;
-  left: 0 !important;
-  z-index: 1500 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  box-sizing: border-box !important;
-  width: 100% !important;
-  max-width: none !important;
-  height: 76px !important;
-  min-height: 76px !important;
-  margin: 0 !important;
-  padding: 4px 12px !important;
-  overflow: hidden !important;
-  background: #001584 !important;
-  border: 0 !important;
-  border-bottom: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-
-.site-header.site-header-scenery .site-header-home-link {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 100% !important;
-  height: 100% !important;
-  margin: 0 !important;
-}
-
-.site-header.site-header-scenery .site-header-scenery-image {
-  display: block !important;
-  width: min(210px, calc(100vw - 32px)) !important;
-  height: auto !important;
-  max-width: 100% !important;
-  max-height: 68px !important;
-  min-height: 0 !important;
-  margin: 0 auto !important;
-  object-fit: contain !important;
-  object-position: center !important;
 }
 
 /* Reserva exatamente a altura da faixa fixa nos dois layouts que usam o mesmo cabeçalho. */
@@ -2760,22 +2335,7 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   padding-top: 76px !important;
 }
 
-.area-page {
-  box-sizing: border-box !important;
-  padding-top: 76px !important;
-}
-
 @media (max-width: 600px) {
-  .site-header.site-header-scenery {
-    height: 68px !important;
-    min-height: 68px !important;
-    padding: 3px 8px !important;
-  }
-
-  .site-header.site-header-scenery .site-header-scenery-image {
-    width: min(180px, calc(100vw - 24px)) !important;
-    max-height: 60px !important;
-  }
 
   .home-page,
   .area-page {
@@ -2783,139 +2343,10 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   }
 }
 
-
-/* Padronização definitiva: o mesmo cabeçalho fixo é usado em todas as rotas. */
-.site-header.site-header-scenery {
-  position: fixed !important;
-  top: 0 !important;
-  right: 0 !important;
-  left: 0 !important;
-  z-index: 9999 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  box-sizing: border-box !important;
-  width: 100% !important;
-  height: 76px !important;
-  min-height: 76px !important;
-  margin: 0 !important;
-  padding: 4px 12px !important;
-  background: #001584 !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  overflow: hidden !important;
-  transform: none !important;
-}
-
-.site-header.site-header-scenery .site-header-home-link {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 100% !important;
-  height: 100% !important;
-  margin: 0 !important;
-}
-
-.site-header.site-header-scenery .site-header-scenery-image {
-  display: block !important;
-  width: min(210px, calc(100vw - 32px)) !important;
-  height: auto !important;
-  max-width: 100% !important;
-  max-height: 68px !important;
-  margin: 0 auto !important;
-  object-fit: contain !important;
-  object-position: center !important;
-}
-
-/* O deslocamento fica no body, não em cada página: evita diferenças entre áreas. */
-body:has(.site-header.site-header-scenery) {
-  padding-top: 76px !important;
-}
-
 .home-page,
 .auth-layout,
 .site-page-shell {
   padding-top: 0 !important;
-}
-
-.area-page {
-  padding-top: 8px !important;
-}
-
-@media (max-width: 600px) {
-  .site-header.site-header-scenery {
-    height: 68px !important;
-    min-height: 68px !important;
-    padding: 3px 8px !important;
-  }
-
-  .site-header.site-header-scenery .site-header-scenery-image {
-    width: min(180px, calc(100vw - 24px)) !important;
-    max-height: 60px !important;
-  }
-
-  body:has(.site-header.site-header-scenery) {
-    padding-top: 68px !important;
-  }
-
-  .area-page {
-    padding-top: 8px !important;
-  }
-}
-
-
-/* Correção única do cabeçalho compartilhado: home, jogador, cambista e demais rotas.
-   O mesmo componente, dimensões e reserva de espaço são aplicados em todo o site. */
-.site-header.site-header-scenery {
-  position: fixed !important;
-  inset: 0 0 auto 0 !important;
-  z-index: 99999 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  box-sizing: border-box !important;
-  width: 100% !important;
-  height: 68px !important;
-  min-height: 68px !important;
-  max-height: 68px !important;
-  margin: 0 !important;
-  padding: 4px 8px !important;
-  overflow: hidden !important;
-  background: #001584 !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-
-.site-header.site-header-scenery .site-header-home-link {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  flex: 0 0 auto !important;
-  width: 180px !important;
-  height: 60px !important;
-  max-width: calc(100vw - 24px) !important;
-  margin: 0 auto !important;
-  padding: 0 !important;
-}
-
-.site-header.site-header-scenery .site-header-scenery-image {
-  display: block !important;
-  width: 180px !important;
-  height: 60px !important;
-  max-width: calc(100vw - 24px) !important;
-  max-height: 60px !important;
-  min-height: 0 !important;
-  margin: 0 auto !important;
-  object-fit: contain !important;
-  object-position: center !important;
-}
-
-/* O espaço da faixa fixa é reservado uma única vez no body, não em cada página. */
-body:has(.site-header.site-header-scenery) {
-  padding-top: 68px !important;
 }
 
 .home-page,
@@ -2934,64 +2365,12 @@ body:has(.site-header.site-header-scenery) {
   padding: 0 !important;
 }
 
-@media (max-width: 600px) {
-  .site-header.site-header-scenery {
-    height: 68px !important;
-    min-height: 68px !important;
-    max-height: 68px !important;
-  }
-
-  .site-header.site-header-scenery .site-header-home-link,
-  .site-header.site-header-scenery .site-header-scenery-image {
-    width: 180px !important;
-    height: 60px !important;
-    max-width: calc(100vw - 24px) !important;
-    max-height: 60px !important;
-  }
-
-  body:has(.site-header.site-header-scenery) {
-    padding-top: 68px !important;
-  }
-}
-
 
 /* Impede o efeito elástico de overscroll do Safari/iOS e mantém a faixa imóvel. */
 html,
 body {
   overscroll-behavior-y: none !important;
   overscroll-behavior: none !important;
-}
-
-body:has(.site-header.site-header-scenery) {
-  position: relative !important;
-  overflow-x: hidden !important;
-}
-
-.site-header.site-header-scenery {
-  position: fixed !important;
-  inset: 0 0 auto 0 !important;
-  z-index: 2147483000 !important;
-  width: 100% !important;
-  height: 68px !important;
-  min-height: 68px !important;
-  max-height: 68px !important;
-  overflow: hidden !important;
-  transform: translate3d(0, 0, 0) !important;
-  -webkit-transform: translate3d(0, 0, 0) !important;
-  transition: none !important;
-  animation: none !important;
-  will-change: transform;
-  backface-visibility: hidden !important;
-  -webkit-backface-visibility: hidden !important;
-  touch-action: pan-y !important;
-}
-
-.site-header.site-header-scenery .site-header-home-link,
-.site-header.site-header-scenery .site-header-scenery-image {
-  flex-shrink: 0 !important;
-  transform: none !important;
-  transition: none !important;
-  animation: none !important;
 }
 
 
@@ -3005,18 +2384,14 @@ body:has(.home-page) {
   overscroll-behavior: none !important;
 }
 
-body:has(.home-page) {
-  padding-top: 68px !important;
-}
-
 .home-page.home-page-compact {
   display: flex !important;
   flex-direction: column !important;
   box-sizing: border-box !important;
   width: 100% !important;
-  height: calc(100dvh - 68px) !important;
+  height: calc(100dvh - var(--site-header-height)) !important;
   min-height: 0 !important;
-  max-height: calc(100dvh - 68px) !important;
+  max-height: calc(100dvh - var(--site-header-height)) !important;
   margin: 0 !important;
   padding: 0 !important;
   overflow: hidden !important;
@@ -3244,169 +2619,57 @@ body:has(.home-page) {
   margin-bottom: 48px !important;
 }
 
-/* Logomarca responsiva: a arte preenche toda a área do cabeçalho em qualquer tela. */
+
+/* Cabeçalho Super Quina: uma única regra, no fluxo normal da página. */
+:root {
+  --site-header-height: 120px;
+}
+
 .site-header.site-header-scenery {
-  width: 100% !important;
-  padding: 0 !important;
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: var(--site-header-height);
+  min-height: var(--site-header-height);
+  max-height: var(--site-header-height);
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: #071b87;
+  box-shadow: none;
 }
 
 .site-header.site-header-scenery .site-header-home-link {
-  display: block !important;
-  width: 100% !important;
-  height: 100% !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
-  flex: 1 1 100% !important;
-  margin: 0 !important;
-  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
 .site-header.site-header-scenery .site-header-scenery-image {
-  display: block !important;
-  width: 100% !important;
-  height: 100% !important;
-  max-width: none !important;
-  max-height: none !important;
-  object-fit: contain !important;
-  object-position: center center !important;
-}
-
-/* Altura padrão do cabeçalho Super Quina, com a logomarca centralizada. */
-.site-header.site-header-scenery {
-  height: 100px !important;
-  min-height: 100px !important;
-  max-height: 100px !important;
-  padding: 0 !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.site-header.site-header-scenery .site-header-home-link {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 100% !important;
-  height: 100% !important;
-  flex: 1 1 100% !important;
-  margin: 0 auto !important;
-}
-
-.site-header.site-header-scenery .site-header-scenery-image {
-  display: block !important;
-  width: 100% !important;
-  height: 100% !important;
-  margin: 0 auto !important;
-  object-fit: cover !important;
-  object-position: center center !important;
-}
-
-body:has(.site-header.site-header-scenery) {
-  padding-top: 100px !important;
-}
-
-.home-page.home-page-compact {
-  height: calc(100dvh - 100px) !important;
-  max-height: calc(100dvh - 100px) !important;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0;
+  object-fit: cover;
+  object-position: center;
 }
 
 @media (max-width: 600px) {
-  .site-header.site-header-scenery {
-    height: 88px !important;
-    min-height: 88px !important;
-    max-height: 88px !important;
+  :root {
+    --site-header-height: 100px;
   }
-
-  body:has(.site-header.site-header-scenery) {
-    padding-top: 88px !important;
-  }
-
-  .home-page.home-page-compact {
-    height: calc(100dvh - 88px) !important;
-    max-height: calc(100dvh - 88px) !important;
-  }
-}
-
-
-/* Altura final do cabeçalho Super Quina: 100px no celular e 120px no desktop. */
-.site-header.site-header-scenery {
-  height: 120px !important;
-  min-height: 120px !important;
-  max-height: 120px !important;
-}
-
-body:has(.site-header.site-header-scenery) {
-  padding-top: 120px !important;
-}
-
-.home-page.home-page-compact {
-  height: calc(100dvh - 120px) !important;
-  max-height: calc(100dvh - 120px) !important;
-}
-
-@media (max-width: 600px) {
-  .site-header.site-header-scenery {
-    height: 100px !important;
-    min-height: 100px !important;
-    max-height: 100px !important;
-  }
-
-  body:has(.site-header.site-header-scenery) {
-    padding-top: 100px !important;
-  }
-
-  .home-page.home-page-compact {
-    height: calc(100dvh - 100px) !important;
-    max-height: calc(100dvh - 100px) !important;
-  }
-}
-
-
-/* Correção: exibir a arte completa do cabeçalho, sem cortes ou deformação. */
-.site-header.site-header-scenery {
-  overflow: hidden !important;
-  background-color: #071b87 !important;
-}
-
-.site-header.site-header-scenery .site-header-home-link {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  overflow: hidden !important;
-  background-color: #071b87 !important;
-}
-
-.site-header.site-header-scenery .site-header-scenery-image {
-  display: block !important;
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
-  object-fit: contain !important;
-  object-position: center center !important;
-}
-
-
-/* Cabeçalho: usar toda a largura disponível; não limitar a imagem ao tamanho natural do link. */
-.site-header.site-header-scenery {
-  width: 100% !important;
-  min-width: 100% !important;
-  overflow: hidden !important;
-}
-
-.site-header.site-header-scenery .site-header-home-link {
-  width: 100% !important;
-  min-width: 100% !important;
-  max-width: none !important;
-  flex: 1 1 100% !important;
-  align-self: stretch !important;
-}
-
-.site-header.site-header-scenery .site-header-scenery-image {
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: 100% !important;
-  height: 100% !important;
-  max-height: 100% !important;
-  object-fit: contain !important;
-  object-position: center center !important;
 }
