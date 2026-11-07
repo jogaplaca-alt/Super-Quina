@@ -1,9 +1,10 @@
 import { Prisma } from "@/generated/prisma/client";
+import { getNumericPrizeReview, NUMERIC_PRIZE_CATEGORY_LABELS } from "@/domain/numeric-prize-review";
 
 export type NumericPrizePayoutChannel = "PLATFORM_PIX" | "CASHIER_CASH";
 
 export class NumericPrizePayoutError extends Error {
-  constructor(public readonly code: "LINE_NOT_FOUND" | "NOT_ELIGIBLE" | "NOT_OWNED" | "ALREADY_PAID") {
+  constructor(public readonly code: "LINE_NOT_FOUND" | "NOT_ELIGIBLE" | "NOT_OWNED" | "ALREADY_PAID" | "INCONSISTENT_PRIZE") {
     super(code);
   }
 }
@@ -30,11 +31,13 @@ export async function registerNumericPrizePayout(
       numberValue: true,
       prizeCents: true,
       prizeCreditedAt: true,
+      unitCents: true, tensCents: true, hundredsCents: true, thousandsCents: true, quinaCents: true,
+      ruleVersion: true, ruleSnapshot: true,
       participation: {
         select: {
           status: true,
           purchase: { select: { id: true, receiptCode: true, cashierId: true, playerId: true, status: true, confirmedAt: true } },
-          round: { select: { id: true, code: true, status: true } },
+          round: { select: { id: true, code: true, status: true, resultNumber: true } },
         },
       },
       prizePayout: { select: { id: true } },
@@ -59,6 +62,17 @@ export async function registerNumericPrizePayout(
 
   if (input.channel === "CASHIER_CASH" && (!input.cashierId || purchase.cashierId !== input.cashierId)) {
     throw new NumericPrizePayoutError("NOT_OWNED");
+  }
+
+  const prizeReview = getNumericPrizeReview({
+    numberValue: line.numberValue,
+    unitCents: line.unitCents, tensCents: line.tensCents,
+    hundredsCents: line.hundredsCents, thousandsCents: line.thousandsCents,
+    quinaCents: line.quinaCents, ruleVersion: line.ruleVersion,
+    ruleSnapshot: line.ruleSnapshot,
+  }, line.participation.round.resultNumber);
+  if (!prizeReview?.calculationConsistent || prizeReview.calculatedPrizeCents !== line.prizeCents) {
+    throw new NumericPrizePayoutError("INCONSISTENT_PRIZE");
   }
 
   const payout = await tx.numericPrizePayout.create({
@@ -89,6 +103,12 @@ export async function registerNumericPrizePayout(
       metadata: {
         participationLineId: line.id,
         numberValue: line.numberValue,
+        resultNumber: line.participation.round.resultNumber,
+        prizeCategory: prizeReview.category,
+        prizeCategoryLabel: NUMERIC_PRIZE_CATEGORY_LABELS[prizeReview.category],
+        categoryStakeCents: prizeReview.stakeCents,
+        multiplier: prizeReview.multiplier,
+        calculatedPrizeCents: prizeReview.calculatedPrizeCents,
         receiptCode: purchase.receiptCode,
         purchaseId: purchase.id,
         roundId: line.participation.round.id,
