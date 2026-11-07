@@ -11,6 +11,8 @@ on:
       - 'capacitor.config.ts'
       - 'package.json'
       - 'package-lock.json'
+      - 'prisma/**'
+      - 'prisma.config.ts'
       - 'www/**'
       - 'src/modules/printing/native/**'
       - 'src/modules/printing/escpos/**'
@@ -51,6 +53,11 @@ jobs:
 
       - name: Install project dependencies
         run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+        env:
+          DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/super_quina_ci
 
       - name: TypeScript type check
         run: npm run typecheck
