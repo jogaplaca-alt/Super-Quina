@@ -4,7 +4,7 @@ android {
     namespace "com.superquina.app"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.superquina.public"
+        applicationId "com.superquina.app.publico"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
