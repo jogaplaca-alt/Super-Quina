@@ -3119,3 +3119,31 @@ body:has(.home-page) {
     min-height: 32px !important;
   }
 }
+
+
+/* Respiro inferior para o botão Entrar na página inicial, sem criar rolagem. */
+.home-page.home-page-compact .home-entry {
+  gap: clamp(5px, 1dvh, 10px) !important;
+  padding-bottom: max(22px, calc(env(safe-area-inset-bottom, 0px) + 16px)) !important;
+}
+
+.home-page.home-page-compact .home-entry > .home-access-footer {
+  align-self: center !important;
+  min-height: 48px !important;
+  padding: 0 !important;
+}
+
+.home-page.home-page-compact .home-footer-access {
+  min-height: 48px !important;
+  max-height: 48px !important;
+}
+
+@media (max-height: 620px) {
+  .home-page.home-page-compact .home-entry {
+    padding-bottom: max(16px, calc(env(safe-area-inset-bottom, 0px) + 12px)) !important;
+  }
+  .home-page.home-page-compact .home-footer-access {
+    min-height: 42px !important;
+    max-height: 42px !important;
+  }
+}
