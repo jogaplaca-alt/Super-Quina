@@ -3238,3 +3238,8 @@ body:has(.home-page) {
     padding-inline: 14px;
   }
 }
+
+/* Ajuste fino: aproxima o card de conferência do formulário sem encostar. */
+.area-page-compact:has(.cashier-info-card) .numeric-game-purchase {
+  margin-bottom: 48px !important;
+}
