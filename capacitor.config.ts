@@ -1,11 +1,9 @@
 const config = {
-  appId: "com.superquina.app",
+  appId: "com.superquina.public",
   appName: "Super Quina",
-  // Capacitor requires a webDir even when loading the hosted Next.js application.
-  // Keep a minimal directory available for native project synchronization.
+  // Public application uses the full Super Quina experience.
   webDir: "www",
   server: {
-    // The Next.js application and its API routes remain hosted on the server.
     url: "https://superquina.com",
     cleartext: false,
   },
