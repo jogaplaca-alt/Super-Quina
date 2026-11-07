@@ -12,7 +12,7 @@ export type NumericPrizeMultipliers = Record<NumericPrizeCategory, number>;
 export const NUMERIC_PRIZE_RULE_VERSION = "numeric-admin-v1";
 
 export const DEFAULT_NUMERIC_PRIZE_MULTIPLIERS: NumericPrizeMultipliers = {
-  unit: 5,
+  unit: 3,
   tens: 30,
   hundreds: 300,
   thousands: 3_000,
