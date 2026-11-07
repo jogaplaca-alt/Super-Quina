@@ -2633,31 +2633,35 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   }
 }
 
-
-/* Ajuste final da logomarca do cabeçalho: tamanho controlado pelo CSS,
-   sem esticar nem cortar a imagem original. */
+/* Cabeçalho global Super Quina: centralizado e integrado ao azul da página.
+   Como usa o componente compartilhado, vale para todas as rotas atuais e futuras. */
 .site-header.site-header-scenery {
-  position: fixed !important;
-  top: 0 !important;
-  left: 50% !important;
-  z-index: 1000 !important;
+  position: relative !important;
+  inset: auto !important;
+  z-index: 10 !important;
   display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
   place-items: center !important;
-  width: 100vw !important;
+  width: 100% !important;
   height: 84px !important;
   min-height: 84px !important;
-  margin: 0 0 0 -50vw !important;
-  padding: 0 12px !important;
+  margin: 0 auto 10px !important;
+  padding: 4px 12px !important;
   overflow: hidden !important;
-  background: #07358f !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: var(--background) !important;
+  box-shadow: none !important;
 }
 
 .site-header.site-header-scenery .site-header-home-link {
+  grid-column: 1 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   width: 100% !important;
   height: 100% !important;
+  margin: 0 auto !important;
 }
 
 .site-header.site-header-scenery .site-header-scenery-image {
@@ -2668,40 +2672,25 @@ p, .intro, .auth-description, .area-description, .feature-card p,
   max-height: 76px !important;
   min-height: 0 !important;
   margin: 0 auto !important;
+  border-radius: 0 !important;
   object-fit: contain !important;
   object-position: center !important;
 }
 
-.area-page {
-  padding-top: 94px !important;
-}
-
-.home-page:has(.site-header.site-header-scenery),
-.auth-layout:has(> .site-header.site-header-scenery),
-.site-page-shell:has(> .site-header.site-header-scenery) {
-  padding-block-start: 94px !important;
+.site-page-shell > .site-header.site-header-scenery {
+  margin-bottom: 10px !important;
 }
 
 @media (max-width: 600px) {
   .site-header.site-header-scenery {
-    height: 68px !important;
-    min-height: 68px !important;
-    padding: 0 8px !important;
+    height: 76px !important;
+    min-height: 76px !important;
+    margin-bottom: 8px !important;
+    padding: 3px 8px !important;
   }
 
   .site-header.site-header-scenery .site-header-scenery-image {
     width: min(180px, calc(100vw - 24px)) !important;
-    height: auto !important;
-    max-height: 60px !important;
-  }
-
-  .area-page {
-    padding-top: 78px !important;
-  }
-
-  .home-page:has(.site-header.site-header-scenery),
-  .auth-layout:has(> .site-header.site-header-scenery),
-  .site-page-shell:has(> .site-header.site-header-scenery) {
-    padding-block-start: 78px !important;
+    max-height: 68px !important;
   }
 }
