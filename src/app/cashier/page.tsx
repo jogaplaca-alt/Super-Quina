@@ -10,16 +10,19 @@ export const dynamic = "force-dynamic";
 export default async function CashierPage() {
   const user = await requireRole("CASHIER");
   return (
-    <AreaShell title="Área do cambista" username={user.username} compact footerContent={<CashierSalesSummary />}>
+    <AreaShell title="Área do cambista" username={user.username} compact>
       <CashierSaleForm />
-      <CashierPrizePayout />
-      <details className="player-collapsible-section">
-        <summary>
-          <span className="player-collapsible-label">Resultados</span>
-          <span className="player-collapsible-title">Últimos resultados</span>
-        </summary>
-        <PlayerRecentResults />
-      </details>
+      <section className="cashier-info-card" aria-label="Informações do cambista">
+        <CashierPrizePayout />
+        <details className="player-collapsible-section cashier-info-results">
+          <summary>
+            <span className="player-collapsible-label">Resultados</span>
+            <span className="player-collapsible-title">Últimos resultados</span>
+          </summary>
+          <PlayerRecentResults />
+        </details>
+        <CashierSalesSummary />
+      </section>
     </AreaShell>
   );
 }
