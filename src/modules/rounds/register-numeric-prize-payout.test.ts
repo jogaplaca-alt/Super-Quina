@@ -55,6 +55,16 @@ describe("registerNumericPrizePayout", () => {
     expect(auditCreate).toHaveBeenCalledOnce();
   });
 
+
+  it("blocks payout when the stored prize differs from the deterministic result", async () => {
+    const { tx, payoutCreate, auditCreate } = setup(makeLine({ prizeCents: 1000 }));
+    await expect(registerNumericPrizePayout(tx as never, {
+      lineId: "line-12345678", actorId: "admin-123", channel: "PLATFORM_PIX",
+    })).rejects.toMatchObject({ code: "INCONSISTENT_PRIZE" });
+    expect(payoutCreate).not.toHaveBeenCalled();
+    expect(auditCreate).not.toHaveBeenCalled();
+  });
+
   it("rejects external payout for an online player's prize", async () => {
     const { tx, payoutCreate, auditCreate } = setup(makeLine({
       participation: {
