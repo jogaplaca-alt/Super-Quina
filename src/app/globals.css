@@ -2730,3 +2730,47 @@ body:has(.home-page) {
     font-size: .72rem !important;
   }
 }
+
+
+/* Refinamento mobile: aproximar os dois banners e centralizar o acesso no espaço inferior. */
+.home-page.home-page-compact .home-entry {
+  row-gap: 0 !important;
+  column-gap: 0 !important;
+  padding-bottom: max(24px, calc(env(safe-area-inset-bottom, 0px) + 18px)) !important;
+}
+
+.home-page.home-page-compact .home-entry > .home-access-footer {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  align-self: stretch !important;
+  justify-self: stretch !important;
+  width: 100% !important;
+  min-height: 40px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.home-page.home-page-compact .home-footer-access {
+  width: 150px !important;
+  min-width: 150px !important;
+  min-height: 36px !important;
+  max-height: 36px !important;
+  margin: 0 auto !important;
+  padding: 4px 18px !important;
+  font-size: .9rem !important;
+}
+
+@media (max-width: 600px) {
+  .home-page.home-page-compact .home-entry {
+    row-gap: 0 !important;
+  }
+
+  .home-page.home-page-compact .home-footer-access {
+    width: 146px !important;
+    min-width: 146px !important;
+    min-height: 35px !important;
+    max-height: 35px !important;
+    font-size: .88rem !important;
+  }
+}
