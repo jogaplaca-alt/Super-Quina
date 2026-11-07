@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Simulador Matemático | Super Quina</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#080d24;color:#eef2ff}
+*{box-sizing:border-box}body{margin:0;padding:24px 16px 48px;background:radial-gradient(ellipse at top,#10245b 0,#080d24 58%);min-height:100vh}
+main{max-width:920px;margin:auto}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0 28px}.brand{font-weight:800;font-size:20px;letter-spacing:.3px}.tag{font-size:12px;color:#9db5ee;border:1px solid #29447e;padding:6px 10px;border-radius:20px}
+h1{font-size:clamp(28px,5vw,42px);margin:0 0 8px}p{color:#aebbd8;line-height:1.55}.panel{background:#101a38;border:1px solid #26365f;border-radius:18px;padding:20px;margin:18px 0;box-shadow:0 12px 34px #0002}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}label{display:grid;gap:7px;color:#cbd5ef;font-size:14px}input{width:100%;padding:13px;border-radius:10px;border:1px solid #35466f;background:#080f27;color:white;font:inherit}
+button{border:0;border-radius:11px;padding:13px 18px;font:600 15px system-ui;cursor:pointer;background:#2673ff;color:white}button:disabled{opacity:.5;cursor:wait}.secondary{background:#202e50;color:#dce6ff;margin-left:8px}
+.actions{margin-top:18px}.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}.metric{background:#0a1430;border:1px solid #26365f;border-radius:12px;padding:15px}.metric span{display:block;color:#9eafd2;font-size:13px}.metric strong{display:block;font-size:22px;margin-top:7px;overflow-wrap:anywhere}
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}th,td{text-align:left;padding:11px 8px;border-bottom:1px solid #29395e}th{color:#9eafd2;font-weight:600}.muted{font-size:12px;color:#8fa1c7}.error{color:#ff8293}.hidden{display:none}
+@media(max-width:520px){body{padding:16px 12px 36px}.panel{padding:15px}.secondary{margin:10px 0 0}}
+</style>
+</head>
+<body><main>
+<div class="top"><div class="brand">SUPER QUINA</div><div class="tag">SIMULADOR INDEPENDENTE</div></div>
+<h1>Simulador matemático</h1>
+<p>Faça simulações instantâneas de números de cinco dígitos. Esta ferramenta funciona sem banco de dados, sem login e sem salvar resultados.</p>
+<section class="panel">
+<div class="fields">
+<label>Quantidade de sorteios<input id="draws" type="number" min="1" max="1000000" value="10000"></label>
+<label>Valor apostado por modalidade (R$)<input id="stake" type="number" min=".01" step=".01" value="1"></label>
+<label>Comissão (%)<input id="commission" type="number" min="0" max="100" step=".01" value="30"></label>
+<label>Semente (opcional)<input id="seed" type="number" placeholder="Aleatória"></label>
+</div>
+<div class="fields" style="margin-top:16px">
+<label>Unidade (multiplicador)<input id="unit" type="number" min="0" value="5"></label>
+<label>Dezena<input id="tens" type="number" min="0" value="20"></label>
+<label>Centena<input id="hundreds" type="number" min="0" value="200"></label>
+<label>Milhar<input id="thousands" type="number" min="0" value="2000"></label>
+<label>Quina<input id="quina" type="number" min="0" value="20000"></label>
+</div>
+<div class="actions"><button id="run">Executar simulação</button><button id="clear" class="secondary" type="button">Limpar resultado</button></div>
+<p id="error" class="error" role="alert"></p>
+</section>
+<section id="results" class="hidden">
+<div class="panel"><h2>Resumo financeiro</h2><div class="metrics" id="metrics"></div></div>
+<div class="panel"><h2>Acertos por modalidade</h2><div style="overflow-x:auto"><table><thead><tr><th>Modalidade</th><th>Acertos</th><th>Frequência</th><th>Prêmios</th></tr></thead><tbody id="tiers"></tbody></table></div></div>
+<div class="panel"><h2>Amostra de resultados</h2><div style="overflow-x:auto"><table><thead><tr><th>Aposta</th><th>Sorteado</th><th>Faixa</th><th>Prêmio</th></tr></thead><tbody id="sample"></tbody></table></div><p class="muted">Os dados ficam somente na memória temporária desta página. Atualizar ou fechar a página apaga os resultados.</p></div>
+</section>
+<p class="muted">Simulação matemática. Não cria apostas reais, não acessa pagamentos e não grava dados no servidor.</p>
+</main>
+<script>
+(()=>{const $=id=>document.getElementById(id);const money=n=>n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});const fmt=n=>n.toLocaleString('pt-BR');const tiers=[['unit','Unidade',1],['tens','Dezena',2],['hundreds','Centena',3],['thousands','Milhar',4],['quina','Quina',5]];
+let result=null;
+function clear(){result=null;$('results').classList.add('hidden');$('metrics').innerHTML='';$('tiers').innerHTML='';$('sample').innerHTML='';$('error').textContent='';}
+$('clear').addEventListener('click',clear);
+$('run').addEventListener('click',()=>{
+clear();const draws=Number($('draws').value),stake=Number($('stake').value),commissionRate=Number($('commission').value);
+const mult=Object.fromEntries(tiers.map(([k])=>[k,Number($(k).value)]));
+if(!Number.isSafeInteger(draws)||draws<1||draws>1000000){$('error').textContent='Informe entre 1 e 1.000.000 de sorteios.';return}
+if(!Number.isFinite(stake)||stake<=0||stake>1000000){$('error').textContent='Informe um valor válido maior que zero.';return}
+if(!Number.isFinite(commissionRate)||commissionRate<0||commissionRate>100){$('error').textContent='A comissão deve ficar entre 0% e 100%.';return}
+if(tiers.some(([k])=>!Number.isSafeInteger(mult[k])||mult[k]<0||mult[k]>1000000)){$('error').textContent='Os multiplicadores devem ser inteiros entre 0 e 1.000.000.';return}
+let state=Number.parseInt($('seed').value,10)>>>0;const seeded=$('seed').value.trim()!=='';if(seeded&&!state)state=1;
+const rand=()=>{if(!seeded)return Math.random();state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296};
+const hits=Object.fromEntries(tiers.map(([k])=>[k,0])),prizes=Object.fromEntries(tiers.map(([k])=>[k,0]));let totalPrize=0,noHit=0,hitCount=0;const sample=[];
+for(let i=0;i<draws;i++){const bet=String(Math.floor(rand()*100000)).padStart(5,'0'),drawn=String(Math.floor(rand()*100000)).padStart(5,'0');const tier=[...tiers].reverse().find(([k,label,d])=>bet.slice(-d)===drawn.slice(-d));let prize=0;if(tier){const [k]=tier;hits[k]++;prize=stake*mult[k];prizes[k]+=prize;totalPrize+=prize;hitCount++}else noHit++;if(sample.length<10)sample.push({bet,drawn,tier:tier?.[1]||'Sem acerto',prize})}
+const totalBet=draws*stake*5,commission=totalBet*commissionRate/100,profit=totalBet-totalPrize-commission;
+$('metrics').innerHTML=[['Total apostado',money(totalBet)],['Prêmios brutos',money(totalPrize)],['Comissão',money(commission)],['Resultado da banca',money(profit)],['Retorno em prêmios',(totalPrize/totalBet*100).toLocaleString('pt-BR',{maximumFractionDigits:2})+'%'],['Apostas com acerto',fmt(hitCount)]].map(([a,b])=>'<div class="metric"><span>'+a+'</span><strong>'+b+'</strong></div>').join('');
+$('tiers').innerHTML=tiers.map(([k,label])=>'<tr><td>'+label+'</td><td>'+fmt(hits[k])+'</td><td>'+(hits[k]/draws*100).toLocaleString('pt-BR',{maximumFractionDigits:4})+'%</td><td>'+money(prizes[k])+'</td></tr>').join('');
+$('sample').innerHTML=sample.map(x=>'<tr><td>'+x.bet+'</td><td>'+x.drawn+'</td><td>'+x.tier+'</td><td>'+money(x.prize)+'</td></tr>').join('');
+$('results').classList.remove('hidden');
+});
+})();
+</script>
+</body></html>
