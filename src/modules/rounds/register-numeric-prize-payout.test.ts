@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { registerNumericPrizePayout } from "./register-numeric-prize-payout";
+import { createNumericPrizeRuleSnapshot, NUMERIC_PRIZE_RULE_VERSION } from "../../domain/numeric-prize-rules";
 
 function makeLine(overrides: Record<string, unknown> = {}) {
   return {
@@ -7,6 +8,9 @@ function makeLine(overrides: Record<string, unknown> = {}) {
     numberValue: "01234",
     prizeCents: 5000,
     prizeCreditedAt: null,
+    unitCents: 1000, tensCents: 0, hundredsCents: 0, thousandsCents: 0, quinaCents: 0,
+    ruleVersion: NUMERIC_PRIZE_RULE_VERSION,
+    ruleSnapshot: createNumericPrizeRuleSnapshot(),
     prizePayout: null,
     participation: {
       status: "CONFIRMED",
@@ -18,7 +22,7 @@ function makeLine(overrides: Record<string, unknown> = {}) {
         status: "CONFIRMED",
         confirmedAt: new Date("2026-11-06T12:00:00.000Z"),
       },
-      round: { id: "round-123", code: "SQ-ROUND-01", status: "COMPLETED" },
+      round: { id: "round-123", code: "SQ-ROUND-01", status: "COMPLETED", resultNumber: "99314" },
     },
     ...overrides,
   };
@@ -60,7 +64,7 @@ describe("registerNumericPrizePayout", () => {
           cashierId: null, playerId: "player-123",
           status: "CONFIRMED", confirmedAt: new Date(),
         },
-        round: { id: "round-123", code: "SQ-ROUND-01", status: "COMPLETED" },
+        round: { id: "round-123", code: "SQ-ROUND-01", status: "COMPLETED", resultNumber: "99314" },
       },
     }));
     await expect(registerNumericPrizePayout(tx as never, {
