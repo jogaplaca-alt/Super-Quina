@@ -3147,3 +3147,24 @@ body:has(.home-page) {
     max-height: 42px !important;
   }
 }
+
+
+/* Botão Entrar da página inicial: verde destacado e texto perfeitamente centralizado. */
+.home-page .home-footer-access {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  background: linear-gradient(180deg, #39d878 0%, #16a34a 100%) !important;
+  border: 2px solid #b8ffd0 !important;
+  color: #ffffff !important;
+  font-size: clamp(1.05rem, 2.8dvh, 1.2rem) !important;
+  font-weight: 900 !important;
+  letter-spacing: .04em !important;
+  line-height: 1 !important;
+  text-shadow: 0 2px 3px rgb(0 65 25 / 55%) !important;
+  box-shadow: 0 0 0 2px rgb(22 163 74 / 20%), 0 4px 14px rgb(0 0 0 / 32%), inset 0 1px 0 rgb(255 255 255 / 35%) !important;
+}
+.home-page .home-footer-access:active {
+  background: linear-gradient(180deg, #22c55e 0%, #15803d 100%) !important;
+}
