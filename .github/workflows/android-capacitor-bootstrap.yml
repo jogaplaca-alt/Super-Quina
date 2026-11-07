@@ -7,6 +7,11 @@ on:
         description: "Type INITIALIZE to add Capacitor and the generated Android project to this feature branch"
         required: true
         type: string
+  push:
+    branches:
+      - feature/android-apk-printer
+    paths:
+      - .github/workflows/android-capacitor-bootstrap.yml
 
 permissions:
   contents: write
@@ -17,7 +22,7 @@ concurrency:
 
 jobs:
   initialize-android:
-    if: ${{ inputs.confirm == 'INITIALIZE' && github.ref == 'refs/heads/feature/android-apk-printer' }}
+    if: ${{ (github.event_name == 'push' || inputs.confirm == 'INITIALIZE') && github.ref == 'refs/heads/feature/android-apk-printer' }}
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
