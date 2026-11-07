@@ -27,7 +27,7 @@ button.secondary{background:#263657;color:#e4ebff}
 .metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .metric{background:#09142e;border:1px solid #2b3c65;border-radius:12px;padding:13px}
 .metric span{display:block;color:#aebcdb;font-size:13px}
-.metric strong{display:block;font-size:20px;margin-top:5px;overflow-wrap:anywhere}
+.metric strong{display:block;font-size:20px;margin-top:5px;overflow-wrap:anywhere}\n.metric strong.positive{color:#22c55e}\n.metric strong.negative{color:#ef4444}
 .table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;min-width:420px}
 th,td{text-align:left;padding:11px 8px;border-bottom:1px solid #2c3c63;font-size:14px}
@@ -118,7 +118,7 @@ const totalBet=draws*stake*5;
 const commission=totalBet*rate/100;
 const net=totalBet-totalPrizes-commission;
 const cards=[["Total apostado",money(totalBet)],["Prêmios calculados",money(totalPrizes)],["Comissão",money(commission)],["Saldo da simulação",money(net)],["Retorno em prêmios",((totalPrizes/totalBet)*100).toLocaleString("pt-BR",{maximumFractionDigits:2})+"%"],["Apostas com acerto",number(totalHits)]];
-for(const [label,value] of cards){const box=document.createElement("div");box.className="metric";const caption=document.createElement("span");caption.textContent=label;const strong=document.createElement("strong");strong.textContent=value;box.append(caption,strong);el("metrics").append(box)}
+for(const [label,value] of cards){const box=document.createElement("div");box.className="metric";const caption=document.createElement("span");caption.textContent=label;const strong=document.createElement("strong");strong.textContent=value;if(label==="Saldo da simulação"){if(net<0)strong.classList.add("negative");else if(net>0)strong.classList.add("positive")}box.append(caption,strong);el("metrics").append(box)}
 for(const [id,label] of tiers){const row=document.createElement("tr");[label,number(hits[id]),(hits[id]/draws*100).toLocaleString("pt-BR",{maximumFractionDigits:4})+"%",money(prizes[id])].forEach(value=>{const cell=document.createElement("td");cell.textContent=value;row.append(cell)});el("tiers").append(row)}
 for(const item of sample){const row=document.createElement("tr");[item.bet,item.drawn,item.tier,money(item.prize)].forEach(value=>{const cell=document.createElement("td");cell.textContent=value;row.append(cell)});el("sample").append(row)}
 el("results").hidden=false;
