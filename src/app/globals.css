@@ -3243,3 +3243,30 @@ body:has(.home-page) {
 .area-page-compact:has(.cashier-info-card) .numeric-game-purchase {
   margin-bottom: 48px !important;
 }
+
+/* Logomarca responsiva: a arte preenche toda a área do cabeçalho em qualquer tela. */
+.site-header.site-header-scenery {
+  width: 100% !important;
+  padding: 0 !important;
+}
+
+.site-header.site-header-scenery .site-header-home-link {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  flex: 1 1 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.site-header.site-header-scenery .site-header-scenery-image {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+}
