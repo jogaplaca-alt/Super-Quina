@@ -3168,3 +3168,9 @@ body:has(.home-page) {
 .home-page .home-footer-access:active {
   background: linear-gradient(180deg, #22c55e 0%, #15803d 100%) !important;
 }
+
+
+/* Reserva um espaço maior entre o formulário do jogo e a conferência do recibo. */
+.area-page-compact .numeric-game-purchase {
+  margin-bottom: 88px !important;
+}
