@@ -338,3 +338,15 @@ Próximas tarefas obrigatórias:
 5. Executar typecheck/testes e validar em aparelho Android real com a impressora exata.
 
 Nenhuma alteração foi feita em `main`, em produção, em pagamentos ou nas regras de negócio.
+
+
+## Perfil térmico inicial — 58 mm (07/11/2026)
+
+- Largura selecionada: **58 mm**.
+- Perfil inicial conservador: **32 colunas**, avanço de 3 linhas e sem comando de corte por padrão.
+- `createEscPosProfile58mm()` centraliza essa configuração no encoder.
+- O encoder agora aceita `verificationUrl` opcional e, quando presente, gera o QR nativo ESC/POS (modelo 2, módulo 6, correção M), antes do rodapé.
+- A URL é validada para `https://superquina.com/verificar-recibo/SQ-...`; o QR não é gerado a partir de endereço arbitrário.
+- Foram acrescentados testes unitários para o perfil 58 mm, presença dos comandos QR e rejeição de URL não confiável. **Os testes ainda precisam ser executados em CI**.
+
+A largura de 58 mm não identifica fabricante, firmware, code page ou suporte real ao comando QR. O perfil não habilita corte automático nem define code page sem confirmação. A compatibilidade do QR e a qualidade física da impressão precisam ser verificadas na impressora real antes de ligar o botão Bluetooth ao recibo oficial.
