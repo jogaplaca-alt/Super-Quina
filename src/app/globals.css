@@ -2953,3 +2953,43 @@ body:has(.site-header.site-header-scenery) {
     padding-top: 68px !important;
   }
 }
+
+
+/* Impede o efeito elástico de overscroll do Safari/iOS e mantém a faixa imóvel. */
+html,
+body {
+  overscroll-behavior-y: none !important;
+  overscroll-behavior: none !important;
+}
+
+body:has(.site-header.site-header-scenery) {
+  position: relative !important;
+  overflow-x: hidden !important;
+}
+
+.site-header.site-header-scenery {
+  position: fixed !important;
+  inset: 0 0 auto 0 !important;
+  z-index: 2147483000 !important;
+  width: 100% !important;
+  height: 68px !important;
+  min-height: 68px !important;
+  max-height: 68px !important;
+  overflow: hidden !important;
+  transform: translate3d(0, 0, 0) !important;
+  -webkit-transform: translate3d(0, 0, 0) !important;
+  transition: none !important;
+  animation: none !important;
+  will-change: transform;
+  backface-visibility: hidden !important;
+  -webkit-backface-visibility: hidden !important;
+  touch-action: pan-y !important;
+}
+
+.site-header.site-header-scenery .site-header-home-link,
+.site-header.site-header-scenery .site-header-scenery-image {
+  flex-shrink: 0 !important;
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+}
