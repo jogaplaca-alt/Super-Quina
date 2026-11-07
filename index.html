@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Simulador Super Quina</title>
+<style>
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#f4f6ff;background:#07132f;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;padding:24px 14px 48px;background:linear-gradient(160deg,#10265a,#07132f 55%)}
+main{width:min(760px,100%);margin:0 auto}
+header{padding:12px 2px 18px}
+h1{font-size:clamp(27px,5vw,38px);margin:0 0 8px}
+p{color:#bac7e5;line-height:1.5;margin:8px 0}
+.panel{background:#111d3b;border:1px solid #30436e;border-radius:18px;padding:20px;margin:16px 0}
+h2{font-size:20px;margin:0 0 16px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+label{display:grid;gap:7px;color:#d7e0f7;font-size:14px}
+input{width:100%;min-width:0;padding:13px;border-radius:10px;border:1px solid #40547f;background:#08122b;color:#fff;font:inherit}
+button{border:0;border-radius:11px;padding:14px 18px;font:700 16px system-ui;cursor:pointer;background:#2875ff;color:white}
+button.secondary{background:#263657;color:#e4ebff}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.metric{background:#09142e;border:1px solid #2b3c65;border-radius:12px;padding:13px}
+.metric span{display:block;color:#aebcdb;font-size:13px}
+.metric strong{display:block;font-size:20px;margin-top:5px;overflow-wrap:anywhere}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:420px}
+th,td{text-align:left;padding:11px 8px;border-bottom:1px solid #2c3c63;font-size:14px}
+th{color:#aebcdb}
+.error{color:#ff9aa8}
+.small{font-size:12px;color:#91a3ca}
+[hidden]{display:none!important}
+@media(max-width:480px){body{padding:16px 11px 32px}.panel{padding:15px}.grid{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.metric strong{font-size:17px}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>Simulador Super Quina</h1>
+<p>Simule sorteios de cinco dígitos e confira os resultados financeiros. A simulação acontece somente neste navegador. Nenhum dado é enviado ou salvo.</p>
+</header>
+<section class="panel">
+<h2>Configuração da simulação</h2>
+<div class="grid">
+<label>Quantidade de sorteios<input id="draws" type="number" min="1" max="1000000" value="10000"></label>
+<label>Valor por modalidade (R$)<input id="stake" type="number" min="0.01" step="0.01" value="1"></label>
+<label>Comissão (%)<input id="commission" type="number" min="0" max="100" step="0.01" value="30"></label>
+<label>Semente opcional<input id="seed" type="number" placeholder="Aleatória"></label>
+</div>
+</section>
+<section class="panel">
+<h2>Multiplicadores oficiais</h2>
+<div class="grid">
+<label>Unidade<input id="unit" type="number" min="0" value="5"></label>
+<label>Dezena<input id="tens" type="number" min="0" value="50"></label>
+<label>Centena<input id="hundreds" type="number" min="0" value="500"></label>
+<label>Milhar<input id="thousands" type="number" min="0" value="5000"></label>
+<label>Quina<input id="quina" type="number" min="0" value="50000"></label>
+</div>
+<div class="actions">
+<button id="run" type="button">Executar simulação</button>
+<button id="clear" class="secondary" type="button">Limpar resultado</button>
+</div>
+<p id="error" class="error" role="alert"></p>
+</section>
+<section id="results" hidden>
+<div class="panel"><h2>Resumo financeiro</h2><div class="metrics" id="metrics"></div></div>
+<div class="panel"><h2>Acertos por modalidade</h2><div class="table-wrap"><table><thead><tr><th>Modalidade</th><th>Acertos</th><th>Frequência</th><th>Prêmios</th></tr></thead><tbody id="tiers"></tbody></table></div></div>
+<div class="panel"><h2>Amostra dos resultados</h2><div class="table-wrap"><table><thead><tr><th>Aposta</th><th>Sorteado</th><th>Faixa</th><th>Prêmio</th></tr></thead><tbody id="sample"></tbody></table></div></div>
+</section>
+<p class="small">Ferramenta de simulação. Não realiza apostas, não acessa contas, não usa banco de dados e não mantém histórico. Ao limpar, atualizar ou fechar a página, os resultados temporários são descartados.</p>
+</main>
+<script>
+(()=>{
+const el=id=>document.getElementById(id);
+const tiers=[["unit","Unidade",1],["tens","Dezena",2],["hundreds","Centena",3],["thousands","Milhar",4],["quina","Quina",5]];
+const money=n=>n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const number=n=>n.toLocaleString("pt-BR");
+function clear(){
+el("results").hidden=true;
+el("metrics").replaceChildren();
+el("tiers").replaceChildren();
+el("sample").replaceChildren();
+el("error").textContent="";
+}
+el("clear").addEventListener("click",clear);
+el("run").addEventListener("click",()=>{
+clear();
+const draws=Number(el("draws").value),stake=Number(el("stake").value),rate=Number(el("commission").value);
+const multipliers=Object.fromEntries(tiers.map(([id])=>[id,Number(el(id).value)]));
+if(!Number.isSafeInteger(draws)||draws<1||draws>1000000){el("error").textContent="Informe de 1 a 1.000.000 sorteios.";return}
+if(!Number.isFinite(stake)||stake<=0||stake>1000000){el("error").textContent="Informe um valor apostado válido.";return}
+if(!Number.isFinite(rate)||rate<0||rate>100){el("error").textContent="A comissão deve estar entre 0% e 100%.";return}
+if(tiers.some(([id])=>!Number.isSafeInteger(multipliers[id])||multipliers[id]<0||multipliers[id]>1000000)){el("error").textContent="Use multiplicadores inteiros entre 0 e 1.000.000.";return}
+const seeded=el("seed").value.trim()!=="";
+let state=(Number.parseInt(el("seed").value,10)||1)>>>0;
+const random=()=>{if(!seeded)return Math.random();state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296};
+const hits=Object.fromEntries(tiers.map(([id])=>[id,0]));
+const prizes=Object.fromEntries(tiers.map(([id])=>[id,0]));
+let totalPrizes=0,totalHits=0;
+const sample=[];
+for(let i=0;i<draws;i++){
+const bet=String(Math.floor(random()*100000)).padStart(5,"0");
+const drawn=String(Math.floor(random()*100000)).padStart(5,"0");
+const match=[...tiers].reverse().find(([id,label,digits])=>bet.slice(-digits)===drawn.slice(-digits));
+let prize=0;
+if(match){const id=match[0];hits[id]++;prize=stake*multipliers[id];prizes[id]+=prize;totalPrizes+=prize;totalHits++}
+if(sample.length<10)sample.push({bet,drawn,tier:match?match[1]:"Sem acerto",prize});
+}
+const totalBet=draws*stake*5;
+const commission=totalBet*rate/100;
+const net=totalBet-totalPrizes-commission;
+const cards=[["Total apostado",money(totalBet)],["Prêmios calculados",money(totalPrizes)],["Comissão",money(commission)],["Saldo da simulação",money(net)],["Retorno em prêmios",((totalPrizes/totalBet)*100).toLocaleString("pt-BR",{maximumFractionDigits:2})+"%"],["Apostas com acerto",number(totalHits)]];
+for(const [label,value] of cards){const box=document.createElement("div");box.className="metric";const caption=document.createElement("span");caption.textContent=label;const strong=document.createElement("strong");strong.textContent=value;box.append(caption,strong);el("metrics").append(box)}
+for(const [id,label] of tiers){const row=document.createElement("tr");[label,number(hits[id]),(hits[id]/draws*100).toLocaleString("pt-BR",{maximumFractionDigits:4})+"%",money(prizes[id])].forEach(value=>{const cell=document.createElement("td");cell.textContent=value;row.append(cell)});el("tiers").append(row)}
+for(const item of sample){const row=document.createElement("tr");[item.bet,item.drawn,item.tier,money(item.prize)].forEach(value=>{const cell=document.createElement("td");cell.textContent=value;row.append(cell)});el("sample").append(row)}
+el("results").hidden=false;
+});
+})();
+</script>
+</body>
+</html>
