@@ -13,10 +13,10 @@ export const NUMERIC_PRIZE_RULE_VERSION = "numeric-admin-v1";
 
 export const DEFAULT_NUMERIC_PRIZE_MULTIPLIERS: NumericPrizeMultipliers = {
   unit: 5,
-  tens: 20,
-  hundreds: 200,
-  thousands: 2_000,
-  quina: 20_000,
+  tens: 50,
+  hundreds: 500,
+  thousands: 5_000,
+  quina: 50_000,
 };
 
 export const APPROVED_NUMERIC_PRIZE_MULTIPLIERS = DEFAULT_NUMERIC_PRIZE_MULTIPLIERS;
