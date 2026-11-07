@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { encodeThermalReceipt, type EscPosProfile, type ThermalReceiptForEncoding } from "./encode-thermal-receipt";
+import { createEscPosProfile58mm, encodeThermalReceipt, type EscPosProfile, type ThermalReceiptForEncoding } from "./encode-thermal-receipt";
 
 const receipt: ThermalReceiptForEncoding = {
   receiptCode: "SQ-1234567890ABCDEF",
@@ -18,7 +18,7 @@ const receipt: ThermalReceiptForEncoding = {
   }],
 };
 
-const profile: EscPosProfile = { paperWidthMm: 58, columns: 32 };
+const profile: EscPosProfile = createEscPosProfile58mm();
 
 describe("encodeThermalReceipt", () => {
   it("encodes a confirmed receipt as ESC/POS bytes and preserves leading zeroes", () => {
@@ -54,6 +54,24 @@ describe("encodeThermalReceipt", () => {
     const bytes = encodeThermalReceipt(receipt, { ...profile, cutMode: "partial" });
     expect(Array.from(bytes.slice(-5))).toEqual([0x0a, 0x0a, 0x1d, 0x56, 0x01]);
     expect(bytes[bytes.length - 1]).toBe(0x01);
+  });
+
+
+  it("adds a native ESC/POS verification QR for a valid 58mm receipt", () => {
+    const verificationUrl = "https://superquina.com/verificar-recibo/SQ-1234567890ABCDEF";
+    const bytes = encodeThermalReceipt({ ...receipt, verificationUrl }, profile);
+    const commands = Array.from(bytes);
+    expect(commands).toContain(0x31);
+    expect(commands.some((_, index) =>
+      [0x1d, 0x28, 0x6b, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00]
+        .every((value, offset) => commands[index + offset] === value),
+    )).toBe(true);
+    expect(new TextDecoder().decode(new Uint8Array(commands))).toContain(verificationUrl);
+  });
+
+  it("rejects an untrusted verification QR URL", () => {
+    expect(() => encodeThermalReceipt({ ...receipt, verificationUrl: "https://evil.example/receipt" }, profile))
+      .toThrow("Invalid verification URL");
   });
 
   it("rejects non-BRL, invalid and unconfirmed receipts", () => {
