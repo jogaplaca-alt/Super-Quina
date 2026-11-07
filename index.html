@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Simulador Super Quina</title>
 <style>
 :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#f4f6ff;background:#07132f;color-scheme:dark}
@@ -86,6 +89,8 @@ el("sample").replaceChildren();
 el("error").textContent="";
 }
 el("clear").addEventListener("click",clear);
+window.addEventListener("pagehide",clear);
+window.addEventListener("pageshow",event=>{if(event.persisted)clear()});
 el("run").addEventListener("click",()=>{
 clear();
 const draws=Number(el("draws").value),stake=Number(el("stake").value),rate=Number(el("commission").value);
