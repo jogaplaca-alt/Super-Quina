@@ -307,3 +307,34 @@ Foram acrescentadas rotas autenticadas para preparar a integração nativa:
 O cliente nativo deverá primeiro reservar/recuperar o job e, imediatamente antes de enviar bytes, disputar a transição atômica `RESERVED -> SENDING`. Apenas quem conseguir essa transição pode iniciar a escrita. Depois deverá registrar `SENT`, `FAILED` ou `UNKNOWN`. Um job `SENDING` que ficou sem resultado não deve ser reenviado automaticamente.
 
 Essas rotas ainda não estão ligadas ao polling ou a um transporte Bluetooth; são a API de controle e auditoria para a próxima etapa. O site continua oferecendo a impressão HTML atual até a ponte nativa ser implementada.
+
+
+## Estado atualizado — 07/11/2026
+
+### Ponte nativa RFCOMM/SPP adicionada à branch
+
+A branch agora contém uma implementação inicial própria, sem dependência de plugin BLE ou biblioteca externa de impressão:
+
+- `android/app/src/main/java/com/superquina/app/BluetoothPrinterPlugin.java`: plugin Capacitor `BluetoothPrinter`, lista somente dispositivos clássicos já pareados, verifica Bluetooth ligado, solicita `BLUETOOTH_CONNECT` em Android 12+ e envia bytes Base64 via `BluetoothSocket` usando UUID SPP padrão `00001101-0000-1000-8000-00805F9B34FB`.
+- `android/app/src/main/java/com/superquina/app/MainActivity.java`: registra o plugin nativo na BridgeActivity.
+- `android/app/src/main/AndroidManifest.xml`: declara permissões Bluetooth legadas até API 30 e `BLUETOOTH_CONNECT` para Android recente.
+- `src/modules/printing/native/bluetooth-printer.ts`: interface TypeScript, valida plataforma Android e converte bytes ESC/POS para Base64.
+
+### Compilação verificada
+
+A execução GitHub Actions `42419567389`, commit `afb50c6acb56857469d104429ea0208f7d51b204`, concluiu com `success`. Foram concluídas com sucesso as etapas de dependências, verificação do projeto Android persistente, compilação Gradle e upload do artefato `super-quina-android-debug` (3.696.305 bytes; expiração indicada pelo GitHub: 21/11/2026).
+
+Essa compilação confirma que o código nativo está integrado ao projeto Android e compila. **Não confirma ainda conexão/impressão em hardware físico.** O artefato continua sendo um APK debug de teste, não uma versão final de distribuição.
+
+### Integração funcional ainda pendente
+
+A interface TypeScript e o plugin nativo estão presentes, mas o componente `PlayerPurchaseReceipt` ainda não chama o plugin. O encoder ESC/POS atual também não codifica o QR de verificação que aparece no recibo HTML. Portanto, não declarar a impressão Bluetooth pronta nem ativar disparo automático nesta etapa.
+
+Próximas tarefas obrigatórias:
+1. Definir perfil de impressora (largura, colunas, code page e corte) a partir do modelo físico utilizado.
+2. Incluir no ESC/POS os dados de verificação/QR do recibo, ou documentar e aprovar explicitamente um formato de impressão sem QR antes de alterar a experiência.
+3. Integrar a ação de impressão ao recibo oficial já carregado pela rota autenticada, reutilizando o ledger existente: reserva do job, transição atômica para `SENDING`, escrita Bluetooth e registro `SENT`, `FAILED` ou `UNKNOWN`.
+4. Mapear falha de conexão separadamente de falha de escrita; nunca repetir automaticamente uma impressão cujo resultado seja incerto.
+5. Executar typecheck/testes e validar em aparelho Android real com a impressora exata.
+
+Nenhuma alteração foi feita em `main`, em produção, em pagamentos ou nas regras de negócio.
