@@ -3206,3 +3206,60 @@ body:has(.home-page) {
   margin: 0 !important;
   padding: 0 !important;
 }
+
+
+/* Dimensões idênticas para Repetições e Forma de pagamento.
+   O componente é compartilhado pelo cambista e pelo jogador. */
+.area-page-compact .numeric-game-purchase .round-repeat-fieldset,
+.area-page-compact .numeric-game-purchase .round-payment-fieldset {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  align-content: center !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  height: 136px !important;
+  min-height: 136px !important;
+  max-height: 136px !important;
+  padding: 8px 12px 10px !important;
+  gap: 4px 16px !important;
+}
+
+.area-page-compact .numeric-game-purchase .round-repeat-fieldset > legend,
+.area-page-compact .numeric-game-purchase .round-payment-fieldset > legend {
+  flex: 0 0 100% !important;
+  margin: 0 !important;
+  padding: 0 9px !important;
+  line-height: 1.2 !important;
+}
+
+.area-page-compact .numeric-game-purchase .round-repeat-fieldset > select.round-repeat-select {
+  display: inline-block !important;
+  box-sizing: border-box !important;
+  width: auto !important;
+  min-width: 150px !important;
+  min-height: 44px !important;
+  margin: 0 !important;
+  padding: 6px 38px 6px 14px !important;
+  font-size: 1rem !important;
+  line-height: 1.2 !important;
+}
+
+.area-page-compact .numeric-game-purchase .round-payment-fieldset > label {
+  display: inline-flex !important;
+  align-items: center !important;
+  min-height: 44px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.2 !important;
+}
+
+@media (max-width: 600px) {
+  .area-page-compact .numeric-game-purchase .round-repeat-fieldset,
+  .area-page-compact .numeric-game-purchase .round-payment-fieldset {
+    height: 136px !important;
+    min-height: 136px !important;
+    max-height: 136px !important;
+    padding: 8px 12px 10px !important;
+  }
+}
