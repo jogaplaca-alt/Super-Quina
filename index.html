@@ -48,7 +48,7 @@ th{color:#aebcdb}
 <h2>Configuração da simulação</h2>
 <div class="grid">
 <label>Quantidade de sorteios<input id="draws" type="number" min="1" max="1000000" value="48"></label>
-<label>Valor por modalidade (R$)<input id="stake" type="number" min="0.01" step="0.01" value="1"></label>
+<label>Valor por aposta (R$)<input id="stake" type="number" min="0.01" step="0.01" value="1"></label>
 <label>Comissão (%)<input id="commission" type="number" min="0" max="100" step="0.01" value="20"></label>
 <label>Semente opcional<input id="seed" type="number" placeholder="Aleatória"></label>
 </div>
@@ -111,10 +111,10 @@ const bet=String(Math.floor(random()*100000)).padStart(5,"0");
 const drawn=String(Math.floor(random()*100000)).padStart(5,"0");
 const match=[...tiers].reverse().find(([id,label,digits])=>bet.slice(-digits)===drawn.slice(-digits));
 let prize=0;
-if(match){const id=match[0];hits[id]++;prize=stake*multipliers[id];prizes[id]+=prize;totalPrizes+=prize;totalHits++}
+if(match){const id=match[0];hits[id]++;prize=(stake/5)*multipliers[id];prizes[id]+=prize;totalPrizes+=prize;totalHits++}
 if(sample.length<10)sample.push({bet,drawn,tier:match?match[1]:"Sem acerto",prize});
 }
-const totalBet=draws*stake*5;
+const totalBet=draws*stake;
 const commission=totalBet*rate/100;
 const net=totalBet-totalPrizes-commission;
 const cards=[["Total apostado",money(totalBet)],["Prêmios calculados",money(totalPrizes)],["Comissão",money(commission)],["Saldo da simulação",money(net)],["Retorno em prêmios",((totalPrizes/totalBet)*100).toLocaleString("pt-BR",{maximumFractionDigits:2})+"%"],["Apostas com acerto",number(totalHits)]];
