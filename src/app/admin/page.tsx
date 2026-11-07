@@ -3,7 +3,6 @@ import { AdminPrizeCreditReconciliation } from "@/components/admin/admin-prize-c
 import { AdminPrizePayout } from "@/components/admin/admin-prize-payout";
 import { AdminWithdrawalManager } from "@/components/admin/admin-withdrawal-manager";
 import { AdminCashierManager } from "@/components/admin/admin-cashier-manager";
-import { AdminPrizeRules } from "@/components/admin/admin-prize-rules";
 import { PlayerRecentResults } from "@/components/player/player-recent-results";
 import { requireRole } from "@/lib/auth/require-role";
 export const dynamic = "force-dynamic";
@@ -19,10 +18,6 @@ export default async function AdminPage() {
       <details className="admin-accordion">
         <summary><span>Ganhadores</span><span className="admin-accordion-description">Todos os prêmios pendentes e o histórico de pagamentos</span></summary>
         <div className="admin-accordion-content"><AdminPrizePayout /><AdminPrizeCreditReconciliation /></div>
-      </details>
-      <details className="admin-accordion">
-        <summary><span>Multiplicadores de prêmios</span><span className="admin-accordion-description">Alterar e salvar os valores usados nas novas apostas</span></summary>
-        <div className="admin-accordion-content"><AdminPrizeRules /></div>
       </details>
       <details className="admin-accordion">
         <summary><span>Controle financeiro e saques</span><span className="admin-accordion-description">Analisar solicitações de retirada</span></summary>
