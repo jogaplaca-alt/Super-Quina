@@ -9,14 +9,9 @@ export default function LoginPage() {
   return (
     <main className="auth-layout">
       <SiteHeader />
-      <section className="auth-card" aria-labelledby="login-title">
-        <p className="eyebrow">Acesso seguro</p>
-        <h1 id="login-title">Entrar</h1>
-        <p className="auth-description">Entre com suas credenciais para acessar a área correspondente à sua conta.</p>
+      <section className="auth-card" aria-label="Entrar na Super Quina">
         <LoginForm />
         <p className="security-note">Ainda não tem uma conta? <Link href="/cadastro">Criar conta</Link></p>
-        <p className="security-note">O acesso é validado no servidor. Não compartilhe sua senha com ninguém.</p>
-        <p className="security-note">As regras completas do jogo e os termos de uso serão publicados após a conclusão e validação do funcionamento da plataforma.</p>
       </section>
     </main>
   );
