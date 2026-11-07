@@ -2774,3 +2774,15 @@ body:has(.home-page) {
     font-size: .88rem !important;
   }
 }
+
+
+/* Mantém um intervalo visível entre o banner inferior e o botão Entrar. */
+.home-page.home-page-compact .home-entry > .home-access-footer {
+  margin-top: 22px !important;
+}
+
+@media (max-width: 600px) {
+  .home-page.home-page-compact .home-entry > .home-access-footer {
+    margin-top: 24px !important;
+  }
+}
