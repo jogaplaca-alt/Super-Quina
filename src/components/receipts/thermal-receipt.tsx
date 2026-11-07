@@ -139,9 +139,9 @@ export function ThermalReceipt({
                 <strong>{money(entry.stakeCents)}</strong>
               </div>
               <span>Repetição {repetitionNumbers[index]} · Jogo Super Quina</span>
-              <span>Unidade: {money(entry.unitCents)} · Dezena: {money(entry.tensCents)}</span>
-              <span>Centena: {money(entry.hundredsCents)} · Milhar: {money(entry.thousandsCents)}</span>
-              <span>Quina: {money(entry.quinaCents)}</span>
+              <span>Unidade: {money(entry.unitCents ?? 0)} · Dezena: {money(entry.tensCents ?? 0)}</span>
+              <span>Centena: {money(entry.hundredsCents ?? 0)} · Milhar: {money(entry.thousandsCents ?? 0)}</span>
+              <span>Quina: {money(entry.quinaCents ?? 0)}</span>
               <strong className="thermal-receipt-draw-time">Sorteio: {drawDateTime(entry.resultAt)}</strong>
               <span>Rodada {entry.roundCode}</span>
             </div>
