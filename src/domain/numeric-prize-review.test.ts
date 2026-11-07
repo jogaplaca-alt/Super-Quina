@@ -19,7 +19,7 @@ describe("getNumericPrizeReview", () => {
   });
 
   it("identifies tens, hundreds, thousands and quina correctly", () => {
-    expect(getNumericPrizeReview(line("12345"), "99325")?.category).toBe("tens");
+    expect(getNumericPrizeReview(line("12345"), "99445")?.category).toBe("tens");
     expect(getNumericPrizeReview(line("12345"), "99345")?.category).toBe("hundreds");
     expect(getNumericPrizeReview(line("12345"), "92345")?.category).toBe("thousands");
     expect(getNumericPrizeReview(line("12345"), "12345")?.category).toBe("quina");
