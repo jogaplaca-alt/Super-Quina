@@ -2608,7 +2608,10 @@ body:has(.home-page) {
 }
 
 .site-header.site-header-scenery {
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   z-index: 10;
   display: flex;
   align-items: center;
@@ -2654,6 +2657,19 @@ body:has(.home-page) {
   transform: none;
   animation: none;
   transition: none;
+}
+
+/* Reserva o espaço do cabeçalho fixo em todas as páginas do site. */
+.home-page:not(.home-page-compact),
+.auth-layout,
+.site-page-shell,
+.area-page {
+  padding-top: var(--site-header-height) !important;
+}
+
+/* A página inicial compacta já calcula sua altura descontando o cabeçalho. */
+.home-page.home-page-compact {
+  margin-top: var(--site-header-height) !important;
 }
 
 @media (max-width: 600px) {
