@@ -10,6 +10,7 @@ export type ThermalReceiptForEncoding = {
   customerLabel: string | null;
   cashierLabel: string | null;
   entries: ThermalReceiptEntry[];
+  verificationUrl?: string | null;
 };
 
 export type EscPosProfile = {
@@ -31,6 +32,25 @@ const GS = 0x1d;
 const MAX_ENTRIES = 100;
 const MAX_COLUMNS = 96;
 const MAX_LABEL_LENGTH = 120;
+
+/** Conservative starting profile; verify code page and QR support on the target printer. */
+export function createEscPosProfile58mm(): EscPosProfile {
+  return { paperWidthMm: 58, columns: 32, unsupportedCharacter: "transliterate", feedLines: 3 };
+}
+
+function qrCodeCommands(value: string): number[] {
+  const data = Array.from(new TextEncoder().encode(value));
+  if (data.length < 1 || data.length > 700) throw new Error("Invalid verification QR data");
+  const storeLength = data.length + 3;
+  return [
+    0x1d, 0x28, 0x6b, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00,
+    0x1d, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x43, 0x06,
+    0x1d, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x45, 0x31,
+    0x1d, 0x28, 0x6b, storeLength & 0xff, (storeLength >> 8) & 0xff, 0x31, 0x50, 0x30,
+    ...data,
+    0x1d, 0x28, 0x6b, 0x03, 0x00, 0x31, 0x51, 0x30,
+  ];
+}
 
 function assertInteger(value: number, name: string, min: number, max: number): void {
   if (!Number.isSafeInteger(value) || value < min || value > max) {
@@ -188,6 +208,13 @@ export function encodeThermalReceipt(receipt: ThermalReceiptForEncoding, profile
   bytes.push(ESC, 0x45, 0x01);
   for (const part of padPair("TOTAL PAGO", money(receipt.totalCents), columns)) bytes.push(...line(part, profile));
   bytes.push(ESC, 0x45, 0x00, ESC, 0x61, 0x01);
+  if (receipt.verificationUrl) {
+    if (!/^https:\/\/superquina\.com\/verificar-recibo\/SQ-[A-Z0-9]{8,32}$/.test(receipt.verificationUrl)) {
+      throw new Error("Invalid verification URL");
+    }
+    bytes.push(...qrCodeCommands(receipt.verificationUrl));
+    bytes.push(0x0a);
+  }
   bytes.push(...line("GUARDE ESTE COMPROVANTE", profile));
   bytes.push(...line(receipt.receiptCode, profile));
   bytes.push(ESC, 0x61, 0x00);
