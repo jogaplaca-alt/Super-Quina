@@ -7,6 +7,16 @@ type PrizeLine = {
   numberValue: string;
   roundCode: string;
   roundCompleted: boolean;
+  resultNumber: string | null;
+  resultAt: string;
+  stakeCents: number;
+  prizeCategoryLabel: string | null;
+  categoryStakeCents: number | null;
+  multiplier: number | null;
+  calculatedPrizeCents: number | null;
+  calculationConsistent: boolean;
+  participationTotalCents: number;
+  purchaseTotalCents: number;
   prizeCents: number;
   paid: boolean;
   payoutChannel: "PLATFORM_PIX" | "CASHIER_CASH" | "WALLET" | null;
@@ -75,11 +85,13 @@ export function CashierPrizePayout() {
       {lines.map((line) => <article className="cashier-prize-line" key={line.id}>
         <div>
           <strong>Número {line.numberValue}</strong>
-          <p>Rodada {line.roundCode}</p>
-          {!line.roundCompleted ? <span>Aguardando resultado</span> : line.prizeCents > 0 ? <span>Prêmio: {money(line.prizeCents)}</span> : <span>Não premiado</span>}
+          <p>Rodada: <strong>{line.roundCode}</strong> · Horário: {new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" }).format(new Date(line.resultAt))}</p>
+          <p>Número sorteado: <strong>{line.resultNumber ?? "Aguardando"}</strong></p>
+          <p>Valor apostado neste número: <strong>{money(line.stakeCents)}</strong> · Total da rodada: {money(line.participationTotalCents)} · Total do recibo: {money(line.purchaseTotalCents)}</p>
+          {!line.roundCompleted ? <span>Aguardando resultado</span> : line.prizeCents > 0 ? <div><p>Acerto: <strong>{line.prizeCategoryLabel ?? "Não identificado"}</strong></p><p>Valor aplicado na modalidade: {line.categoryStakeCents === null ? "Indisponível" : money(line.categoryStakeCents)} · Multiplicador: {line.multiplier === null ? "Indisponível" : line.multiplier + "x"}</p><p>Prêmio: <strong>{money(line.prizeCents)}</strong></p>{!line.calculationConsistent && <p role="alert" style={{ color: "#ffb4a9", fontWeight: 700 }}>REVISÃO NECESSÁRIA: cálculo divergente. Não entregue o prêmio até a conferência da administração.</p>}</div> : <span>Não premiado</span>}
           {line.paid && <p><strong>PRÊMIO JÁ PAGO</strong> — {line.payoutChannel === "CASHIER_CASH" ? "dinheiro pelo cambista" : line.payoutChannel === "WALLET" ? "crédito na carteira do jogador" : "Pix pela plataforma"}</p>}
         </div>
-        {line.roundCompleted && line.prizeCents > 0 && !line.paid && <button type="button" onClick={() => void pay(line.id)} disabled={Boolean(busyLine)}>{busyLine === line.id ? "Registrando…" : "Registrar dinheiro entregue"}</button>}
+        {line.roundCompleted && line.prizeCents > 0 && !line.paid && <button type="button" onClick={() => void pay(line.id)} disabled={Boolean(busyLine) || !line.calculationConsistent}>{busyLine === line.id ? "Registrando…" : line.calculationConsistent ? "Registrar dinheiro entregue" : "Pagamento bloqueado — conferir cálculo"}</button>}
       </article>)}
     </div>}
   </section>;
