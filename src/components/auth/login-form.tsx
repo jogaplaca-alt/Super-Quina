@@ -32,7 +32,11 @@ export function LoginForm({ allowedRole }: { allowedRole?: "CASHIER" }) {
         setError("Este aplicativo é exclusivo para cambistas. Utilize uma conta de cambista.");
         return;
       }
-      window.location.assign(session.user.mustChangePassword ? "/change-password" : destinationByRole[session.user.role]);
+      if (allowedRole === "CASHIER") {
+        window.location.assign(session.user.mustChangePassword ? "/cashier-app-change-password" : "/cashier-app");
+      } else {
+        window.location.assign(session.user.mustChangePassword ? "/change-password" : destinationByRole[session.user.role]);
+      }
     } catch {
       setError("Falha de conexão. Verifique sua internet e tente novamente.");
     } finally {
