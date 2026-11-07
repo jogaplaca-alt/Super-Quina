@@ -3403,10 +3403,10 @@ body:has(.site-header.site-header-scenery) {
 
 .site-header.site-header-scenery .site-header-scenery-image {
   width: 100% !important;
-  min-width: 100% !important;
-  max-width: none !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
   height: 100% !important;
-  max-height: none !important;
-  object-fit: cover !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
   object-position: center center !important;
 }
