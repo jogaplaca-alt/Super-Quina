@@ -57,6 +57,7 @@ th{color:#aebcdb}
 </section>
 <section class="panel">
 <h2>Multiplicadores oficiais</h2>
+<p>Regra de premiação: cada aposta paga somente uma faixa, sempre a de maior acerto. Se acertar a quina, não recebe também milhar, centena, dezena ou unidade.</p>
 <div class="grid">
 <label>Unidade<input id="unit" type="number" min="0" value="3"></label>
 <label>Dezena<input id="tens" type="number" min="0" value="30"></label>
@@ -109,9 +110,23 @@ let totalPrizes=0,totalHits=0;
 for(let i=0;i<draws;i++){
 const bet=String(Math.floor(random()*100000)).padStart(5,"0");
 const drawn=String(Math.floor(random()*100000)).padStart(5,"0");
-const match=[...tiers].reverse().find(([id,label,digits])=>bet.slice(-digits)===drawn.slice(-digits));
+// Procura da maior faixa para a menor e encerra no primeiro acerto.
+// Assim, uma quina nunca gera pagamentos adicionais de milhar, centena, dezena ou unidade.
+let match=null;
+for(let tierIndex=tiers.length-1;tierIndex>=0;tierIndex--){
+const tier=tiers[tierIndex];
+const digits=tier[2];
+if(bet.slice(-digits)===drawn.slice(-digits)){match=tier;break;}
+}
 let prize=0;
-if(match){const id=match[0];hits[id]++;prize=(stake/5)*multipliers[id];prizes[id]+=prize;totalPrizes+=prize;totalHits++}
+if(match){
+const id=match[0];
+hits[id]++;
+prize=(stake/5)*multipliers[id];
+prizes[id]+=prize;
+totalPrizes+=prize;
+totalHits++;
+}
 }
 const totalBet=draws*stake;
 const commission=totalBet*rate/100;
