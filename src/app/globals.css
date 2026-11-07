@@ -2648,6 +2648,8 @@ body:has(.home-page) {
   margin: 0;
   object-fit: contain;
   object-position: center;
+  position: relative;
+  top: 4px;
   filter: none;
   transform: none;
   animation: none;
