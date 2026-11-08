@@ -66,7 +66,7 @@ describe("POST /api/auth/login", () => {
   });
 
   it("does not create a session for a blocked account", async () => {
-    userLookup.mockResolvedValue({ id: "user-1", passwordHash: "encoded", status: "BLOCKED" } as never);
+    userLookup.mockResolvedValue({ id: "user-1", passwordHash: "encoded", status: "BLOCKED", role: "CASHIER", mustChangePassword: false } as never);
     passwordVerify.mockResolvedValue(true);
     const response = await POST(request({ username: "blocked", password: "some-password" }));
     expect(response.status).toBe(401);
@@ -74,18 +74,26 @@ describe("POST /api/auth/login", () => {
     expect(sessionCreate).not.toHaveBeenCalled();
   });
 
-  it("creates a session only after a valid active-user password", async () => {
-    userLookup.mockResolvedValue({ id: "user-1", passwordHash: "encoded", status: "ACTIVE" } as never);
+  it("rejects a non-cashier account before creating a session in the cashier app", async () => {
+    userLookup.mockResolvedValue({ id: "user-1", passwordHash: "encoded", status: "ACTIVE", role: "PLAYER", mustChangePassword: false } as never);
+    passwordVerify.mockResolvedValue(true);
+    const response = await POST(request({ username: "player", password: "some-password", requiredRole: "CASHIER" }));
+    expect(response.status).toBe(403);
+    expect(sessionCreate).not.toHaveBeenCalled();
+  });
+
+  it("returns the authenticated role and creates a session for a valid cashier", async () => {
+    userLookup.mockResolvedValue({ id: "user-1", passwordHash: "encoded", status: "ACTIVE", role: "CASHIER", mustChangePassword: false } as never);
     passwordVerify.mockResolvedValue(true);
     sessionCreate.mockResolvedValue({ token: "opaque-token", expiresAt: new Date("2035-01-01T00:00:00.000Z") });
-    const response = await POST(request({ username: "active", password: "some-password" }));
+    const response = await POST(request({ username: "cashier", password: "some-password", requiredRole: "CASHIER" }));
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ authenticated: true });
+    expect(await response.json()).toEqual({ authenticated: true, user: { role: "CASHIER", mustChangePassword: false } });
     expect(response.headers.get("set-cookie")).toContain("HttpOnly");
     expect(response.headers.get("set-cookie")).toContain("SameSite=lax");
     expect(response.headers.get("set-cookie")).toContain("opaque-token");
     expect(sessionCreate).toHaveBeenCalledWith("user-1");
-    expect(clearFailures).toHaveBeenCalledWith(expect.anything(), "active");
+    expect(clearFailures).toHaveBeenCalledWith(expect.anything(), "cashier");
   });
 
   it("returns 429 with Retry-After when the account is already rate limited", async () => {

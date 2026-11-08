@@ -2,7 +2,7 @@
 import { FormEvent, useState } from "react";
 
 type UserRole = "PLAYER" | "CASHIER" | "ADMIN";
-type SessionResponse = { authenticated: true; user: { role: UserRole; mustChangePassword: boolean } };
+type LoginResponse = { authenticated: true; user: { role: UserRole; mustChangePassword: boolean } };
 const destinationByRole = { PLAYER: "/player", CASHIER: "/cashier", ADMIN: "/admin" } as const;
 
 export function LoginForm({ allowedRole }: { allowedRole?: UserRole } = {}) {
@@ -17,20 +17,20 @@ export function LoginForm({ allowedRole }: { allowedRole?: UserRole } = {}) {
     setError("");
     setIsSubmitting(true);
     try {
-      const login = await fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, password }) });
+      const login = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password, ...(allowedRole ? { requiredRole: allowedRole } : {}) }),
+      });
       if (!login.ok) {
-        setError(login.status === 401 ? "Usuário ou senha inválidos." : "Não foi possível entrar agora. Tente novamente.");
+        if (login.status === 401) setError("Usuário ou senha inválidos.");
+        else if (login.status === 403 && allowedRole === "CASHIER") setError("Este aplicativo é exclusivo para cambistas. Use uma conta de cambista para entrar.");
+        else setError("Não foi possível entrar agora. Tente novamente.");
         return;
       }
-      const response = await fetch("/api/auth/me", { cache: "no-store" });
-      if (!response.ok) {
-        setError("Não foi possível confirmar sua sessão. Tente novamente.");
-        return;
-      }
-      const session = await response.json() as SessionResponse;
-      if (allowedRole && session.user.role !== allowedRole) {
-        await fetch("/api/auth/logout", { method: "POST" });
-        setError("Este aplicativo é exclusivo para cambistas. Use uma conta de cambista para entrar.");
+      const session = await login.json() as LoginResponse;
+      if (!session.authenticated || !session.user || !destinationByRole[session.user.role]) {
+        setError("Não foi possível confirmar seu acesso. Tente novamente.");
         return;
       }
       window.location.assign(session.user.mustChangePassword ? "/change-password" : destinationByRole[session.user.role]);

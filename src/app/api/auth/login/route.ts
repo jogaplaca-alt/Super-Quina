@@ -8,6 +8,7 @@ export const runtime = "nodejs";
 const schema = z.object({
   username: z.string().trim().min(1).max(100),
   password: z.string().min(1).max(1024),
+  requiredRole: z.enum(["PLAYER", "CASHIER", "ADMIN"]).optional(),
 }).strict();
 
 function secureCookie(request: NextRequest) {
@@ -17,19 +18,15 @@ function secureCookie(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const origin = request.headers.get("origin");
   if (!origin) return NextResponse.json({ error: "Requisição inválida." }, { status: 403, headers: { "Cache-Control": "no-store" } });
-  if (origin) {
-    let originHost: string;
-    try {
-      originHost = new URL(origin).host;
-    } catch {
-      return NextResponse.json({ error: "Requisição inválida." }, { status: 403 });
-    }
-
-    // Compare the browser Origin with the incoming Host to reject cross-origin requests.
-    const requestHost = request.headers.get("host");
-    if (!requestHost || originHost !== requestHost) {
-      return NextResponse.json({ error: "Requisição inválida." }, { status: 403 });
-    }
+  let originHost: string;
+  try {
+    originHost = new URL(origin).host;
+  } catch {
+    return NextResponse.json({ error: "Requisição inválida." }, { status: 403 });
+  }
+  const requestHost = request.headers.get("host");
+  if (!requestHost || originHost !== requestHost) {
+    return NextResponse.json({ error: "Requisição inválida." }, { status: 403 });
   }
 
   let body: unknown;
@@ -49,7 +46,7 @@ export async function POST(request: NextRequest) {
 
   const user = await authPrisma.user.findUnique({
     where: { username: parsed.data.username },
-    select: { id: true, passwordHash: true, status: true },
+    select: { id: true, passwordHash: true, status: true, role: true, mustChangePassword: true },
   });
   const validPassword = await verifyPassword(parsed.data.password, user?.passwordHash ?? "");
   if (!user || user.status !== "ACTIVE" || !validPassword) {
@@ -63,11 +60,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Usuário ou senha inválidos." }, { status: 401, headers: { "Cache-Control": "no-store" } });
   }
 
+  if (parsed.data.requiredRole && user.role !== parsed.data.requiredRole) {
+    return NextResponse.json({ error: "Este aplicativo é exclusivo para cambistas. Use uma conta de cambista para entrar." }, { status: 403, headers: { "Cache-Control": "no-store" } });
+  }
+
   await clearLoginFailures(authPrisma, parsed.data.username);
   const { token, expiresAt } = await createSession(user.id);
-  const response = NextResponse.json({ authenticated: true });
+  const response = NextResponse.json({
+    authenticated: true,
+    user: { role: user.role, mustChangePassword: user.mustChangePassword },
+  });
   response.cookies.set(SESSION_COOKIE, token, {
     httpOnly: true, secure: secureCookie(request), sameSite: "lax", path: "/", expires: expiresAt,
   });
+  response.headers.set("Cache-Control", "no-store");
   return response;
 }
