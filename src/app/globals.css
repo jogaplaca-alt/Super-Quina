@@ -3356,3 +3356,35 @@ html.is-android {
     font-size: 1.05rem !important;
   }
 }
+
+
+/* Android: reproduz o estado visual do iPhone no aviso de sucesso e no botão Continuar. */
+@media screen and (max-width: 600px) {
+  html.is-android .area-page-compact .numeric-game-purchase .form-feedback-success,
+  html.is-android .area-page-compact .numeric-game-purchase .note-inline[role="status"] {
+    color: #6ee7a0 !important;
+    background: rgba(20, 83, 45, .18) !important;
+    border: 1px solid rgba(74, 222, 128, .5) !important;
+    border-left: 6px solid #22c55e !important;
+    border-radius: 16px !important;
+    padding: 14px 16px !important;
+    font-weight: 750 !important;
+    line-height: 1.45 !important;
+  }
+  html.is-android .area-page-compact .numeric-game-purchase form > button[type="submit"]:not(:disabled) {
+    background: #59b8f5 !important;
+    background-image: none !important;
+    color: #fff !important;
+    border: 2px solid #080808 !important;
+    border-radius: 13px !important;
+    opacity: 1 !important;
+    box-shadow: none !important;
+    -webkit-text-fill-color: #fff !important;
+  }
+  html.is-android .area-page-compact .numeric-game-purchase form > button[type="submit"]:disabled {
+    background: #232323 !important;
+    color: #888 !important;
+    border: 2px solid #080808 !important;
+    opacity: 1 !important;
+  }
+}
