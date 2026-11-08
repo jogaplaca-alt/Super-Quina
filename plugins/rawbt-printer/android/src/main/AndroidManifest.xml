@@ -2,4 +2,19 @@
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
+
+    <application>
+        <service
+            android:name="com.superquina.printer.SuperQuinaPrintService"
+            android:label="Super Quina Bluetooth"
+            android:permission="android.permission.BIND_PRINT_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.printservice.PrintService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.printservice"
+                android:resource="@xml/superquina_print_service" />
+        </service>
+    </application>
 </manifest>
