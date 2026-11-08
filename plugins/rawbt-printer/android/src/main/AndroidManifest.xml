@@ -4,6 +4,12 @@
     <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
 
     <application>
+        <activity
+            android:name="com.superquina.printer.PrinterSetupActivity"
+            android:label="Configurar impressora Super Quina"
+            android:exported="true"
+            android:theme="@android:style/Theme.Material.Light.NoActionBar" />
+
         <service
             android:name="com.superquina.printer.SuperQuinaPrintService"
             android:label="Super Quina Bluetooth"
