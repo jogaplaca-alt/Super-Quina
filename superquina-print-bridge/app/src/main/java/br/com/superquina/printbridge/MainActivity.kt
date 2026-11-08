@@ -142,6 +142,16 @@ class MainActivity : Activity() {
         }
     }
 
+    private fun printText(text: String) {
+        pendingText = text
+        val device = selectedDevice
+        if (device == null) {
+            updateStatus("Selecione uma impressora Bluetooth antes de imprimir.")
+            return
+        }
+        connectAndPrintIfReady(device)
+    }
+
     private fun connectAndPrintIfReady(device: BluetoothDevice) {
         val text = pendingText
         if (text.isNullOrBlank()) {
