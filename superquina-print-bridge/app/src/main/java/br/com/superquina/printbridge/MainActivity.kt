@@ -128,6 +128,9 @@ class MainActivity : Activity() {
         }
         val devices = try { adapter.bondedDevices.orEmpty().sortedBy { it.name ?: it.address } }
         catch (_: SecurityException) { emptyList() }
+        val savedAddress = getSharedPreferences("superquina_print_bridge", MODE_PRIVATE)
+            .getString("selected_printer_address", null)
+        selectedDevice = devices.firstOrNull { it.address == savedAddress }
         if (devices.isEmpty()) updateStatus("Nenhuma impressora pareada. Pareie a impressora nas configurações do Android.")
         devices.forEach { device ->
             val label = (device.name ?: "Dispositivo Bluetooth") + "\n" + device.address
@@ -136,6 +139,8 @@ class MainActivity : Activity() {
                 isAllCaps = false
                 setOnClickListener {
                     selectedDevice = device
+                    getSharedPreferences("superquina_print_bridge", MODE_PRIVATE)
+                        .edit().putString("selected_printer_address", device.address).apply()
                     updateStatus("Selecionada: ${device.name ?: device.address}. Conectando…")
                     connectAndPrintIfReady(device)
                 }
