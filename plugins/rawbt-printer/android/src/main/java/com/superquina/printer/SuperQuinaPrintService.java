@@ -64,9 +64,15 @@ public final class SuperQuinaPrintService extends PrintService {
             job.fail("Selecione o tamanho do papel e a resolução nas opções de impressão.");
             return;
         }
-        final int paperWidthDots = Math.round(
-            selectedMedia.getWidthMils() * selectedResolution.getHorizontalDpi() / 1000f
-        );
+        final int nominalWidthMils = selectedMedia.getWidthMils();
+        final int baseWidthDots;
+        if (nominalWidthMils == 2283) baseWidthDots = 384;       // 58 mm roll, 48 mm printable width
+        else if (nominalWidthMils == 3150) baseWidthDots = 576;  // 80 mm roll, 72 mm printable width
+        else {
+            job.fail("O tamanho de papel selecionado ainda não possui perfil térmico validado.");
+            return;
+        }
+        final int paperWidthDots = Math.round(baseWidthDots * selectedResolution.getHorizontalDpi() / 203f);
         if (paperWidthDots < 160 || paperWidthDots > 1200) {
             job.fail("A largura selecionada não é compatível com a impressão térmica.");
             return;
@@ -306,28 +312,16 @@ public final class SuperQuinaPrintService extends PrintService {
         }
 
         private PrinterCapabilitiesInfo capabilities(PrinterId id) {
-            PrintAttributes.MediaSize roll48 = new PrintAttributes.MediaSize(
-                "SUPERQUINA_ROLL_48", "Bobina térmica 48 mm", 1889, 1000000);
             PrintAttributes.MediaSize roll58 = new PrintAttributes.MediaSize(
                 "SUPERQUINA_ROLL_58", "Bobina térmica 58 mm", 2283, 1000000);
-            PrintAttributes.MediaSize roll72 = new PrintAttributes.MediaSize(
-                "SUPERQUINA_ROLL_72", "Bobina térmica 72 mm", 2835, 1000000);
             PrintAttributes.MediaSize roll80 = new PrintAttributes.MediaSize(
                 "SUPERQUINA_ROLL_80", "Bobina térmica 80 mm", 3150, 1000000);
-            PrintAttributes.MediaSize roll100 = new PrintAttributes.MediaSize(
-                "SUPERQUINA_ROLL_100", "Bobina térmica 100 mm", 3937, 1000000);
             PrintAttributes.Resolution dpi203 = new PrintAttributes.Resolution(
                 "THERMAL_203", "Térmica 203 dpi", 203, 203);
-            PrintAttributes.Resolution dpi300 = new PrintAttributes.Resolution(
-                "THERMAL_300", "Térmica 300 dpi", 300, 300);
             return new PrinterCapabilitiesInfo.Builder(id)
                 .addMediaSize(roll58, true)
-                .addMediaSize(roll48, false)
-                .addMediaSize(roll72, false)
                 .addMediaSize(roll80, false)
-                .addMediaSize(roll100, false)
                 .addResolution(dpi203, true)
-                .addResolution(dpi300, false)
                 .setColorModes(PrintAttributes.COLOR_MODE_MONOCHROME, PrintAttributes.COLOR_MODE_MONOCHROME)
                 .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
                 .build();
