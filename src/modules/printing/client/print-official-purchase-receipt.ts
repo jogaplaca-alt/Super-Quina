@@ -35,12 +35,17 @@ export async function printOfficialPurchaseReceipt(input: { purchaseId: string; 
   let encoded: Uint8Array;
   try { encoded = encodeThermalReceipt(receipt, MTP5_PROFILE_FONT_A); }
   catch (error) { await transition(reservation.job.id, "FAILED", input.deviceName, "ENCODING_FAILED"); throw error; }
-  await transition(reservation.job.id, "SENDING", input.deviceName);
-  const state = await RawBtPrinter.getConnectionState();
+  let state: Awaited<ReturnType<typeof RawBtPrinter.getConnectionState>>;
+  try { state = await RawBtPrinter.getConnectionState(); }
+  catch {
+    await transition(reservation.job.id, "FAILED", input.deviceName, "DEVICE_UNAVAILABLE");
+    throw new Error("Não foi possível verificar a conexão com a impressora.");
+  }
   if (!state.connected || state.deviceId !== input.deviceId) {
     await transition(reservation.job.id, "FAILED", input.deviceName, "DEVICE_UNAVAILABLE");
     throw new Error("Conecte a impressora selecionada antes de imprimir.");
   }
+  await transition(reservation.job.id, "SENDING", input.deviceName);
   try {
     const result = await RawBtPrinter.send({ dataBase64: toBase64(encoded) });
     await transition(reservation.job.id, "SENT", input.deviceName);
