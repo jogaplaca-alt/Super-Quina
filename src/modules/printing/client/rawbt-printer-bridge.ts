@@ -8,14 +8,13 @@ export interface RawBtPrinterBridge {
   disconnect(): Promise<{ disconnected: boolean }>;
   getConnectionState(): Promise<{ connected: boolean; deviceId?: string; name?: string }>;
 }
-declare global {
-  interface Window {
-    Capacitor?: { isNativePlatform?: () => boolean; Plugins?: { RawBtPrinter?: RawBtPrinterBridge } };
-  }
-}
+import { registerPlugin, Capacitor } from "@capacitor/core";
+
+const RawBtPrinter = registerPlugin<RawBtPrinterBridge>("RawBtPrinter");
+
 export function getRawBtPrinter(): RawBtPrinterBridge {
-  if (typeof window === "undefined" || !window.Capacitor?.isNativePlatform?.() || !window.Capacitor.Plugins?.RawBtPrinter) {
+  if (typeof window === "undefined" || !Capacitor.isNativePlatform()) {
     throw new Error("A impressão Bluetooth está disponível somente no aplicativo Android Super Quina instalado.");
   }
-  return window.Capacitor.Plugins.RawBtPrinter;
+  return RawBtPrinter;
 }
