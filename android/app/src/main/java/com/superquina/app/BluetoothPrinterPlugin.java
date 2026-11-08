@@ -24,6 +24,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 @CapacitorPlugin(
     name = "BluetoothPrinter",
@@ -38,6 +41,8 @@ public class BluetoothPrinterPlugin extends Plugin {
     private static final UUID SPP_UUID =
         UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private static final ExecutorService IO = Executors.newSingleThreadExecutor();
+    private static final ScheduledExecutorService TIMEOUTS = Executors.newSingleThreadScheduledExecutor();
+    private static final long CONNECT_TIMEOUT_SECONDS = 15;
 
     @PluginMethod
     public void listPairedDevices(PluginCall call) {
@@ -146,7 +151,15 @@ public class BluetoothPrinterPlugin extends Plugin {
 
             BluetoothDevice device = adapter.getRemoteDevice(address);
             socket = device.createRfcommSocketToServiceRecord(SPP_UUID);
-            socket.connect();
+            final BluetoothSocket connectingSocket = socket;
+            ScheduledFuture<?> connectTimeout = TIMEOUTS.schedule(() -> {
+                try { connectingSocket.close(); } catch (Exception ignored) { }
+            }, CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            try {
+                socket.connect();
+            } finally {
+                connectTimeout.cancel(false);
+            }
             OutputStream output = socket.getOutputStream();
             output.write(payload);
             output.flush();
