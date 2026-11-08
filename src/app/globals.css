@@ -3388,3 +3388,95 @@ html.is-android {
     opacity: 1 !important;
   }
 }
+
+
+/* Android: iguala o painel Premiações/Resultados/Financeiro ao visual do iPhone. */
+@media screen and (max-width: 600px) {
+  html.is-android .cashier-info-card {
+    background: #141c28 !important;
+    color: #f4f6fb !important;
+    border: 1px solid #2b3546 !important;
+    border-radius: 18px !important;
+    overflow: hidden !important;
+    box-shadow: none !important;
+  }
+  html.is-android .cashier-info-card > .cashier-prize-payout {
+    background: transparent !important;
+    padding: 18px 16px 20px !important;
+    border-bottom: 1px solid #2b3546 !important;
+  }
+  html.is-android .cashier-info-card .cashier-prize-payout-heading h2,
+  html.is-android .cashier-info-card .cashier-prize-payout-heading label {
+    color: #f4f6fb !important;
+  }
+  html.is-android .cashier-info-card .cashier-prize-lookup-form label {
+    color: #f4f6fb !important;
+    font-size: 1.12rem !important;
+    font-weight: 800 !important;
+    overflow-wrap: normal !important;
+  }
+  html.is-android .cashier-info-card .cashier-prize-lookup-form input {
+    min-height: 62px !important;
+    padding: 14px 16px !important;
+    background: #000 !important;
+    background-image: none !important;
+    color: #f4f6fb !important;
+    border: 2px solid #a3a3a8 !important;
+    border-radius: 14px !important;
+    box-shadow: none !important;
+    -webkit-text-fill-color: #f4f6fb !important;
+  }
+  html.is-android .cashier-info-card .cashier-prize-lookup-form input::placeholder {
+    color: #a3a3a8 !important;
+    opacity: 1 !important;
+    -webkit-text-fill-color: #a3a3a8 !important;
+  }
+  html.is-android .cashier-info-card .cashier-prize-lookup-form button,
+  html.is-android .cashier-info-card .cashier-prize-lookup-form button:disabled {
+    min-height: 68px !important;
+    padding: 14px 18px !important;
+    background: #59b8f5 !important;
+    background-image: none !important;
+    color: #fff !important;
+    border: 2px solid #080808 !important;
+    border-radius: 14px !important;
+    opacity: 1 !important;
+    box-shadow: none !important;
+    -webkit-text-fill-color: #fff !important;
+    font-size: 1.16rem !important;
+    font-weight: 850 !important;
+  }
+  html.is-android .cashier-info-card > .cashier-info-results {
+    background: transparent !important;
+    border-bottom: 1px solid #2b3546 !important;
+  }
+  html.is-android .cashier-info-card > .cashier-info-results > summary,
+  html.is-android .cashier-info-card > .cashier-summary-menu > summary {
+    background: transparent !important;
+    color: #f4f6fb !important;
+    min-height: 88px !important;
+    padding: 20px 48px 20px 16px !important;
+  }
+  html.is-android .cashier-info-card .player-collapsible-label {
+    color: #55d4ef !important;
+    font-size: .9rem !important;
+    font-weight: 850 !important;
+    letter-spacing: .07em !important;
+  }
+  html.is-android .cashier-info-card .player-collapsible-title {
+    color: #f4f6fb !important;
+    font-size: 1.35rem !important;
+    line-height: 1.25 !important;
+    font-weight: 850 !important;
+  }
+  html.is-android .cashier-info-card > .cashier-summary-menu {
+    background: transparent !important;
+  }
+  html.is-android .cashier-info-card > .cashier-info-results .recent-results-content,
+  html.is-android .cashier-info-card > .cashier-summary-menu .cashier-compact-summary {
+    background: transparent !important;
+    color: #f4f6fb !important;
+    padding-right: 16px !important;
+    padding-left: 16px !important;
+  }
+}
