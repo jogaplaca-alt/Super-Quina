@@ -3,8 +3,8 @@ import Image from "next/image";
 import { HomeAccess, HomeAccessFooter } from "@/components/home-access";
 
 export const metadata: Metadata = {
-  title: "Super Quina | Jogo Numérico e Credenciamento de Pontos",
-  description: "Conheça como funciona a Super Quina e acesse sua conta para jogar.",
+  title: "Super Quina | Página Inicial Oficial",
+  description: "Página inicial oficial da Super Quina. Conheça como funciona o jogo, veja as informações e acesse sua conta quando desejar.",
   alternates: { canonical: "/" },
   robots: { index: true, follow: true },
 };
