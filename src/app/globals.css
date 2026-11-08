@@ -2786,3 +2786,55 @@ body:has(.home-page) {
     margin-top: 24px !important;
   }
 }
+
+
+/* Página inicial rolável: libera espaço para novos conteúdos e botão de download. */
+html:has(.home-page),
+body:has(.home-page) {
+  height: auto !important;
+  min-height: 100% !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior-y: auto !important;
+}
+
+.home-page.home-page-compact {
+  display: flex !important;
+  flex-direction: column !important;
+  height: auto !important;
+  min-height: calc(100vh - var(--site-header-height, 0px)) !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.home-page-compact .home-entry {
+  display: grid !important;
+  grid-template-rows: auto auto auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  padding-bottom: max(28px, calc(env(safe-area-inset-bottom, 0px) + 22px)) !important;
+}
+
+.home-page-compact .home-entry > .home-how-infographic,
+.home-page-compact .home-entry > .home-promo {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.home-page-compact .home-entry > .home-how-infographic img,
+.home-page-compact .home-entry > .home-promo img {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  max-height: none !important;
+  object-fit: contain !important;
+}
+
+.home-page-compact .home-entry > .home-access-footer {
+  margin-top: 22px !important;
+  flex-shrink: 0 !important;
+}
