@@ -31,7 +31,7 @@ class SuperquinaPrintService : PrintService() {
 
             override fun onStartPrinterDiscovery(priorityList: MutableList<PrinterId>) {
                 val capabilities = PrinterCapabilitiesInfo.Builder(printerId)
-                    .addMediaSize(PrintAttributes.MediaSize.UNKNOWN_PORTRAIT, true)
+                    .addMediaSize(PrintAttributes.MediaSize("superquina_58mm", "Bobina térmica 58 mm", 2283, 7874), true)
                     .addResolution(PrintAttributes.Resolution("thermal203", "Thermal 203 dpi", 203, 203), true)
                     .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
                     .setColorModes(PrintAttributes.COLOR_MODE_MONOCHROME, PrintAttributes.COLOR_MODE_MONOCHROME)
