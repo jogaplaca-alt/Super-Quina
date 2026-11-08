@@ -19,6 +19,7 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Set;
 import java.util.UUID;
@@ -140,6 +141,18 @@ public class BluetoothPrinterPlugin extends Plugin {
         return manager == null ? BluetoothAdapter.getDefaultAdapter() : manager.getAdapter();
     }
 
+    private void connectWithTimeout(BluetoothSocket socket) throws IOException {
+        final BluetoothSocket connectingSocket = socket;
+        ScheduledFuture<?> connectTimeout = TIMEOUTS.schedule(() -> {
+            try { connectingSocket.close(); } catch (Exception ignored) { }
+        }, CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        try {
+            socket.connect();
+        } finally {
+            connectTimeout.cancel(false);
+        }
+    }
+
     private void sendToPrinter(PluginCall call, String address, byte[] payload) {
         BluetoothSocket socket = null;
         try {
@@ -149,16 +162,22 @@ public class BluetoothPrinterPlugin extends Plugin {
                 return;
             }
 
+            // RawBT-style compatibility: try the secure SPP channel first, then
+            // the insecure RFCOMM channel used by some low-cost thermal printers.
+            adapter.cancelDiscovery();
             BluetoothDevice device = adapter.getRemoteDevice(address);
             socket = device.createRfcommSocketToServiceRecord(SPP_UUID);
-            final BluetoothSocket connectingSocket = socket;
-            ScheduledFuture<?> connectTimeout = TIMEOUTS.schedule(() -> {
-                try { connectingSocket.close(); } catch (Exception ignored) { }
-            }, CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
             try {
-                socket.connect();
-            } finally {
-                connectTimeout.cancel(false);
+                connectWithTimeout(socket);
+            } catch (IOException secureError) {
+                try { socket.close(); } catch (Exception ignored) { }
+                socket = device.createInsecureRfcommSocketToServiceRecord(SPP_UUID);
+                try {
+                    connectWithTimeout(socket);
+                } catch (IOException insecureError) {
+                    insecureError.addSuppressed(secureError);
+                    throw insecureError;
+                }
             }
             OutputStream output = socket.getOutputStream();
             final BluetoothSocket sendingSocket = socket;
