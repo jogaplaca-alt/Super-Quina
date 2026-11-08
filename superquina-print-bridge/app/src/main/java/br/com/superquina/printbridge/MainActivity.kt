@@ -80,7 +80,10 @@ class MainActivity : Activity() {
         if (intent?.action == Intent.ACTION_SEND && intent.type == "text/plain") {
             pendingText = intent.getStringExtra(Intent.EXTRA_TEXT)
             updateStatus(if (pendingText.isNullOrBlank()) "Compartilhamento sem texto." else "Conteúdo recebido. Escolha a impressora.")
-            if (hasBluetoothPermission()) loadBondedDevices()
+            if (hasBluetoothPermission()) {
+                loadBondedDevices()
+                selectedDevice?.let { connectAndPrintIfReady(it) }
+            }
         }
     }
 
