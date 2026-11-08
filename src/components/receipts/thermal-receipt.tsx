@@ -86,6 +86,56 @@ export function ThermalReceipt({
   const effectiveQrUrl = qrCodeDataUrl ?? (generatedQr?.receiptCode === receiptCode && generatedQr.url ? generatedQr.url : null);
   const repetitionNumbers = getReceiptRepetitionNumbers(entries);
 
+  async function sendToSuperquinaPrinter() {
+    if (paymentStatus !== "CONFIRMED") return;
+    if (!/^SQ-[A-Z0-9]{8,32}$/.test(receiptCode)) {
+      window.alert("Código de recibo inválido.");
+      return;
+    }
+    if (typeof navigator.share !== "function") {
+      window.alert("O compartilhamento não está disponível neste navegador. Use a opção Imprimir recibo.");
+      return;
+    }
+
+    const payload = {
+      type: "superquina-receipt",
+      version: 1,
+      verificationUrl: window.location.origin + "/verificar-recibo/" + encodeURIComponent(receiptCode),
+      receipt: {
+        receiptCode,
+        paymentStatus,
+        issuedAt,
+        totalCents,
+        currency: "BRL",
+        paymentMethod: paymentLabel,
+        customerLabel: customerLabel ?? "",
+        cashierLabel: cashierLabel ?? "",
+        entries: entries.map((entry) => ({
+          numberValue: entry.numberValue,
+          roundCode: entry.roundCode,
+          resultAt: entry.resultAt,
+          stakeCents: entry.stakeCents,
+          unitCents: entry.unitCents ?? 0,
+          tensCents: entry.tensCents ?? 0,
+          hundredsCents: entry.hundredsCents ?? 0,
+          thousandsCents: entry.thousandsCents ?? 0,
+          quinaCents: entry.quinaCents ?? 0,
+        })),
+      },
+    };
+
+    try {
+      await navigator.share({
+        title: "Recibo Super Quina " + receiptCode,
+        text: JSON.stringify(payload),
+      });
+    } catch (error) {
+      if (error instanceof Error && error.name !== "AbortError") {
+        window.alert("Não foi possível enviar o recibo para Superquina Impressão.");
+      }
+    }
+  }
+
   function downloadReceipt() {
     const article = document.getElementById("thermal-receipt-" + receiptCode);
     if (!article) return;
@@ -162,6 +212,7 @@ export function ThermalReceipt({
       </article>
       <div className="thermal-receipt-actions" aria-label="Ações do recibo">
         <button className="thermal-receipt-print-button" type="button" onClick={() => window.print()}>Imprimir recibo</button>
+        <button className="thermal-receipt-print-button" type="button" onClick={sendToSuperquinaPrinter}>Enviar para Superquina Impressão</button>
         <button className="thermal-receipt-download-button" type="button" onClick={downloadReceipt}>Baixar recibo</button>
         {onClose && <button className="thermal-receipt-exit-button" type="button" onClick={onClose}>Sair / Fechar recibo</button>}
       </div>
