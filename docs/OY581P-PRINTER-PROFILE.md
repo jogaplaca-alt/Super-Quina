@@ -1,42 +1,48 @@
-# Perfil candidato — OY581P (58 mm)
+# Perfil da impressora — Goldensky MTP5 (58 mm)
 
 Atualizado em 2026-11-08. Branch: `feature/rawbt-inspired-printer-core`.
 
-## Identificação fornecida
-- Modelo informado: OY581P genérica.
-- Bluetooth: clássico 2.0 ou superior, conforme informação do usuário.
-- Bobina: 58 mm.
+## Identificação confirmada pelas imagens do anúncio enviadas pelo usuário
+- Modelo anunciado: MTP5.
+- Marca anunciada: Goldensky.
+- Papel: bobina térmica de 58 mm.
+- Largura imprimível: 48 mm / 384 dots por linha.
+- Resolução: 203 DPI (8 dots/mm).
+- Linguagem: ESC/POS.
+- Interface: Bluetooth 2.0 / SPP (além de RS232/USB; infravermelho opcional).
+- Velocidade anunciada: 50–80 mm/s.
+- Fonte A: 12 × 24 dots.
+- Fonte B: 9 × 17 dots.
+- Tabelas anunciadas incluem WPC1252, OEM437, OEM850 e outras; a tabela ativa não foi identificada nas imagens.
 
-## Perfil inicial de impressão
-O arquivo `src/modules/printing/escpos/oy581p-profile.ts` define:
-- papel nominal: 58 mm;
-- largura útil de referência: 48 mm;
-- resolução de referência: 384 pontos por linha;
-- Font A: 12 x 24 pontos, resultando em 32 colunas;
-- protocolo de impressão esperado: ESC/POS;
-- codificação de caracteres: transliteração conservadora para ASCII;
-- avanço final: 3 linhas;
-- sem comando de corte automático e sem seleção de code page não verificada.
+**Correção:** a identificação anterior como OY581P estava incorreta. As imagens mostram um produto Goldensky MTP5. O perfil OY581P não deve ser usado.
 
-Esses valores são um perfil inicial baseado em manuais públicos de mini impressoras 58 mm com Bluetooth SPP e ESC/POS. Não foi localizado manual inequívoco do fabricante para a revisão específica OY581P. Portanto, não tratar como certificação do modelo.
+## Perfis adicionados
+Arquivo: `src/modules/printing/escpos/mtp5-profile.ts`.
 
-## Evidências e limites
-Manuais de uma família comum de impressoras mini 58 mm descrevem 48 mm/384 pontos de largura imprimível, ESC/POS e Bluetooth 2.0/4.0 com SPP. A documentação também alerta que o protocolo Bluetooth e o conjunto de comandos variam por revisão/firmware.
+- Font A: 32 colunas (12 dots × 32 = 384 dots).
+- Font B: 42 colunas (9 dots × 42 = 378 dots, mantendo margem).
+- Papel 58 mm; largura útil 48 mm.
+- Sem comando de corte, pois não há confirmação de cortador automático.
+- Sem seleção de code page por enquanto. Embora o anúncio liste WPC1252 e outras tabelas, não informa qual está ativa por padrão na unidade.
 
-## Validação física obrigatória
-1. Confirmar na página de autoteste da impressora a largura/resolução, firmware e modo Bluetooth.
-2. Parear no Android e verificar que aparece em dispositivos pareados.
-3. Testar conexão RFCOMM/SPP sem enviar bytes de impressão.
-4. Enviar primeiro apenas inicialização ESC/POS e uma linha ASCII curta, com operador presente.
-5. Validar acentos, alinhamento, largura, avanço e QR em ensaios separados.
-6. Somente depois ligar o encoder ao fluxo oficial de recibo e ao ledger PrintJob.
-
-Não enviar comandos de consulta de status ou corte até confirmar suporte no manual/revisão. Uma conexão bem-sucedida não comprova impressão; `bytesWritten` não comprova que o papel saiu.
+## Plano de validação
+1. Conferir o autoteste impresso pela própria impressora para identificar firmware, interface e tabela de caracteres.
+2. Parear no Android e confirmar que aparece na lista de dispositivos pareados.
+3. Testar conexão Bluetooth Classic RFCOMM/SPP sem enviar dados.
+4. Enviar um teste mínimo supervisionado: inicialização ESC/POS e uma linha ASCII curta.
+5. Comparar Font A (32 colunas) e Font B (42 colunas), validar alinhamento e largura.
+6. Testar acentos com a code page confirmada pelo autoteste/manual.
+7. Validar QR Code separadamente antes de habilitar no recibo final.
+8. Só então integrar a impressão ao recibo oficial e ao ledger PrintJob.
 
 ## Estado
-- [x] Perfil de configuração candidato adicionado.
-- [ ] Modelo/revisão confirmados por etiqueta e autoteste.
+- [x] Especificações extraídas das imagens do anúncio.
+- [x] Perfis de Font A e Font B adicionados.
+- [ ] Revisão exata/firmware confirmados pelo autoteste da unidade.
 - [ ] Conexão física SPP validada.
 - [ ] Impressão ESC/POS validada.
-- [ ] QR, acentos e largura validados.
+- [ ] Code page, acentos e QR validados.
 - [ ] Build Android e APK testável produzidos.
+
+Uma conexão estabelecida não comprova impressão. O retorno `bytesWritten` comprova apenas que o socket aceitou os bytes, não que o papel foi fisicamente impresso.
