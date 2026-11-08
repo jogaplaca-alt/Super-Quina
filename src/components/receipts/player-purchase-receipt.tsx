@@ -84,6 +84,30 @@ export function PlayerPurchaseReceipt({ purchaseId, autoOpen = false, onClose }:
 
   const canRetry = manualRetries < MAX_MANUAL_RETRIES;
 
+  async function sendToSuperquinaPrinter() {
+    if (!receipt || receipt.purchaseId !== purchaseId) return;
+    if (typeof navigator.share !== "function") {
+      setErrorState({ purchaseId, value: "Este navegador não oferece compartilhamento. Abra o site no Chrome do Android para enviar o recibo ao aplicativo de impressão." });
+      return;
+    }
+    const payload = {
+      type: "superquina-receipt",
+      version: 1,
+      receipt: receipt.data,
+      verificationUrl: `${window.location.origin}/verificar-recibo/${encodeURIComponent(receipt.data.receiptCode)}`,
+    };
+    try {
+      await navigator.share({
+        title: "Recibo Superquina",
+        text: JSON.stringify(payload),
+      });
+    } catch (reason) {
+      if (reason instanceof Error && reason.name !== "AbortError") {
+        setErrorState({ purchaseId, value: "Não foi possível compartilhar o recibo com o aplicativo de impressão." });
+      }
+    }
+  }
+
   return (
     <div className="player-purchase-receipt">
       {!receipt && !autoOpen && (
@@ -108,6 +132,9 @@ export function PlayerPurchaseReceipt({ purchaseId, autoOpen = false, onClose }:
         <div className="modal-backdrop" role="presentation">
           <section className="modal-panel receipt-modal" role="dialog" aria-modal="true" aria-labelledby="receipt-heading">
             <h2 id="receipt-heading">Recibo oficial</h2>
+            <button type="button" onClick={() => { void sendToSuperquinaPrinter(); }}>
+              Enviar para Superquina Impressão
+            </button>
             <ThermalReceipt
               receiptCode={receipt.data.receiptCode}
               paymentStatus={receipt.data.paymentStatus}
