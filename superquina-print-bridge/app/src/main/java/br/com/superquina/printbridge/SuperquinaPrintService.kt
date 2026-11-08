@@ -73,7 +73,8 @@ class SuperquinaPrintService : PrintService() {
                 val device = adapter.getRemoteDevice(address)
                 val socket = connect(device)
                 try {
-                    val renderer = PdfRenderer(printJob.document.data)
+                    val documentFd = printJob.document.data ?: throw IOException("Documento PDF vazio recebido do Android.")
+                    val renderer = PdfRenderer(documentFd)
                     try {
                         for (pageIndex in 0 until renderer.pageCount) {
                             val page = renderer.openPage(pageIndex)
