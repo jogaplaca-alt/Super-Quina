@@ -2838,3 +2838,43 @@ body:has(.home-page) {
   margin-top: 22px !important;
   flex-shrink: 0 !important;
 }
+
+/* Página de instruções para instalar a Super Quina. */
+.home-app-download-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, 230px);
+  min-height: 44px;
+  margin: 18px auto 0;
+  padding: 10px 18px;
+  border: 1px solid #59d5f2;
+  border-radius: 10px;
+  background: #0b5c9c;
+  color: #fff;
+  font-weight: 800;
+  text-align: center;
+  text-decoration: none;
+}
+.home-app-download-link:focus-visible,
+.home-app-download-link:hover { outline: 2px solid #fff; outline-offset: 3px; filter: brightness(1.1); }
+.app-install-page {
+  width: min(100%, 900px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: calc(var(--site-header-height, 0px) + 28px) clamp(16px, 4vw, 32px) 48px;
+  color: #f4f6fb;
+}
+.app-install-header { margin-bottom: 24px; }
+.app-install-eyebrow { margin: 0 0 8px; color: #59d5f2; font-size: .8rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.app-install-header h1 { font-size: clamp(2rem, 6vw, 3rem); line-height: 1.1; }
+.app-install-header > p:last-child { max-width: 65ch; color: #c3d0df; }
+.app-install-card { margin: 18px 0; padding: clamp(18px, 4vw, 28px); border: 1px solid #34465c; border-radius: 16px; background: #0c1b2d; }
+.app-install-card h2 { margin: 0 0 14px; font-size: clamp(1.25rem, 4vw, 1.65rem); }
+.app-install-card p, .app-install-card li { color: #d4deea; line-height: 1.7; }
+.app-install-card ol { display: grid; gap: 8px; padding-left: 24px; }
+.app-install-download { display: inline-flex; justify-content: center; align-items: center; min-height: 48px; margin-top: 8px; padding: 12px 20px; border-radius: 10px; background: #16834e; color: #fff; font-weight: 800; text-decoration: none; }
+.app-install-download:hover { filter: brightness(1.08); }
+.app-install-note { margin: 14px 0 0; font-size: .9rem; color: #aebed0 !important; }
+.app-install-back { display: inline-block; margin-top: 12px; color: #7bdcf5; font-weight: 700; }
+@media (max-width: 600px) { .app-install-page { padding-top: calc(var(--site-header-height, 100px) + 20px); } .home-app-download-link { margin-top: 14px; } }
