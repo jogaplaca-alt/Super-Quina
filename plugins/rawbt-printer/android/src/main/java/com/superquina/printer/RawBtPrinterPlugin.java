@@ -96,8 +96,6 @@ public class RawBtPrinterPlugin extends Plugin {
                     call.reject("Bluetooth indisponível ou desligado.", "BLUETOOTH_DISABLED");
                     return;
                 }
-                // Discovery can block RFCOMM connection attempts, even for bonded devices.
-                adapter.cancelDiscovery();
                 BluetoothDevice device = adapter.getRemoteDevice(deviceId);
                 closeSocket();
                 try {
