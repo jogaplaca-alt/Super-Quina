@@ -166,7 +166,11 @@ export function encodeThermalReceipt(receipt: ThermalReceiptForEncoding, profile
   bytes.push(...line("RECIBO: " + receipt.receiptCode, profile));
   for (const part of wrap("PAGAMENTO: " + paymentMethod, columns)) bytes.push(...line(part, profile));
   if (customer) for (const part of wrap("CLIENTE: " + customer, columns)) bytes.push(...line(part, profile));
-  if (cashier) for (const part of wrap("CAMBISTA: " + cashier, columns)) bytes.push(...line(part, profile));
+  if (cashier) {
+    bytes.push(ESC, 0x45, 0x01);
+    for (const part of wrap("CAMBISTA: " + cashier, columns)) bytes.push(...line(part, profile));
+    bytes.push(ESC, 0x45, 0x00);
+  }
   bytes.push(...line("-".repeat(columns), profile));
 
   for (const entry of receipt.entries) {
