@@ -37,7 +37,7 @@ class SuperquinaPrintService : PrintService() {
                     .setColorModes(PrintAttributes.COLOR_MODE_MONOCHROME, PrintAttributes.COLOR_MODE_MONOCHROME)
                     .build()
                 addPrinters(listOf(
-                    PrinterInfo.Builder(printerId, "Superquina Bluetooth", PrinterInfo.STATUS_IDLE)
+                    PrinterInfo.Builder(printerId, "Super Quina Bluetooth", PrinterInfo.STATUS_IDLE)
                         .setCapabilities(capabilities)
                         .build()
                 ))
@@ -63,7 +63,7 @@ class SuperquinaPrintService : PrintService() {
                 printJob.start()
                 val address = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                     .getString(KEY_PRINTER_ADDRESS, null)
-                    ?: throw IOException("Nenhuma impressora selecionada no app Superquina Impressão.")
+                    ?: throw IOException("Nenhuma impressora selecionada no app Super Quina Impressão.")
 
                 val adapter = BluetoothAdapter.getDefaultAdapter()
                     ?: throw IOException("Bluetooth não disponível neste aparelho.")
