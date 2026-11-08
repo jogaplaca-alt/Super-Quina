@@ -104,7 +104,7 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
         <div>
           <p>Conectada: <strong>{connectedName}</strong></p>
           <button type="button" onClick={() => void testPrint()} disabled={busy}>Imprimir teste de conexão</button>
-          <button type="button" onClick={() => void print()} disabled={busy}>Imprimir recibo nesta impressora</button>
+          <button type="button" onClick={() => void print()} disabled={busy}>Imprimir recibo pelo Bluetooth</button>
           <button type="button" onClick={() => void disconnect()} disabled={busy}>Desconectar</button>
         </div>
       )}
