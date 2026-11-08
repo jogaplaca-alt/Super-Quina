@@ -454,3 +454,149 @@ Regras:
 - [ ] Executar build e testes físicos do Super Quina; esta análise de código não substitui testes em hardware.
 
 **Estado desta pesquisa:** análise estática de código-fonte e documentação concluída para os seis repositórios com identidade confirmada. Nenhuma integração, cópia de código ou alteração no fluxo financeiro foi realizada.
+
+
+---
+
+## 8. Análise complementar — BluetoothUniversalPrinter (vasarely-ops)
+
+**Repositório:** https://github.com/vasarely-ops/BluetoothUniversalPrinter  
+**Branch analisada:** `main`  
+**Commit analisado:** `225c67102bade886635fd4587e93115676e5b7fc`  
+**Data da inspeção:** 08/11/2026  
+**Tipo de evidência:** leitura direta de README, MainActivity, classes Bluetooth, driver ESC/POS, classes AIDL, manifesto e Gradle. Não foi feita compilação nem teste em hardware.
+
+### 8.1 O que o código realmente contém
+
+O projeto é um aplicativo Android Java com dois backends diferentes, escolhidos por detecção do fabricante/modelo do terminal:
+
+- Bluetooth clássico ESC/POS via RFCOMM/SPP para PAX, SUNMI, GERTEC e fallback desconhecido.
+- Serviço AIDL interno para POSITIVO/L500, usando interfaces do pacote `com.xcheng.printerservice`.
+
+Arquivos centrais examinados:
+
+- `app/src/main/java/com/android/bluetoothuniversalprinter/MainActivity.java`
+- `.../printer/bluetooth/BluetoothPrinterConnection.java`
+- `.../printer/bluetooth/BluetoothEscPosPrinter.java`
+- `.../printer/bluetooth/BluetoothPrinterHelper.java`
+- `.../printer/bluetooth/PrinterDevice.java`
+- `.../printer/positivo/PrinterAidlConnection.java`
+- `.../printer/positivo/AidlGraphicsPrinter.java`
+- `app/src/main/aidl/com/xcheng/printerservice/IPrinterService.aidl`
+- `app/src/main/AndroidManifest.xml`
+- `app/build.gradle.kts`
+
+### 8.2 Conexão Bluetooth — pontos aproveitáveis
+
+A classe `BluetoothPrinterConnection` usa o UUID SPP padrão:
+
+`00001101-0000-1000-8000-00805f9b34fb`
+
+Ela cria `BluetoothSocket` com `createRfcommSocketToServiceRecord`, chama `connect()`, expõe `OutputStream` e permite fechar o socket. A conexão é executada por `ExecutorService` de thread única na Activity, evitando I/O de rede/Bluetooth na UI thread.
+
+A tela principal:
+- Consulta dispositivos pareados com `getBondedDevices()`.
+- Inicia `BluetoothAdapter.startDiscovery()` e recebe `ACTION_FOUND` / `ACTION_DISCOVERY_FINISHED`.
+- Evita duplicação por endereço MAC.
+- Apresenta nome e MAC para seleção.
+- Guarda MAC e nome em `SharedPreferences`.
+- Tenta reconectar automaticamente ao último MAC salvo.
+
+**Aproveitar:** separação entre conexão e driver; descoberta de pareados + scan ativo; persistência de seleção; execução de I/O em executor dedicado.
+
+**Corrigir antes de adotar:** o código da conexão mostrado cria somente o socket RFCOMM seguro. Não há fallback insecure no método examinado. Não há estratégia de timeout, cancelamento explícito da descoberta antes de conectar, reconexão com backoff, mutex/fila de impressão ou tratamento completo de troca/perda do dispositivo. O ciclo de vida precisa garantir fechamento do socket e do executor mesmo em encerramentos inesperados. O receiver de descoberta precisa ser desregistrado com segurança.
+
+### 8.3 Driver ESC/POS — recursos e riscos
+
+`BluetoothEscPosPrinter` contém:
+- Reset ESC @, alinhamento ESC a, tamanho GS !, negrito ESC E, alimentação e corte parcial.
+- Texto em charset CP437.
+- Geração de QR Code e Code128 com ZXing.
+- Renderização de imagens em bitmap monocromático.
+- Envio raster ESC/POS GS v 0 em faixas de 64 linhas, com pausa declarada de 20 ms entre faixas.
+- Rotinas de grades, caixas arredondadas e parágrafos desenhados em bitmap.
+
+Há também uma segunda classe, `BluetoothPrinterHelper`, com lógica semelhante, mas duplicada e com faixa de 128 linhas. **Não devemos incorporar as duas.** A existência de dois drivers sobrepostos aumenta o risco de divergência de protocolo, largura, charset e comportamento de buffer.
+
+**Aproveitar:** envio de imagem em faixas pequenas; QR e Code128; funções de formatação; separação do transporte (OutputStream) do driver ESC/POS; parâmetros de largura térmica.
+
+**Riscos técnicos identificados no código:**
+1. Largura de 384 pontos está fixa como padrão 58 mm; não é universal para todas as cabeças térmicas.
+2. Conversão monocromática usa limiar simples de luminância (128), sem dithering; logos e fontes finas podem perder detalhe.
+3. O laço de conversão usa `getPixel/setPixel` por pixel, potencialmente lento e pesado em recibos longos.
+4. CP437 pode não corresponder à página de código configurada na impressora. Acentos devem ser testados e o charset/página ESC/POS precisa ser perfil configurável.
+5. O driver chama `flush()` em operações pequenas repetidamente; pode reduzir desempenho.
+6. O tratamento de interrupção no `Thread.sleep` deve restaurar a flag de interrupção e abortar a tarefa em vez de ignorá-la.
+7. O comando de corte parcial é opcional e pode ser ignorado por impressoras sem guilhotina.
+8. O cabeçalho GS v 0 e a codificação dos bits devem ser validados em hardware real; README não comprova compatibilidade universal.
+9. A implementação precisa limitar dimensões e memória antes de criar bitmaps muito altos.
+10. A conclusão de escrita no OutputStream não confirma que o papel saiu; o app deve diferenciar envio concluído de impressão fisicamente confirmada.
+
+### 8.4 Backend AIDL — não se aplica ao nosso caso atual
+
+O projeto contém interfaces AIDL de um serviço de fabricante (`com.xcheng.printerservice`) e classes para terminais POS com impressora interna. Isso é específico do ecossistema do fabricante e depende de o serviço estar instalado, exportado e acessível no equipamento.
+
+**Decisão:** não incorporar AIDL no APK do Super Quina para a impressora Bluetooth externa. Só reconsiderar se o produto passar a suportar terminais POS com impressora interna e houver documentação oficial/licença/ambiente de teste do fabricante.
+
+### 8.5 Manifesto e build observados
+
+O módulo usa:
+- Android Gradle Plugin 8.12.3.
+- compileSdk 36, targetSdk 36, minSdk 23.
+- Java 11.
+- AIDL habilitado.
+- ZXing 3.5.3.
+- Permissões Bluetooth antigas e novas (`BLUETOOTH`, `BLUETOOTH_ADMIN`, `BLUETOOTH_SCAN`, `BLUETOOTH_CONNECT`) e permissões de localização para versões antigas.
+
+A lista de permissões precisa ser reduzida ao necessário para o nosso fluxo. Em Android 12+, separar permissão de conexão e descoberta; solicitar `BLUETOOTH_SCAN` somente se fizermos descoberta ativa. Avaliar `neverForLocation` apenas se o comportamento e os requisitos realmente permitirem. Não copiar permissões de armazenamento antigas sem necessidade.
+
+### 8.6 Comparação direta com o Super Quina
+
+| Capacidade | BluetoothUniversalPrinter | Super Quina atual | Decisão |
+|---|---|---|---|
+| Bluetooth SPP | Conexão RFCOMM em classe dedicada | SPP dentro do PrintService | Reaproveitar desenho da camada de transporte, não duplicar conexão |
+| Descoberta | Pareados + scan ativo | Somente pareados | Adicionar descoberta guiada se necessária e permitida |
+| Seleção | Lista nome + MAC | Seleção baseada no printer ID/MAC | Criar configuração persistente simples |
+| Reconexão | MAC salvo em SharedPreferences | Sem perfil configurável completo | Adotar persistência controlada |
+| ESC/POS | Texto, raster, QR, Code128 | PDF renderizado para raster | Avaliar driver ESC/POS como pipeline alternativo |
+| Raster | 384 px fixos, faixas 64 px | 384 px fixos, raster PDF | Comparar qualidade, memória e velocidade em teste |
+| Charset | CP437 fixo | Depende do pipeline raster | Perfil de impressora; evitar texto direto sem tabela validada |
+| AIDL | Sim, vendor específico | Não | Fora de escopo |
+| PrintService Android | Não demonstrado no manifesto examinado | Sim | Manter PrintService como porta de entrada principal |
+| Fila/estado de impressão | Executor simples e callbacks AIDL | PrintJob do Android | Consolidar uma fila serial e estados claros |
+
+### 8.7 Decisão de arquitetura para o Super Quina
+
+Este repositório é uma boa referência para o **backend Bluetooth SPP e para o driver ESC/POS**, mas não substitui o Android Print Framework/PrintService que já estamos construindo. O melhor desenho para nosso produto é:
+
+1. O site gera o recibo e solicita impressão pelo fluxo Android.
+2. O PrintService do Super Quina recebe o PrintJob.
+3. Um pipeline único converte o documento para bitmap/raster.
+4. Uma fila serial controla o envio.
+5. Uma camada de transporte abre o socket SPP da impressora selecionada.
+6. O perfil da impressora determina largura em pontos, densidade, charset, velocidade/pausas e comandos opcionais.
+7. O estado final informa claramente: recebido, processando, enviado ou falhou. Não afirmar “impresso” sem confirmação real da impressora.
+
+A implementação do repositório usa uma Activity utilitária com botões de demonstração e lógica direta. Para o nosso caso, não devemos copiar essa interface de testes nem introduzir uma segunda Activity que dispute a impressão. Devemos extrair apenas os princípios de descoberta, seleção, persistência, transporte e ESC/POS.
+
+### 8.8 Licença e validação
+
+O caminho `LICENSE` não foi encontrado no commit examinado. Portanto, **não presumir autorização para copiar ou redistribuir o código**. Podemos usar a análise arquitetural como referência; antes de copiar qualquer trecho, localizar e confirmar a licença no repositório e revisar dependências/avisos de terceiros.
+
+Nenhum build ou teste físico foi executado nesta análise. A declaração do README de compatibilidade com PAX, SUNMI, GERTEC e impressoras genéricas deve ser tratada como alegação do autor, não como compatibilidade comprovada para a impressora do Super Quina.
+
+### 8.9 Testes obrigatórios antes de adotar
+
+- Pareamento inicial e descoberta em Android 11, 12 e versões atuais.
+- Reconexão após fechar/reabrir o app e após reiniciar o celular.
+- Perda de sinal durante envio e tentativa de nova impressão.
+- Recibo curto e longo, sem truncamento.
+- QR Pix legível após impressão e leitura por outro celular.
+- Acentos portugueses: á, ã, ç, ê, õ, maiúsculas.
+- Logo e textos pequenos; comparação de limiar simples com dithering.
+- Testes de largura e margem em 58 mm.
+- Vários trabalhos em sequência, sem mistura de conteúdo.
+- Cancelamento, permissão negada, Bluetooth desligado e impressora desligada.
+- Confirmar que o status do Android não é apresentado como confirmação física do papel.
+
+**Conclusão específica:** classificar BluetoothUniversalPrinter como referência de alta relevância para conexão SPP, descoberta e rotinas ESC/POS; relevância baixa para AIDL no nosso cenário; não adotar seu app inteiro nem duplicar seu driver. O próximo passo é reconciliar suas técnicas com o PrintService existente e selecionar um único caminho de conversão/envio.
