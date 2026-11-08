@@ -29,7 +29,7 @@ A primeira versão do APK deverá ser um cliente Android/Capacitor enxuto, com:
 - seleção de dispositivos previamente pareados;
 - estado de conexão e teste de impressão;
 - impressão de recibos oficiais;
-- tela de configuração limitada a impressora, largura 58/80 mm e perfil de codificação/corte.
+- tela mínima de configuração do serviço; o tamanho da bobina é escolhido no diálogo de impressão do Android (58 mm ou 80 mm).
 
 Não incluir serviço genérico Android PrintService, compartilhamento de arquivos, PDF, Word, impressão de imagens avulsas, BLE, USB, Wi-Fi, drivers CPCL/ZPL/EPL ou ferramentas genéricas do RawBT.
 
@@ -57,11 +57,11 @@ Não aceitar dados financeiros calculados localmente como fonte de verdade. Falh
 - [ ] Adicionar Capacitor core/cli/android em versões compatíveis e atualizar lockfile.
 - [ ] Gerar e configurar plataforma Android.
 - [ ] Registrar e compilar o plugin local no Android.
-- [ ] Criar interface mínima de seleção/conexão.
-- [x] Ligar o DTO real do recibo e o PrintJob ao fluxo do cliente (site gera o recibo; plugin transmite ESC/POS por SPP).
+- [ ] Validar seleção de papel no diálogo do Android (58 mm e 80 mm) em aparelho real.
+- [x] Ligar o recibo do site ao Android Print Framework e ao PrintService, que converte PDF temporário em ESC/POS e transmite por SPP.
 - [ ] Executar lint, typecheck e testes.
-- [x] Remover o botão window.print() e o download HTML do recibo para impedir a rota Android Print Framework.
-- [ ] Gerar APK de debug.
+- [ ] Confirmar que a interface do recibo não oferece ferramentas genéricas de edição/arquivos.
+- [ ] Gerar APK de debug após validar o fluxo e os perfis de papel.
 - [ ] Testar em aparelho e impressora Bluetooth reais.
 
 Nenhum APK novo foi gerado nesta etapa. Não marcar a implementação como pronta até o teste físico.
@@ -71,3 +71,10 @@ Nenhum APK novo foi gerado nesta etapa. Não marcar a implementação como pront
 A tela de recibo do site anteriormente oferecia window.print() e, separadamente, a ponte Bluetooth. O primeiro botão abria o Android Print Framework e provocava o erro de serviço não ativado visto no aparelho. Essa ação foi removida. O modal agora mantém o recibo visível no site e usa o painel Bluetooth para seleção, conexão, teste e envio ESC/POS. O APK não precisa receber PDF nem criar uma cópia local do recibo.
 
 A validação da sessão Bluetooth foi antecipada para antes da reserva de PrintJob. A ponte serializa operações, tenta RFCOMM seguro e inseguro, aplica timeout de conexão e envia em blocos de 1 KiB. A compilação e o teste físico continuam pendentes.
+
+
+## Ajuste de perfil de papel — 08/11/2026
+
+A largura de papel deixou de ser um valor único. O PrintService anuncia bobinas térmicas de 58 mm e 80 mm para seleção no diálogo de impressão do Android. A conversão usa a largura imprimível validada de cada perfil (384 pontos para bobina nominal de 58 mm e 576 pontos para bobina nominal de 80 mm em 203 dpi), em vez de rasterizar usando a largura nominal total do rolo. Não há editor de documentos ou imagens no APK; o escopo é somente abrir o site e imprimir o recibo oficial.
+
+Build Android, seleção no dispositivo e impressão física ainda precisam ser testados. A opção de papel selecionada deve ser conferida em cada modelo de impressora antes de considerar o perfil aprovado.
