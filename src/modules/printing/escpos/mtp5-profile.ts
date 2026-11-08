@@ -13,6 +13,7 @@ import type { EscPosProfile } from "./encode-thermal-receipt";
 export const MTP5_PROFILE_FONT_A: Readonly<EscPosProfile> = {
   paperWidthMm: 58,
   columns: 32,
+  copies: 1,
   unsupportedCharacter: "transliterate",
   feedLines: 3,
 };
@@ -20,6 +21,7 @@ export const MTP5_PROFILE_FONT_A: Readonly<EscPosProfile> = {
 export const MTP5_PROFILE_FONT_B: Readonly<EscPosProfile> = {
   paperWidthMm: 58,
   columns: 42,
+  copies: 1,
   unsupportedCharacter: "transliterate",
   feedLines: 3,
 };
