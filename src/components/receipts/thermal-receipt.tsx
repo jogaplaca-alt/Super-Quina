@@ -211,7 +211,7 @@ export function ThermalReceipt({
         </footer>
       </article>
       <div className="thermal-receipt-actions" aria-label="Ações do recibo">
-        <button className="thermal-receipt-print-button" type="button" onClick={() => { if (window.confirm("Deseja sua via?\n\nOK: Sim, quero meu recibo.\nCancelar: Não, obrigado.")) window.print(); }}>Imprimir recibo</button>
+        <button className="thermal-receipt-print-button" type="button" onClick={() => window.print()}>Imprimir recibo</button>
         <button className="thermal-receipt-print-button" type="button" onClick={sendToSuperquinaPrinter}>Enviar para Superquina Impressão</button>
         <button className="thermal-receipt-download-button" type="button" onClick={downloadReceipt}>Baixar recibo</button>
         {onClose && <button className="thermal-receipt-exit-button" type="button" onClick={onClose}>Sair / Fechar recibo</button>}
