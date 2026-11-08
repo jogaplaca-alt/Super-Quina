@@ -3255,9 +3255,9 @@ html.is-android {
   html.is-android .auth-layout,
   html.is-android .site-page-shell,
   html.is-android .home-page:not(.home-page-compact) {
-    padding-top: calc(var(--site-header-height, 120px) + 28px) !important;
+    padding-top: calc(var(--site-header-height, 120px) + 6px) !important;
   }
   html.is-android .home-page.home-page-compact {
-    margin-top: calc(var(--site-header-height, 120px) + 28px) !important;
+    margin-top: calc(var(--site-header-height, 120px) + 6px) !important;
   }
 }
