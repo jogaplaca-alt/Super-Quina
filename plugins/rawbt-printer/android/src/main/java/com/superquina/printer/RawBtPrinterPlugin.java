@@ -3,6 +3,7 @@ package com.superquina.printer;
 import android.Manifest;
 import android.content.Context;
 import android.print.PrintManager;
+import android.print.PrintAttributes;
 import android.webkit.WebView;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -60,7 +61,7 @@ public class RawBtPrinterPlugin extends Plugin {
                     return;
                 }
                 String jobName = call.getString("jobName", "Super Quina - Recibo");
-                printManager.print(jobName, webView.createPrintDocumentAdapter(jobName), null);
+                printManager.print(jobName, webView.createPrintDocumentAdapter(jobName), new PrintAttributes.Builder().build());
                 JSObject result = new JSObject();
                 result.put("submitted", true);
                 call.resolve(result);
