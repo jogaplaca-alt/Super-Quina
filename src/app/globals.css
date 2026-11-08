@@ -2787,3 +2787,19 @@ body:has(.home-page.home-page-compact) {
     margin-top: 24px !important;
   }
 }
+
+
+/* Impressão térmica: texto integral em preto forte e identificação do cambista em negrito. */
+.thermal-receipt,
+.thermal-receipt * {
+  color: #000 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+.thermal-receipt-cashier {
+  color: #000 !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  line-height: 1.3 !important;
+}
