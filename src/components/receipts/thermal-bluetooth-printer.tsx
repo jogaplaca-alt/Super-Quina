@@ -51,6 +51,32 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
     } finally { setBusy(false); }
   }
 
+  async function testPrint() {
+    if (!deviceId) return;
+    setBusy(true); setError(""); setMessage("");
+    try {
+      const printer = getRawBtPrinter();
+      const state = await printer.getConnectionState();
+      if (!state.connected || state.deviceId !== deviceId) {
+        throw new Error("Conecte a impressora selecionada antes do teste.");
+      }
+      const bytes = new Uint8Array([
+        0x1b, 0x40, 0x1b, 0x61, 0x01, 0x1b, 0x45, 0x01,
+        ...new TextEncoder().encode("SUPER QUINA"),
+        0x0a, 0x1b, 0x45, 0x00,
+        ...new TextEncoder().encode("TESTE BLUETOOTH"),
+        0x0a, ...new TextEncoder().encode("Conexao SPP OK"),
+        0x0a, 0x0a, 0x0a
+      ]);
+      let binary = "";
+      for (const byte of bytes) binary += String.fromCharCode(byte);
+      const result = await printer.send({ dataBase64: btoa(binary) });
+      setMessage(`Teste enviado: ${result.bytesWritten} bytes. Confira se o papel saiu.`);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Não foi possível imprimir o teste.");
+    } finally { setBusy(false); }
+  }
+
   async function disconnect() {
     setBusy(true); setError(""); setMessage("");
     try { await getRawBtPrinter().disconnect(); setConnectedName(""); setMessage("Impressora desconectada."); }
@@ -77,6 +103,7 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
       ) : (
         <div>
           <p>Conectada: <strong>{connectedName}</strong></p>
+          <button type="button" onClick={() => void testPrint()} disabled={busy}>Imprimir teste de conexão</button>
           <button type="button" onClick={() => void print()} disabled={busy}>Imprimir recibo nesta impressora</button>
           <button type="button" onClick={() => void disconnect()} disabled={busy}>Desconectar</button>
         </div>
