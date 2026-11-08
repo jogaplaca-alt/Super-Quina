@@ -18,6 +18,8 @@ export type ThermalReceiptProps = {
   paymentLabel?: string;
   qrCodeDataUrl?: string | null;
   onClose?: () => void;
+  onPrint?: () => void | Promise<void>;
+  printLabel?: string;
 };
 
 /**
@@ -36,6 +38,8 @@ export function ThermalReceipt({
   paymentLabel = "Pagamento confirmado",
   qrCodeDataUrl,
   onClose,
+  onPrint,
+  printLabel = "Imprimir recibo",
 }: ThermalReceiptProps) {
   const [generatedQr, setGeneratedQr] = useState<{ receiptCode: string; url: string } | null>(null);
   useEffect(() => {
@@ -158,7 +162,7 @@ export function ThermalReceipt({
         </footer>
       </article>
       <div className="thermal-receipt-actions" aria-label="Ações do recibo">
-        <button className="thermal-receipt-print-button" type="button" onClick={() => window.print()}>Imprimir recibo</button>
+        <button className="thermal-receipt-print-button" type="button" onClick={() => { if (onPrint) void onPrint(); else window.print(); }}>{printLabel}</button>
         <button className="thermal-receipt-download-button" type="button" onClick={downloadReceipt}>Baixar recibo</button>
         {onClose && <button className="thermal-receipt-exit-button" type="button" onClick={onClose}>Sair / Fechar recibo</button>}
       </div>
