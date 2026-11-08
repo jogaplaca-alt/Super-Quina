@@ -160,6 +160,19 @@ export function PlayerPurchaseReceipt({ purchaseId, autoOpen = false, onClose }:
   }
 
 
+  async function handleReceiptPrint() {
+    if (!isAndroidBluetoothPrinterAvailable()) {
+      window.print();
+      return;
+    }
+    if (!selectedPrinter) {
+      await loadPrinters();
+      setPrinterMessage("Escolha a impressora pareada e toque novamente em Imprimir recibo.");
+      return;
+    }
+    await printViaBluetooth();
+  }
+
   return (
     <div className="player-purchase-receipt">
       {!receipt && !autoOpen && (
@@ -193,6 +206,8 @@ export function PlayerPurchaseReceipt({ purchaseId, autoOpen = false, onClose }:
               customerLabel={receipt.data.customerLabel}
               cashierLabel={receipt.data.cashierLabel}
               paymentLabel={paymentLabels[receipt.data.paymentMethod] ?? "Pagamento confirmado"}
+              onPrint={handleReceiptPrint}
+              printLabel={isAndroidBluetoothPrinterAvailable() ? "Imprimir recibo" : "Imprimir recibo"}
               onClose={() => { setReceipt(null); onClose?.(); }}
             />
 
@@ -205,9 +220,6 @@ export function PlayerPurchaseReceipt({ purchaseId, autoOpen = false, onClose }:
                     <select id="receipt-bluetooth-printer" value={selectedPrinter} onChange={(event) => setSelectedPrinter(event.target.value)}>
                       {printers.map((device) => <option key={device.id} value={device.id}>{device.name}</option>)}
                     </select>
-                    <button type="button" onClick={() => { void printViaBluetooth(); }} disabled={printerBusy || !selectedPrinter}>
-                      {printerBusy ? "Enviando impressão…" : "Imprimir via Bluetooth"}
-                    </button>
                   </>
                 )}
                 {printerMessage && <p role="status">{printerMessage}</p>}
