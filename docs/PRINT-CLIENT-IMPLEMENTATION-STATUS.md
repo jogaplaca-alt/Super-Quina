@@ -25,9 +25,9 @@ Arquivo: `src/modules/printing/escpos/encode-thermal-receipt.ts`.
 O autoteste fotografado informa **OY-580IP**, firmware V3.2F, Bluetooth `KPrinter_4765`, page 3 / PC860 e WPC1252 no índice 11. O perfil permanece genérico e não fica preso à marca ou ao modelo. Colunas 32/42 são presets provisórios.
 
 ## Limitações ainda existentes
-- A tela para listar dispositivos pareados, selecionar, conectar e imprimir ainda não foi conectada à interface do site.
-- O plugin nativo ainda não está registrado em um projeto Android Capacitor.
-- O repositório ainda não possui dependências Capacitor, plataforma `android/` nem configuração de build APK.
+- A tela `ThermalBluetoothPrinter` já está integrada ao modal do recibo oficial do jogador: lista dispositivos pareados, atualiza a lista, conecta, imprime e desconecta.
+- O plugin nativo ainda não está registrado em um projeto Android Capacitor. A ponte de UI consulta o plugin registrado em runtime (`window.Capacitor.Plugins.RawBtPrinter`).
+- `capacitor.config.ts` existe e o plugin declara `@capacitor/core` como peer dependency, mas o pacote não está nas dependências raiz e não foi localizado um projeto Android `android/` no branch. Portanto, ainda não há caminho completo para gerar APK.
 - Não houve execução de testes, build Android ou teste físico desta etapa.
 - O comando ESC/POS de QR é padronizado, mas precisa ser validado no firmware real; o autoteste mostra QR interno, o que não garante suporte a todos os comandos GS ( k).
 
