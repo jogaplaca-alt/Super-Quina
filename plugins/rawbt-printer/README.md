@@ -25,7 +25,7 @@ O plugin aceita somente bytes ESC/POS serializados em Base64. Não recebe PDF, W
 
 ## Pareamento e conexão
 
-Na primeira versão, o pareamento é feito em Configurações > Bluetooth do Android. O Super Quina lista dispositivos pareados e conecta ao serviço serial padrão SPP (00001101-0000-1000-8000-00805F9B34FB). A conexão tenta RFCOMM seguro e, se o dispositivo rejeitar esse canal, tenta RFCOMM inseguro. A descoberta Bluetooth é cancelada antes da conexão para reduzir falhas de socket.
+Na primeira versão, o pareamento é feito em Configurações > Bluetooth do Android. O Super Quina lista dispositivos pareados e conecta ao serviço serial padrão SPP (00001101-0000-1000-8000-00805F9B34FB). A conexão tenta RFCOMM seguro e, se o dispositivo rejeitar esse canal, tenta RFCOMM inseguro.
 
 ## Papel e formato
 
