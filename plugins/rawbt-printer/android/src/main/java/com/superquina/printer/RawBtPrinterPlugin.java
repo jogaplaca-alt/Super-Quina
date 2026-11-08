@@ -22,6 +22,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 @CapacitorPlugin(
     name = "RawBtPrinter",
@@ -37,6 +40,8 @@ public class RawBtPrinterPlugin extends Plugin {
         UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
+    private final ScheduledExecutorService timeoutExecutor = Executors.newSingleThreadScheduledExecutor();
+    private static final long CONNECT_TIMEOUT_SECONDS = 12;
     private BluetoothSocket socket;
     private String connectedDeviceId;
     private String connectedDeviceName;
@@ -95,7 +100,7 @@ public class RawBtPrinterPlugin extends Plugin {
                 closeSocket();
                 try {
                     candidate = device.createRfcommSocketToServiceRecord(SPP_UUID);
-                    candidate.connect();
+                    connectWithTimeout(candidate);
                 } catch (IOException secureError) {
                     closeQuietly(candidate);
                     candidate = device.createInsecureRfcommSocketToServiceRecord(SPP_UUID);
@@ -191,6 +196,24 @@ public class RawBtPrinterPlugin extends Plugin {
         });
     }
 
+    private void connectWithTimeout(BluetoothSocket candidate) throws IOException {
+        ScheduledFuture<?> timeout = timeoutExecutor.schedule(() -> {
+            try { candidate.close(); } catch (IOException ignored) { }
+        }, CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        try {
+            candidate.connect();
+        } catch (IOException error) {
+            if (timeout.isDone()) {
+                IOException timedOut = new IOException("Tempo limite de conexão Bluetooth excedido.");
+                timedOut.initCause(error);
+                throw timedOut;
+            }
+            throw error;
+        } finally {
+            timeout.cancel(false);
+        }
+    }
+
     private boolean ensureConnectPermission(PluginCall call, String operation) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
             getContext().checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
@@ -241,6 +264,7 @@ public class RawBtPrinterPlugin extends Plugin {
     protected void handleOnDestroy() {
         ioExecutor.execute(this::closeSocket);
         ioExecutor.shutdown();
+        timeoutExecutor.shutdownNow();
         super.handleOnDestroy();
     }
 }
