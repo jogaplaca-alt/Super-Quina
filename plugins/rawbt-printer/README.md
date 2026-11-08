@@ -1,41 +1,42 @@
-# Super Quina — ponte Bluetooth SPP
+# Super Quina — serviço de impressão térmica Android
 
-O site Super Quina é a única origem e interface do recibo. O APK não cria, edita, baixa, visualiza ou converte recibos. Ele mantém a conexão com a impressora e recebe bytes ESC/POS enviados pela interface do site.
+O site Super Quina continua sendo a única origem do recibo oficial. O APK não cria nem edita recibos e não oferece editor de documentos, editor de imagens ou ferramentas genéricas.
 
-## Fluxo oficial
+## Fluxo de impressão
 
-1. O usuário abre o Super Quina no APK/WebView e seleciona uma impressora Bluetooth pareada.
-2. O APK abre uma conexão Bluetooth Classic RFCOMM/SPP e mantém o socket ativo.
-3. No site, o usuário abre o recibo oficial e toca em Imprimir.
-4. O site reserva o PrintJob no servidor, busca o DTO do recibo confirmado e codifica ESC/POS.
-5. O site envia os bytes ao plugin nativo; o APK transmite ao OutputStream Bluetooth.
-6. O servidor registra o resultado do trabalho. Falhas após o início do envio são marcadas como resultado incerto; nunca há repetição automática.
+1. O usuário abre o recibo oficial no Super Quina e toca em “Imprimir recibo”.
+2. O plugin nativo encaminha o conteúdo da WebView ao Android Print Framework.
+3. O usuário seleciona o serviço “Super Quina Bluetooth” e escolhe o tamanho do papel nas opções de impressão.
+4. O PrintService recebe o PDF temporário, usa o tamanho/resolução selecionados para rasterizar e converte as páginas para ESC/POS.
+5. O serviço envia os bytes por Bluetooth clássico RFCOMM/SPP à impressora pareada.
+6. O Android recebe o estado de conclusão ou falha do trabalho.
 
-O caminho não chama Android Print Framework, PrintManager, PrintService, pré-visualização PDF, compartilhamento de arquivos ou impressão genérica do Android.
+## Configuração de papel
 
-## API JavaScript
+O tamanho do papel não é imposto pelo aplicativo. O serviço oferece opções de bobina térmica de **58 mm e 80 mm**, selecionáveis no diálogo de impressão do Android. O perfil usa as larguras imprimíveis térmicas validadas para cada bobina (58 mm: 384 pontos; 80 mm: 576 pontos, em 203 dpi). A largura selecionada determina a rasterização; não se deve tratar a largura nominal da bobina como largura imprimível.
 
-- listPairedDevices()
-- connect({ deviceId })
-- send({ dataBase64 })
-- disconnect()
-- getConnectionState()
+A resolução oferecida nesta versão é 203 dpi. Não selecionar uma resolução diferente sem validar a impressora física.
 
-O plugin aceita somente bytes ESC/POS serializados em Base64. Não recebe PDF, Word, imagens ou caminhos de arquivos e não conhece valores de pagamento.
+## Escopo da interface
 
-## Pareamento e conexão
+Incluído:
+- abrir o Super Quina;
+- selecionar o serviço de impressão;
+- escolher o papel nas opções do Android;
+- parear a impressora nas configurações Bluetooth do Android;
+- imprimir recibos oficiais do site.
 
-Na primeira versão, o pareamento é feito em Configurações > Bluetooth do Android. O Super Quina lista dispositivos pareados e conecta ao serviço serial padrão SPP (00001101-0000-1000-8000-00805F9B34FB). A conexão tenta RFCOMM seguro e, se o dispositivo rejeitar esse canal, tenta RFCOMM inseguro.
-
-## Papel e formato
-
-A impressão direta ESC/POS não usa o seletor de papel do Android. O perfil térmico é definido pelo site para a impressora selecionada. O perfil inicial é bobina 58 mm, fonte A, 32 colunas, uma cópia e alimentação no fim. O comprimento do recibo é variável, sem página A4 ou margem de PDF. A largura/colunas e a página de caracteres devem ser validadas na impressora real antes de ativar outras opções.
+Fora do escopo:
+- editar documentos;
+- editar ou imprimir imagens avulsas;
+- criar/alterar recibos dentro do APK;
+- editor de texto, conversor de arquivos ou gerenciador de documentos;
+- BLE, USB, Wi-Fi/rede e protocolos não validados.
 
 ## Limitações e segurança
 
 - Bluetooth Classic SPP/RFCOMM e dispositivos previamente pareados.
-- O envio confirma que o OutputStream aceitou os bytes, não que o papel saiu.
-- Se a conexão cair durante a escrita, o resultado físico é incerto; não repetir automaticamente.
-- O recibo e a autorização de impressão continuam vindo das rotas autenticadas do site.
-- Não altera pagamentos, valores, comissões ou regras financeiras.
-- Não há suporte genérico a PDF, BLE, USB, Wi-Fi ou outros protocolos de impressora nesta etapa.
+- O serviço transmite o trabalho e conclui após o envio ao socket; isso não é confirmação física de que o papel saiu.
+- Se a conexão cair durante a escrita, o resultado físico pode ser incerto; não repetir automaticamente.
+- O recibo, a autenticação e a autorização continuam sob responsabilidade do site.
+- O APK não altera pagamentos, valores, comissões ou regras financeiras.
