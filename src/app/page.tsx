@@ -4,7 +4,7 @@ import { HomeAccess, HomeAccessFooter } from "@/components/home-access";
 
 export const metadata: Metadata = {
   title: "Super Quina | Jogo Numérico e Credenciamento de Pontos",
-  description: "Seja um ponto credenciado Super Quina. Solicite seu kit gratuito, gerencie suas apostas de forma segura e faça parte da nossa rede.",
+  description: "Conheça como funciona a Super Quina e acesse sua conta para jogar.",
   alternates: { canonical: "/" },
   robots: { index: true, follow: true },
 };
@@ -26,22 +26,6 @@ export default function HomePage() {
           />
         </figure>
 
-        <a
-          className="home-promo"
-          href="https://wa.me/5577991601217?text=Quero%20ser%20um%20ponto%20credenciado%20da%20Super%20Quina."
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Fale com a Super Quina pelo WhatsApp para ser um ponto credenciado"
-        >
-          <Image
-            src="/images/brand/super-quina-kit-credenciado.webp"
-            alt="Seja um ponto credenciado Super Quina. Solicite seu kit gratuito."
-            className="home-promo-image"
-            width={1254}
-            height={1254}
-            sizes="(max-width: 768px) 100vw, 988px"
-          />
-        </a>
         <HomeAccessFooter />
       </main>
     </div>
