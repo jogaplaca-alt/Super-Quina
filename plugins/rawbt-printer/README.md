@@ -1,42 +1,34 @@
-# Super Quina — serviço de impressão térmica Android
+# Super Quina — aplicativo de impressão Android
 
-O site Super Quina continua sendo a única origem do recibo oficial. O APK não cria nem edita recibos e não oferece editor de documentos, editor de imagens ou ferramentas genéricas.
+## Objetivo
+Aplicativo Android próprio para abrir o Super Quina e imprimir recibos oficiais. O RawBT é referência de comportamento e opções de configuração; não reutilizamos código, marca ou recursos proprietários.
 
-## Fluxo de impressão
+## Interface incluída
+- Cadastro e seleção de impressora.
+- Bluetooth Classic (SPP) para impressoras pareadas.
+- Nome e descrição do dispositivo.
+- Perfil individual por impressora.
+- Seleção de largura/formato de papel.
+- Seleção de driver/protocolo somente entre os implementados e testados.
+- Teste de impressão antes de salvar.
+- Conectar, desconectar e mostrar estado/erro.
 
-1. O usuário abre o recibo oficial no Super Quina e toca em “Imprimir recibo”.
-2. O plugin nativo encaminha o conteúdo da WebView ao Android Print Framework.
-3. O usuário seleciona o serviço “Super Quina Bluetooth” e escolhe o tamanho do papel nas opções de impressão.
-4. O PrintService recebe o PDF temporário, usa o tamanho/resolução selecionados para rasterizar e converte as páginas para ESC/POS.
-5. O serviço envia os bytes por Bluetooth clássico RFCOMM/SPP à impressora pareada.
-6. O Android recebe o estado de conclusão ou falha do trabalho.
+## Interface excluída
+Não haverá editor de texto, editor de documentos, editor de imagens, galeria, gerenciador de arquivos, conversor ou impressão genérica de arquivos. O fluxo é exclusivamente: entrar no site, abrir o recibo oficial e imprimir.
 
-## Configuração de papel
+## Perfis de papel
+A largura não será fixa em 58 mm. A configuração será feita por impressora. A interface poderá apresentar os formatos observados no RawBT — 58 mm, 58 mm Max, 80 mm, 80 mm Max, 110 mm e bobina contínua — mas cada opção só ficará habilitada quando houver largura imprimível, DPI e comportamento de avanço/corte implementados e validados. A largura nominal da bobina não é a largura útil.
 
-O tamanho do papel não é imposto pelo aplicativo. O serviço oferece opções de bobina térmica de **58 mm e 80 mm**, selecionáveis no diálogo de impressão do Android. O perfil usa as larguras imprimíveis térmicas validadas para cada bobina (58 mm: 384 pontos; 80 mm: 576 pontos, em 203 dpi). A largura selecionada determina a rasterização; não se deve tratar a largura nominal da bobina como largura imprimível.
+## Drivers
+O primeiro driver funcional será ESC/POS geral. Outros drivers (GS v 0 only, Peripage, Paperang, CPCL, EPL, TSPL, ZPL etc.) só aparecerão como disponíveis após implementação e teste reais. Não oferecer seletor que prometa compatibilidade inexistente.
 
-A resolução oferecida nesta versão é 203 dpi. Não selecionar uma resolução diferente sem validar a impressora física.
+## Arquitetura escolhida
+Um único fluxo: site autentica e fornece os dados oficiais do recibo confirmado; encoder ESC/POS do Super Quina cria os bytes; APK conecta à impressora selecionada por Bluetooth Classic SPP; APK transmite e devolve resultado de transporte; site registra o resultado no fluxo de impressão existente. Android Print Framework/PrintService e impressão da WebView não serão usados neste fluxo.
 
-## Escopo da interface
-
-Incluído:
-- abrir o Super Quina;
-- selecionar o serviço de impressão;
-- escolher o papel nas opções do Android;
-- parear a impressora nas configurações Bluetooth do Android;
-- imprimir recibos oficiais do site.
-
-Fora do escopo:
-- editar documentos;
-- editar ou imprimir imagens avulsas;
-- criar/alterar recibos dentro do APK;
-- editor de texto, conversor de arquivos ou gerenciador de documentos;
-- BLE, USB, Wi-Fi/rede e protocolos não validados.
-
-## Limitações e segurança
-
-- Bluetooth Classic SPP/RFCOMM e dispositivos previamente pareados.
-- O serviço transmite o trabalho e conclui após o envio ao socket; isso não é confirmação física de que o papel saiu.
-- Se a conexão cair durante a escrita, o resultado físico pode ser incerto; não repetir automaticamente.
-- O recibo, a autenticação e a autorização continuam sob responsabilidade do site.
-- O APK não altera pagamentos, valores, comissões ou regras financeiras.
+## Limites
+- Bluetooth Classic SPP é o primeiro transporte.
+- Wi-Fi/Ethernet e USB ficam previstos, mas desabilitados até implementação e teste.
+- BLE e AIDL/POS não serão anunciados como suportados sem teste específico.
+- Envio aceito pelo socket não comprova que o papel saiu; não repetir automaticamente quando o resultado for incerto.
+- Não alterar pagamentos, prêmios, comissões ou regras financeiras.
+- Nenhuma edição ou geração de recibos dentro do APK.
