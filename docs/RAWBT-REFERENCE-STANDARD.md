@@ -155,3 +155,10 @@ Um item só passa a **Conforme** quando:
 4. para impressão, o recibo real sai fisicamente com largura, escala, acentos e QR corretos.
 
 Estados permitidos na comparação: **Conforme**, **Parcial**, **Ausente**, **Não aplicável**, **Não verificado**.
+
+
+## Evidências adicionais das telas fornecidas pelo usuário
+
+As imagens do RawBT mostram: cadastro com Bluetooth, Wi-Fi/Ethernet, USB e AIDL para terminais POS; famílias de papel 110 mm Roll, 58 mm Roll, 58 mm Roll Max, 80 mm Roll, 80 mm Roll Max, A4 e variantes contínuas; seleção da impressora por nome e endereço Bluetooth; Bluetooth e BLE; seleção de driver ESC/POS geral, GS v 0 only, Peripage, Paperang, CPCL, EPL, TSPL, ZPL e raw transfer; botão de teste; campos de nome e descrição.
+
+As imagens comprovam a presença dessas opções na interface observada, mas não que todos os protocolos funcionem com a impressora Super Quina. O Super Quina deve habilitar somente métodos, tamanhos e drivers implementados e testados. Editores de texto, documentos e imagens ficam excluídos.
