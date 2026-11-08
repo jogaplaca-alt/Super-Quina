@@ -30,19 +30,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @CapacitorPlugin(
     name = "RawBtPrinter",
     permissions = {
-        @Permission(
-            alias = "bluetoothConnect",
-            strings = { Manifest.permission.BLUETOOTH_CONNECT }
-        )
+        @Permission(alias = "bluetoothConnect", strings = { Manifest.permission.BLUETOOTH_CONNECT })
     }
 )
 public class RawBtPrinterPlugin extends Plugin {
-    private static final UUID SPP_UUID =
-        UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    private static final UUID SPP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    private static final long CONNECT_TIMEOUT_SECONDS = 15;
+    private static final int MAX_PRINT_BYTES = 512 * 1024;
+    private static final int WRITE_CHUNK_BYTES = 1024;
 
+    // Serialize socket operations so connect/disconnect/send cannot race.
     private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
     private final ScheduledExecutorService timeoutExecutor = Executors.newSingleThreadScheduledExecutor();
-    private static final long CONNECT_TIMEOUT_SECONDS = 12;
     private BluetoothSocket socket;
     private String connectedDeviceId;
     private String connectedDeviceName;
@@ -97,6 +96,8 @@ public class RawBtPrinterPlugin extends Plugin {
                     call.reject("Bluetooth indisponível ou desligado.", "BLUETOOTH_DISABLED");
                     return;
                 }
+                // Discovery can block RFCOMM connection attempts, even for bonded devices.
+                adapter.cancelDiscovery();
                 BluetoothDevice device = adapter.getRemoteDevice(deviceId);
                 closeSocket();
                 try {
@@ -113,7 +114,6 @@ public class RawBtPrinterPlugin extends Plugin {
                 connectedDeviceId = device.getAddress();
                 String name = device.getName();
                 connectedDeviceName = name == null ? "Impressora Bluetooth" : name;
-
                 JSObject result = new JSObject();
                 result.put("connected", true);
                 result.put("deviceId", connectedDeviceId);
@@ -121,13 +121,13 @@ public class RawBtPrinterPlugin extends Plugin {
                 call.resolve(result);
             } catch (ConnectTimeoutException error) {
                 closeQuietly(candidate);
-                call.reject("A impressora não respondeu dentro de 12 segundos.", "CONNECTION_TIMEOUT");
+                call.reject("A impressora não respondeu dentro de 15 segundos.", "CONNECTION_TIMEOUT");
             } catch (SecurityException error) {
                 closeQuietly(candidate);
                 call.reject("Permissão Bluetooth não concedida.", "PERMISSION_DENIED");
             } catch (IOException error) {
                 closeQuietly(candidate);
-                call.reject("Não foi possível conectar. Verifique se a impressora está ligada, pareada e aceita Bluetooth Classic SPP.", "CONNECTION_FAILED");
+                call.reject("Não foi possível abrir o canal Bluetooth SPP. Verifique se a impressora está ligada, pareada e disponível.", "CONNECTION_FAILED");
             } catch (Exception error) {
                 closeQuietly(candidate);
                 call.reject("Falha ao conectar à impressora.", "CONNECTION_FAILED");
@@ -154,16 +154,19 @@ public class RawBtPrinterPlugin extends Plugin {
                     return;
                 }
                 byte[] data = android.util.Base64.decode(encoded, android.util.Base64.DEFAULT);
-                if (data.length == 0 || data.length > 512 * 1024) {
+                if (data.length == 0 || data.length > MAX_PRINT_BYTES) {
                     call.reject("Tamanho dos dados de impressão inválido.", "PRINT_DATA_TOO_LARGE");
                     return;
                 }
                 OutputStream output = socket.getOutputStream();
-                output.write(data);
+                for (int offset = 0; offset < data.length; offset += WRITE_CHUNK_BYTES) {
+                    int length = Math.min(WRITE_CHUNK_BYTES, data.length - offset);
+                    output.write(data, offset, length);
+                }
                 output.flush();
-
                 JSObject result = new JSObject();
                 result.put("bytesWritten", data.length);
+                result.put("transportAccepted", true);
                 call.resolve(result);
             } catch (SecurityException error) {
                 call.reject("Permissão Bluetooth não concedida.", "PERMISSION_DENIED");
@@ -197,6 +200,8 @@ public class RawBtPrinterPlugin extends Plugin {
             if (connected) {
                 result.put("deviceId", connectedDeviceId);
                 result.put("name", connectedDeviceName);
+            } else {
+                closeSocket();
             }
             call.resolve(result);
         });
@@ -213,9 +218,9 @@ public class RawBtPrinterPlugin extends Plugin {
             if (timedOut.get()) throw new ConnectTimeoutException();
         } catch (IOException error) {
             if (timedOut.get()) {
-                ConnectTimeoutException timedOutError = new ConnectTimeoutException();
-                timedOutError.initCause(error);
-                throw timedOutError;
+                ConnectTimeoutException timeoutError = new ConnectTimeoutException();
+                timeoutError.initCause(error);
+                throw timeoutError;
             }
             throw error;
         } finally {
@@ -224,9 +229,7 @@ public class RawBtPrinterPlugin extends Plugin {
     }
 
     private static final class ConnectTimeoutException extends IOException {
-        ConnectTimeoutException() {
-            super("Bluetooth RFCOMM connection timed out.");
-        }
+        ConnectTimeoutException() { super("Bluetooth RFCOMM connection timed out."); }
     }
 
     private boolean ensureConnectPermission(PluginCall call, String operation) {
@@ -235,13 +238,9 @@ public class RawBtPrinterPlugin extends Plugin {
             return true;
         }
         saveCall(call);
-        if ("list".equals(operation)) {
-            requestPermissionForAlias("bluetoothConnect", call, "listPermissionCallback");
-        } else if ("connect".equals(operation)) {
-            requestPermissionForAlias("bluetoothConnect", call, "connectPermissionCallback");
-        } else {
-            requestPermissionForAlias("bluetoothConnect", call, "sendPermissionCallback");
-        }
+        String callback = "list".equals(operation) ? "listPermissionCallback" :
+            ("connect".equals(operation) ? "connectPermissionCallback" : "sendPermissionCallback");
+        requestPermissionForAlias("bluetoothConnect", call, callback);
         return false;
     }
 
