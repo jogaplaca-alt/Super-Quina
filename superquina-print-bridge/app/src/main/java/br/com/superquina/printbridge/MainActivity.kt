@@ -112,6 +112,11 @@ class MainActivity : Activity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_BT && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) {
             loadBondedDevices()
+            // A share intent may have arrived before Android granted Bluetooth access.
+            // Resume the pending receipt automatically once the permission is granted.
+            selectedDevice?.let { device ->
+                if (!pendingText.isNullOrBlank()) connectAndPrintIfReady(device)
+            }
         } else if (requestCode == REQUEST_BT) {
             updateStatus("Permissão Bluetooth necessária para acessar impressoras pareadas.")
         }
