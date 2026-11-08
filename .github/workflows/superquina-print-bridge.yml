@@ -2,6 +2,12 @@ name: Build Superquina Print Bridge APK
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - feature/superquina-bluetooth-printer
+    paths:
+      - "superquina-print-bridge/**"
+      - ".github/workflows/superquina-print-bridge.yml"
   push:
     branches:
       - feature/superquina-bluetooth-printer
