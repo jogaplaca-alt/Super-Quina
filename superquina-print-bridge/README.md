@@ -35,6 +35,12 @@ O APK recebe trabalhos do Android Print Framework por meio de um PrintService de
 - ESC/POS básico com inicialização, texto, avanço e corte opcional.
 - Impressoras variam em code page, largura, QR nativo e corte; não prometer compatibilidade universal sem testes físicos.
 
+## Contrato de compartilhamento do recibo
+
+A tela de recibo do site oferece **Enviar para Superquina Impressão** usando o compartilhamento nativo do Android (navigator.share). O texto compartilhado é um JSON com type = superquina-receipt e version = 1, contendo o objeto receipt e a URL HTTPS de validação. O app valida o formato, o código e o estado informado antes de gerar ESC/POS.
+
+Esse payload atravessa o sistema de compartilhamento e, portanto, deve ser tratado como entrada externa. A validação local evita erros acidentais, mas não substitui uma verificação criptográfica/consulta ao servidor se for necessário impedir conteúdo forjado fora do fluxo normal do site.
+
 ## Estado
 
 O projeto Android inicial, a tela de seleção Bluetooth, o PrintService e o workflow de compilação foram adicionados. O APK ainda precisa passar pelo build do GitHub Actions e por testes em aparelhos e impressoras reais. A validação exige build Android e testes em aparelhos e impressoras físicas.
