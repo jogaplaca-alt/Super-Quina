@@ -3261,3 +3261,98 @@ html.is-android {
     margin-top: calc(var(--site-header-height, 120px) + 6px) !important;
   }
 }
+
+
+/* Android: acabamento compacto do formulário Novo Jogo.
+   Mantém os controles lado a lado e evita quebra do rótulo do valor da aposta. */
+@media screen and (max-width: 600px) {
+  html.is-android .area-page-compact .numeric-game-purchase {
+    padding: 12px 12px 14px !important;
+  }
+  html.is-android .area-page-compact .numeric-game-purchase .numeric-game-heading {
+    margin-bottom: 5px !important;
+    font-size: .92rem !important;
+  }
+  html.is-android .area-page-compact .numeric-game-purchase form {
+    gap: 9px !important;
+  }
+  html.is-android .area-page-compact .numeric-entry-row {
+    gap: 9px !important;
+  }
+  html.is-android .area-page-compact .numeric-entry-row input {
+    min-height: 54px !important;
+    padding: 8px 12px !important;
+    font-size: 1.35rem !important;
+  }
+  html.is-android .area-page-compact .numeric-entry-row button {
+    min-height: 52px !important;
+    padding: 8px 6px !important;
+    font-size: 1rem !important;
+  }
+  html.is-android .area-page-compact .numeric-stake-summary-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    align-items: end !important;
+    gap: 8px !important;
+  }
+  html.is-android .area-page-compact .numeric-stake-control {
+    min-width: 0 !important;
+    gap: 5px !important;
+  }
+  html.is-android .area-page-compact .numeric-stake-control label {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 0 2px !important;
+    white-space: nowrap !important;
+    overflow-wrap: normal !important;
+    font-size: .88rem !important;
+    line-height: 1.15 !important;
+    letter-spacing: -.025em !important;
+  }
+  html.is-android .area-page-compact .numeric-game-purchase input#numeric-stake,
+  html.is-android .area-page-compact .numeric-game-purchase .numeric-total-box {
+    min-height: 54px !important;
+    height: 54px !important;
+    padding: 8px 11px !important;
+  }
+  html.is-android .area-page-compact .numeric-game-purchase input#numeric-stake {
+    font-size: 1.05rem !important;
+  }
+  html.is-android .area-page-compact .numeric-game-purchase .numeric-total-box span {
+    font-size: .88rem !important;
+    line-height: 1.1 !important;
+  }
+  html.is-android .area-page-compact .numeric-game-purchase .numeric-total-box strong {
+    font-size: 1.02rem !important;
+    line-height: 1.15 !important;
+  }
+  html.is-android .area-page-compact .numeric-game-purchase .round-repeat-fieldset,
+  html.is-android .area-page-compact .numeric-game-purchase .round-payment-fieldset {
+    padding: 9px 12px 11px !important;
+  }
+  html.is-android .area-page-compact .numeric-game-purchase .round-repeat-fieldset > legend,
+  html.is-android .area-page-compact .numeric-game-purchase .round-payment-fieldset > legend {
+    font-size: .98rem !important;
+    line-height: 1.1 !important;
+  }
+  html.is-android .area-page-compact .numeric-game-purchase .round-repeat-fieldset > select {
+    min-height: 40px !important;
+    font-size: .98rem !important;
+  }
+  html.is-android .area-page-compact .numeric-game-purchase .round-payment-fieldset > label {
+    min-height: 30px !important;
+    margin-right: 12px !important;
+    gap: 7px !important;
+    font-size: .96rem !important;
+  }
+  html.is-android .area-page-compact .numeric-game-purchase .round-payment-fieldset > label input[type="radio"] {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    min-height: 20px !important;
+  }
+  html.is-android .area-page-compact .numeric-game-purchase form > button[type="submit"] {
+    min-height: 54px !important;
+    padding: 10px 14px !important;
+    font-size: 1.05rem !important;
+  }
+}
