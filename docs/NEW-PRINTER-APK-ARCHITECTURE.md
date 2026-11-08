@@ -59,7 +59,8 @@ Não aceitar dados financeiros calculados localmente como fonte de verdade. Falh
 - [ ] Registrar e compilar o plugin local no Android.
 - [ ] Criar interface mínima de seleção/conexão.
 - [x] Ligar o DTO real do recibo e o PrintJob ao fluxo do cliente (site gera o recibo; plugin transmite ESC/POS por SPP).
-- [ ] Executar lint, typecheck e testes.\n- [x] Remover o botão window.print() e o download HTML do recibo para impedir a rota Android Print Framework.
+- [ ] Executar lint, typecheck e testes.
+- [x] Remover o botão window.print() e o download HTML do recibo para impedir a rota Android Print Framework.
 - [ ] Gerar APK de debug.
 - [ ] Testar em aparelho e impressora Bluetooth reais.
 
