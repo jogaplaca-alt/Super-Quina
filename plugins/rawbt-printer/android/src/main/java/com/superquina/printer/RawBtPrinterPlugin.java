@@ -25,6 +25,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @CapacitorPlugin(
     name = "RawBtPrinter",
@@ -104,7 +105,7 @@ public class RawBtPrinterPlugin extends Plugin {
                 } catch (IOException secureError) {
                     closeQuietly(candidate);
                     candidate = device.createInsecureRfcommSocketToServiceRecord(SPP_UUID);
-                    candidate.connect();
+                    connectWithTimeout(candidate);
                 }
                 socket = candidate;
                 connectedDeviceId = device.getAddress();
@@ -116,12 +117,15 @@ public class RawBtPrinterPlugin extends Plugin {
                 result.put("deviceId", connectedDeviceId);
                 result.put("name", connectedDeviceName);
                 call.resolve(result);
+            } catch (ConnectTimeoutException error) {
+                closeQuietly(candidate);
+                call.reject("A impressora não respondeu dentro de 12 segundos.", "CONNECTION_TIMEOUT");
             } catch (SecurityException error) {
                 closeQuietly(candidate);
                 call.reject("Permissão Bluetooth não concedida.", "PERMISSION_DENIED");
             } catch (IOException error) {
                 closeQuietly(candidate);
-                call.reject("Não foi possível conectar. Verifique se a impressora está ligada e pareada.", "CONNECTION_FAILED");
+                call.reject("Não foi possível conectar. Verifique se a impressora está ligada, pareada e aceita Bluetooth Classic SPP.", "CONNECTION_FAILED");
             } catch (Exception error) {
                 closeQuietly(candidate);
                 call.reject("Falha ao conectar à impressora.", "CONNECTION_FAILED");
@@ -197,20 +201,29 @@ public class RawBtPrinterPlugin extends Plugin {
     }
 
     private void connectWithTimeout(BluetoothSocket candidate) throws IOException {
+        AtomicBoolean timedOut = new AtomicBoolean(false);
         ScheduledFuture<?> timeout = timeoutExecutor.schedule(() -> {
-            try { candidate.close(); } catch (IOException ignored) { }
+            timedOut.set(true);
+            closeQuietly(candidate);
         }, CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         try {
             candidate.connect();
+            if (timedOut.get()) throw new ConnectTimeoutException();
         } catch (IOException error) {
-            if (timeout.isDone()) {
-                IOException timedOut = new IOException("Tempo limite de conexão Bluetooth excedido.");
-                timedOut.initCause(error);
-                throw timedOut;
+            if (timedOut.get()) {
+                ConnectTimeoutException timedOutError = new ConnectTimeoutException();
+                timedOutError.initCause(error);
+                throw timedOutError;
             }
             throw error;
         } finally {
             timeout.cancel(false);
+        }
+    }
+
+    private static final class ConnectTimeoutException extends IOException {
+        ConnectTimeoutException() {
+            super("Bluetooth RFCOMM connection timed out.");
         }
     }
 
