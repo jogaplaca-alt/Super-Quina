@@ -90,3 +90,19 @@ O componente antigo carrega dispositivos pareados e permite selecionar um deles,
 ## Decisão
 
 Não copiar as branches `feature/android-apk-printer`, `feature/android-apk-public` ou `feature/cashier-apk-from-public` para a solução nova. Não apagar nem mesclar essas branches nesta etapa. A branch `feature/rawbt-inspired-printer-core` permanece isolada; o próximo desenvolvimento deve começar por diagnóstico de transporte e prova de impressão mínima, antes da integração do recibo.
+
+## Evidência adicional — teste do usuário em 08/11/2026
+
+As capturas do aparelho mostram a tela de pré-visualização do serviço de impressão Android, com o erro explícito "Serviço de impressão não ativado". A impressora KPrinter_4765 aparece como dispositivo Bluetooth pareado, mas o trabalho foi encaminhado ao serviço de impressão do Android e não à ponte SPP direta.
+
+A comparação dos componentes do site nesta branch identificou o motivo da rota genérica ser aberta: o componente ThermalReceipt continha um botão que chamava window.print(), além do componente separado ThermalBluetoothPrinter que já mantinha o fluxo direto SPP. Portanto, a tela Android Print Framework não era necessária para o recibo oficial.
+
+Correção aplicada nesta branch:
+- Removido o botão window.print() do recibo oficial.
+- Removida a ação de baixar o recibo HTML, pois o recibo permanece no site.
+- Mantido o botão de impressão Bluetooth dentro do modal do recibo, ligado ao PrintJob e à rota autenticada do recibo.
+- A ponte nativa foi reforçada com fila serial para operações de socket, timeout de conexão, fallback RFCOMM seguro/inseguro e escrita em blocos.
+- A validação da conexão nativa ocorre antes de reservar o PrintJob, evitando reservas sem possibilidade de impressão.
+- Não foi incluído PrintService no novo plugin Android; a impressão direta não depende de ativar serviço de impressão nas configurações do aparelho.
+
+A correção remove a causa identificada para a abertura da tela Android Print Framework, mas ainda não comprova a saída física do papel. Isso exige build atualizado, instalação no Android e teste real com a KPrinter_4765/OY-580IP.
