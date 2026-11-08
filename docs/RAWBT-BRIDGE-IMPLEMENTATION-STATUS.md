@@ -14,7 +14,7 @@ Foi criado o pacote local inicial `plugins/rawbt-printer`, com:
 - listagem restrita a dispositivos já pareados;
 - execução de conexão e escrita fora da thread principal;
 - serialização das operações em executor único;
-- tentativa de conexão RFCOMM segura e fallback inseguro;
+- tentativa de conexão RFCOMM segura e fallback inseguro (somente após falha normal, não após timeout);\n- timeout real de 12 segundos aplicado às tentativas segura e insegura, com fechamento do socket e erro `CONNECTION_TIMEOUT` separado;
 - limite de tamanho de payload para evitar envio excessivo;
 - erros técnicos categorizados para a camada de interface.
 
@@ -50,7 +50,7 @@ O repositório não possui a plataforma `android/` gerada. Por isso, o pacote é
 
 ## Estado de validação
 
-- [x] Código fonte inicial da ponte criado.
+- [x] Código fonte inicial da ponte criado.\n- [x] Timeout de conexão aplicado às duas tentativas RFCOMM; timeout não dispara fallback adicional.
 - [x] Contrato TypeScript documentado.
 - [x] Permissões mínimas de manifesto declaradas no módulo.
 - [ ] Dependências Capacitor instaladas no app.
