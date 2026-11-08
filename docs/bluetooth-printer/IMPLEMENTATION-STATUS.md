@@ -1,30 +1,34 @@
 # Auditoria da base — estado da integração Android
 
-## O que foi confirmado
+## Confirmado no repositório
 
-- O repositório contém uma aplicação Next.js (scripts de build, start, lint e typecheck).
-- Existe `capacitor.config.ts` com appId `com.superquina.app`, appName `Super Quina` e URL remota `https://superquina.com`.
-- O `package.json` e o `package-lock.json` inspecionados não declaram `@capacitor/core`, `@capacitor/android` ou dependências de plugins Capacitor.
-- Os caminhos Android convencionais consultados (`android/build.gradle`, `android/settings.gradle`, `android/gradlew`, `android/app/src/main/AndroidManifest.xml`) não foram encontrados na branch.
-- Portanto, a configuração Capacitor existente não comprova que exista um app Android nativo sincronizado ou compilável.
-- A branch já documenta a necessidade de um `PrintService` Android e da ponte nativa para recibos.
+- A aplicação web é Next.js e contém o componente de recibo com botão que chama `window.print()`.
+- Existe configuração Capacitor para o appId `com.superquina.app`, mas o package/lockfile não inclui Capacitor e não havia projeto Android integrado ao app principal.
+- Foi criado o projeto Android independente `superquina-print-bridge/`, com Kotlin, Gradle Kotlin DSL, manifesto e atividade.
+- Foi registrado `SuperquinaPrintService` como serviço Android de impressão, com descoberta de uma impressora virtual **Superquina Bluetooth**.
+- O serviço lê o endereço Bluetooth selecionado no app, recebe o PDF do Android Print Framework, rasteriza em monocromático e envia raster ESC/POS por RFCOMM/SPP.
+- A atividade lista dispositivos já pareados, persiste a seleção e oferece atalho às configurações de impressão Android.
+- Foi criado workflow GitHub Actions para compilar o APK debug e publicar o arquivo como artefato.
 
-## Consequência técnica
+## Fluxo esperado
 
-Não é correto apenas adicionar uma função JavaScript ao site e esperar que o Android reconheça Superquina como impressora. O reconhecimento no menu do Android depende de um APK que declare e implemente um serviço `android.printservice.PrintService` no manifesto e forneça os metadados do serviço.
+1. Instalar e abrir o APK independente.
+2. Conceder permissão Bluetooth e parear a impressora nas configurações Android.
+3. Selecionar a impressora no app.
+4. Ativar o serviço Superquina nas configurações de impressão do Android.
+5. Abrir o recibo confirmado no Chrome e tocar em **Imprimir recibo**.
+6. Escolher **Superquina Bluetooth** como destino.
 
-Também não é suficiente adicionar apenas o serviço: é necessário implementar o recebimento do trabalho, converter o documento do Android Print Framework para imagem térmica, e encaminhar os bytes ESC/POS por Bluetooth.
+## Limitações ainda abertas
 
-## Próxima etapa de implementação
+- Build Android ainda não foi confirmado nesta auditoria.
+- Não houve teste físico com a OY-581P.
+- A largura raster inicial está em 384 pontos (perfil de 58 mm); precisa ser confirmada com o papel/cabeçote real.
+- A transmissão do socket não confirma fisicamente que o papel foi impresso.
+- Cancelamento de trabalhos durante escrita e retomada após desconexão precisam de teste.
+- O serviço lista um destino térmico virtual único; seleção de dispositivos Bluetooth é feita na atividade do app.
+- Não há suporte a BLE/GATT, USB, Wi-Fi/LAN, descoberta de dispositivos não pareados ou corte automático.
 
-1. Confirmar a versão de Android/SDK e a estratégia de empacotamento desejada para o APK.
-2. Criar um projeto Android nativo compilável, com package `com.superquina.app`, manifesto, atividade e serviço de impressão.
-3. Implementar RFCOMM/SPP e fila de impressão compartilhada.
-4. Implementar o PrintService para receber PDF do Android Print Framework e rasterizar para ESC/POS.
-5. Implementar a ponte JavaScript segura para o site Superquina quando aberto dentro do APK.
-6. Adicionar workflow de build Android no GitHub Actions e publicar o APK como artefato de teste.
-7. Testar no aparelho Android e na OY-581P antes de declarar a integração concluída.
+## Segurança e escopo
 
-## Limites da auditoria
-
-A análise foi feita por leitura de arquivos conhecidos da branch e inspeção preliminar do APK RawBT. Não foi executado build Android nem teste em dispositivo nesta etapa. O APK RawBT não foi tratado como código-fonte aberto; a implementação própria deve respeitar as licenças das dependências utilizadas.
+O site continua responsável por autenticação e emissão do recibo. O PrintService recebe o documento que o usuário escolheu imprimir pelo framework Android; não consulta recibos arbitrariamente nem recebe credenciais de pagamento. O APK RawBT é apenas referência observacional, sem cópia de código proprietário.
