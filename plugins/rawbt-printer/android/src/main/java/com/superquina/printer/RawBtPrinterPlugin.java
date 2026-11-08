@@ -93,8 +93,14 @@ public class RawBtPrinterPlugin extends Plugin {
                 }
                 BluetoothDevice device = adapter.getRemoteDevice(deviceId);
                 closeSocket();
-                candidate = device.createRfcommSocketToServiceRecord(SPP_UUID);
-                candidate.connect();
+                try {
+                    candidate = device.createRfcommSocketToServiceRecord(SPP_UUID);
+                    candidate.connect();
+                } catch (IOException secureError) {
+                    closeQuietly(candidate);
+                    candidate = device.createInsecureRfcommSocketToServiceRecord(SPP_UUID);
+                    candidate.connect();
+                }
                 socket = candidate;
                 connectedDeviceId = device.getAddress();
                 String name = device.getName();
@@ -132,7 +138,15 @@ public class RawBtPrinterPlugin extends Plugin {
                     call.reject("A impressora não está conectada.", "DEVICE_UNAVAILABLE");
                     return;
                 }
+                if (encoded.length() > 700000) {
+                    call.reject("Trabalho de impressão excede o limite permitido.", "PRINT_DATA_TOO_LARGE");
+                    return;
+                }
                 byte[] data = android.util.Base64.decode(encoded, android.util.Base64.DEFAULT);
+                if (data.length == 0 || data.length > 512 * 1024) {
+                    call.reject("Tamanho dos dados de impressão inválido.", "PRINT_DATA_TOO_LARGE");
+                    return;
+                }
                 OutputStream output = socket.getOutputStream();
                 output.write(data);
                 output.flush();
@@ -165,14 +179,16 @@ public class RawBtPrinterPlugin extends Plugin {
 
     @PluginMethod
     public void getConnectionState(PluginCall call) {
-        JSObject result = new JSObject();
-        boolean connected = socket != null && socket.isConnected();
-        result.put("connected", connected);
-        if (connected) {
-            result.put("deviceId", connectedDeviceId);
-            result.put("name", connectedDeviceName);
-        }
-        call.resolve(result);
+        ioExecutor.execute(() -> {
+            JSObject result = new JSObject();
+            boolean connected = socket != null && socket.isConnected();
+            result.put("connected", connected);
+            if (connected) {
+                result.put("deviceId", connectedDeviceId);
+                result.put("name", connectedDeviceName);
+            }
+            call.resolve(result);
+        });
     }
 
     private boolean ensureConnectPermission(PluginCall call, String operation) {
