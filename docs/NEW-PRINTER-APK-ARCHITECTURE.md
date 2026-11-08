@@ -58,9 +58,15 @@ Não aceitar dados financeiros calculados localmente como fonte de verdade. Falh
 - [ ] Gerar e configurar plataforma Android.
 - [ ] Registrar e compilar o plugin local no Android.
 - [ ] Criar interface mínima de seleção/conexão.
-- [ ] Ligar o DTO real do recibo e o PrintJob ao fluxo do cliente.
-- [ ] Executar lint, typecheck e testes.
+- [x] Ligar o DTO real do recibo e o PrintJob ao fluxo do cliente (site gera o recibo; plugin transmite ESC/POS por SPP).
+- [ ] Executar lint, typecheck e testes.\n- [x] Remover o botão window.print() e o download HTML do recibo para impedir a rota Android Print Framework.
 - [ ] Gerar APK de debug.
 - [ ] Testar em aparelho e impressora Bluetooth reais.
 
 Nenhum APK novo foi gerado nesta etapa. Não marcar a implementação como pronta até o teste físico.
+
+## Atualização após evidência do aparelho
+
+A tela de recibo do site anteriormente oferecia window.print() e, separadamente, a ponte Bluetooth. O primeiro botão abria o Android Print Framework e provocava o erro de serviço não ativado visto no aparelho. Essa ação foi removida. O modal agora mantém o recibo visível no site e usa o painel Bluetooth para seleção, conexão, teste e envio ESC/POS. O APK não precisa receber PDF nem criar uma cópia local do recibo.
+
+A validação da sessão Bluetooth foi antecipada para antes da reserva de PrintJob. A ponte serializa operações, tenta RFCOMM seguro e inseguro, aplica timeout de conexão e envia em blocos de 1 KiB. A compilação e o teste físico continuam pendentes.
