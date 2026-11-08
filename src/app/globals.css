@@ -2881,3 +2881,24 @@ body:has(.home-page.home-page-compact) {
   margin: 8px 0 0 !important;
   min-height: 42px !important;
 }
+
+/* Link de credenciamento: área clicável restrita ao banner "Solicite seu kit gratuito". */
+.home-page.home-page-compact .home-how-infographic {
+  position: relative !important;
+  aspect-ratio: 2 / 3;
+}
+.home-page.home-page-compact .home-kit-whatsapp-link {
+  position: absolute;
+  z-index: 2;
+  left: 5%;
+  bottom: 5.5%;
+  width: 90%;
+  height: 16%;
+  display: block;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.home-page.home-page-compact .home-kit-whatsapp-link:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
