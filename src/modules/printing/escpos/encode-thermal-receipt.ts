@@ -22,6 +22,8 @@ export type EscPosProfile = {
   characterMap?: Readonly<Record<string, number>>;
   /** Used when a character has no verified byte mapping. */
   unsupportedCharacter?: "replace" | "transliterate";
+  /** This app intentionally supports exactly one customer copy per print job. */
+  copies?: 1;
   feedLines?: number;
   cutMode?: "full" | "partial";
 };
@@ -147,6 +149,7 @@ export function encodeThermalReceipt(receipt: ThermalReceiptForEncoding, profile
   }
   assertInteger(profile.columns, "columns", 16, MAX_COLUMNS);
   if (profile.codePageCommand !== undefined) assertInteger(profile.codePageCommand, "code page command", 0, 255);
+  if (profile.copies !== undefined && profile.copies !== 1) throw new Error("Only one customer receipt copy is supported");
   const feedLines = profile.feedLines ?? 3;
   assertInteger(feedLines, "feed lines", 0, 10);
 
