@@ -1,6 +1,6 @@
 "use client";
 import { encodeThermalReceipt } from "@/modules/printing/escpos/encode-thermal-receipt";
-import { MTP5_PROFILE_FONT_A } from "@/modules/printing/escpos/mtp5-profile";
+import { GENERIC_58MM_SPP_PROFILE_FONT_A } from "@/modules/printing/escpos/generic-58mm-profile";
 import { RawBtPrinter } from "../../../../plugins/rawbt-printer/src";
 type OfficialReceipt = Parameters<typeof encodeThermalReceipt>[0];
 type PrintJobResponse = { created: boolean; job: { id: string; status: string; purpose: string }; maySend: boolean };
@@ -33,7 +33,7 @@ export async function printOfficialPurchaseReceipt(input: { purchaseId: string; 
     throw error;
   }
   let encoded: Uint8Array;
-  try { encoded = encodeThermalReceipt(receipt, MTP5_PROFILE_FONT_A); }
+  try { encoded = encodeThermalReceipt(receipt, GENERIC_58MM_SPP_PROFILE_FONT_A); }
   catch (error) { await transition(reservation.job.id, "FAILED", input.deviceName, "ENCODING_FAILED"); throw error; }
   let state: Awaited<ReturnType<typeof RawBtPrinter.getConnectionState>>;
   try { state = await RawBtPrinter.getConnectionState(); }
