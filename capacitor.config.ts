@@ -1,7 +1,7 @@
 const config = {
-  appId: "com.superquina.app.publico",
-  appName: "Super Quina",
-  // Public application uses the full Super Quina experience.
+  appId: "com.superquina.app.cashier",
+  appName: "Super Quina Cambista",
+  // Dedicated APK identity, retaining the complete public app experience.
   webDir: "www",
   server: {
     url: "https://superquina.com",
