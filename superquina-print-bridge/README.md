@@ -1,4 +1,4 @@
-# Superquina Print Bridge (Android independente)
+# Super Quina Print Bridge (Android independente)
 
 Aplicativo Android separado do site e do APK principal. A finalidade é receber conteúdo de impressão enviado pelo navegador Android ou pelo compartilhamento do sistema e encaminhá-lo a uma impressora térmica Bluetooth Classic (RFCOMM/SPP).
 
@@ -25,7 +25,7 @@ Editor de documentos/imagens, galeria, compras, contas, pagamentos, servidor web
 
 O site continua sendo responsável por autenticação, compra, confirmação financeira e geração do recibo oficial. O bridge recebe somente o conteúdo já autorizado para impressão. Não recebe credenciais do Mercado Pago e não confirma pagamentos.
 
-O APK recebe trabalhos do Android Print Framework por meio de um PrintService declarado no manifesto. O site abre a tela padrão com `window.print()`; o Android entrega o PDF ao serviço Superquina, que rasteriza e transmite por Bluetooth. O compartilhamento de texto também é aceito para testes simples.
+O APK recebe trabalhos do Android Print Framework por meio de um PrintService declarado no manifesto. O site abre a tela padrão com `window.print()`; o Android entrega o PDF ao serviço Super Quina, que rasteriza e transmite por Bluetooth. O compartilhamento de texto também é aceito para testes simples.
 
 ## Requisitos de compatibilidade
 
@@ -37,7 +37,7 @@ O APK recebe trabalhos do Android Print Framework por meio de um PrintService de
 
 ## Contrato de compartilhamento do recibo
 
-A tela de recibo do site oferece **Enviar para Superquina Impressão** usando o compartilhamento nativo do Android (navigator.share). O texto compartilhado é um JSON com type = superquina-receipt e version = 1, contendo o objeto receipt e a URL HTTPS de validação. O app valida o formato, o código e o estado informado antes de gerar ESC/POS.
+A tela de recibo do site oferece **Enviar para Super Quina Impressão** usando o compartilhamento nativo do Android (navigator.share). O texto compartilhado é um JSON com type = superquina-receipt e version = 1, contendo o objeto receipt e a URL HTTPS de validação. O app valida o formato, o código e o estado informado antes de gerar ESC/POS.
 
 Esse payload atravessa o sistema de compartilhamento e, portanto, deve ser tratado como entrada externa. A validação local evita erros acidentais, mas não substitui uma verificação criptográfica/consulta ao servidor se for necessário impedir conteúdo forjado fora do fluxo normal do site.
 
