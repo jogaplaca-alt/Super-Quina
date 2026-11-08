@@ -45,3 +45,12 @@ Anotar modelo e versão Android, nome Bluetooth, se usou o Teste A ou B, mensage
 - O serviço de impressão usa Bluetooth Classic RFCOMM/SPP; não atende impressoras BLE-only.
 - A validação do payload no APK é estrutural. Para resistência a payload forjado fora do site, será necessária verificação server-side do código do recibo antes de imprimir.
 - O status de envio do socket não confirma que a cabeça térmica imprimiu o papel.
+
+
+## Teste D — quantidade de cópias
+
+1. Na tela nativa do Android, deixe temporariamente a quantidade em 2 e envie um recibo para Super Quina Bluetooth.
+2. Confirme que o serviço transmite o trabalho uma única vez e que sai somente uma via.
+3. Repita usando **Enviar para Super Quina Impressão**, com a impressora já selecionada no app. O recibo deve ser enviado diretamente, sem abrir o seletor de quantidade de cópias.
+
+A preferência visual da tela nativa pode continuar exibindo 2; isso não significa que o serviço Super Quina vai gerar duas vias.
