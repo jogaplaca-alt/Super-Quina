@@ -2,6 +2,9 @@ name: Android printer APK
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feature/rawbt-inspired-printer-core
   pull_request:
     branches:
       - main
