@@ -65,6 +65,13 @@ class MainActivity : Activity() {
             text = "Atualizar impressoras pareadas"
             setOnClickListener { loadBondedDevices() }
         })
+        root.addView(Button(this).apply {
+            text = "Ativar serviço de impressão do Android"
+            setOnClickListener {
+                runCatching { startActivity(Intent(android.provider.Settings.ACTION_PRINT_SETTINGS)) }
+                    .onFailure { updateStatus("Abra as configurações do Android e procure por Impressão.") }
+            }
+        })
         val scroll = ScrollView(this)
         deviceContainer = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         scroll.addView(deviceContainer)
