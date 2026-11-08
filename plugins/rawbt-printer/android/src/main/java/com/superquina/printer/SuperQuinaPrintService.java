@@ -23,6 +23,7 @@ import android.printservice.PrintService;
 import android.printservice.PrinterDiscoverySession;
 import android.util.Log;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -43,6 +44,7 @@ public final class SuperQuinaPrintService extends PrintService {
     private static final UUID SPP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private static final int PAPER_WIDTH_DOTS = 384; // 58 mm, 203 dpi nominal
     private static final int MAX_PDF_BYTES = 20 * 1024 * 1024;
+    private static final int MAX_ESC_POS_BYTES = 32 * 1024 * 1024;
     private final ExecutorService printExecutor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
@@ -138,7 +140,7 @@ public final class SuperQuinaPrintService extends PrintService {
     }
 
     private byte[] renderPdfToEscPos(File file) throws IOException {
-        ArrayList<Byte> output = new ArrayList<>();
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
         append(output, new byte[]{0x1b, 0x40}); // ESC @ initialize
         append(output, new byte[]{0x1b, 0x61, 0x00}); // left align
         try (ParcelFileDescriptor descriptor = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
@@ -169,18 +171,16 @@ public final class SuperQuinaPrintService extends PrintService {
             throw new IOException("Não foi possível ler o documento PDF.", error);
         }
         append(output, new byte[]{0x1b, 0x64, 0x03}); // feed 3 lines, no cutter assumed
-        byte[] result = new byte[output.size()];
-        for (int i = 0; i < output.size(); i++) result[i] = output.get(i);
-        return result;
+        return output.toByteArray();
     }
 
-    private void appendRaster(List<Byte> output, Bitmap bitmap) {
+    private void appendRaster(ByteArrayOutputStream output, Bitmap bitmap) {
         int widthBytes = (bitmap.getWidth() + 7) / 8;
         for (int top = 0; top < bitmap.getHeight(); top += 256) {
             int rows = Math.min(256, bitmap.getHeight() - top);
-            output.add((byte) 0x1d); output.add((byte) 0x76); output.add((byte) 0x30); output.add((byte) 0x00);
-            output.add((byte) (widthBytes & 0xff)); output.add((byte) ((widthBytes >> 8) & 0xff));
-            output.add((byte) (rows & 0xff)); output.add((byte) ((rows >> 8) & 0xff));
+            output.write(0x1d); output.write(0x76); output.write(0x30); output.write(0x00);
+            output.write(widthBytes & 0xff); output.write((widthBytes >> 8) & 0xff);
+            output.write(rows & 0xff); output.write((rows >> 8) & 0xff);
             for (int y = top; y < top + rows; y++) {
                 for (int byteX = 0; byteX < widthBytes; byteX++) {
                     int value = 0;
@@ -192,9 +192,10 @@ public final class SuperQuinaPrintService extends PrintService {
                             if (luminance < 180) value |= (0x80 >> bit);
                         }
                     }
-                    output.add((byte) value);
+                    output.write(value);
                 }
             }
+            if (output.size() > MAX_ESC_POS_BYTES) throw new IllegalArgumentException("O trabalho convertido excede 32 MB.");
         }
     }
 
@@ -215,8 +216,8 @@ public final class SuperQuinaPrintService extends PrintService {
         }
     }
 
-    private static void append(List<Byte> output, byte[] bytes) {
-        for (byte value : bytes) output.add(value);
+    private static void append(ByteArrayOutputStream output, byte[] bytes) {
+        output.write(bytes, 0, bytes.length);
     }
 
     private static void closeQuietly(BluetoothSocket socket) {
