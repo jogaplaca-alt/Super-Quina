@@ -8,6 +8,11 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.pdf.PdfRenderer
 import android.os.Build
+import android.print.PrintAttributes
+import android.print.PrinterCapabilitiesInfo
+import android.print.PrinterId
+import android.print.PrinterInfo
+import android.printservice.PrinterDiscoverySession
 import android.printservice.PrintJob
 import android.printservice.PrintService
 import android.util.Log
@@ -20,6 +25,34 @@ import kotlin.concurrent.thread
  * a PDF print job here; each page is rasterized and sent to the paired SPP printer.
  */
 class SuperquinaPrintService : PrintService() {
+    override fun onCreatePrinterDiscoverySession(): PrinterDiscoverySession {
+        return object : PrinterDiscoverySession() {
+            private val printerId: PrinterId = generatePrinterId("superquina-thermal")
+
+            override fun onStartPrinterDiscovery(priorityList: MutableList<PrinterId>) {
+                val capabilities = PrinterCapabilitiesInfo.Builder(printerId)
+                    .addMediaSize(PrintAttributes.MediaSize.UNKNOWN_PORTRAIT, true)
+                    .addResolution(PrintAttributes.Resolution("thermal203", "Thermal 203 dpi", 203, 203), true)
+                    .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
+                    .setColorModes(PrintAttributes.COLOR_MODE_MONOCHROME, PrintAttributes.COLOR_MODE_MONOCHROME)
+                    .build()
+                addPrinters(listOf(
+                    PrinterInfo.Builder(printerId, "Superquina Bluetooth", PrinterInfo.STATUS_IDLE)
+                        .setCapabilities(capabilities)
+                        .build()
+                ))
+            }
+
+            override fun onStopPrinterDiscovery() = Unit
+            override fun onValidatePrinters(printerIds: MutableList<PrinterId>) {
+                onStartPrinterDiscovery(printerIds)
+            }
+            override fun onStartPrinterStateTracking(printerId: PrinterId) = Unit
+            override fun onStopPrinterStateTracking(printerId: PrinterId) = Unit
+            override fun onDestroy() = Unit
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
     }
