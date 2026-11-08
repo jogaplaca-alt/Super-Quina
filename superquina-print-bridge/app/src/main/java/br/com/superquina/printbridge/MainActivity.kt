@@ -47,12 +47,12 @@ class MainActivity : Activity() {
             setPadding(28, 32, 28, 24)
         }
         root.addView(TextView(this).apply {
-            text = "SUPERQUINA"
+            text = "SUPER QUINA"
             textSize = 25f
             setTypeface(null, android.graphics.Typeface.BOLD)
         })
         root.addView(TextView(this).apply {
-            text = "Ponte de impressão térmica"
+            text = "Super Quina Impressão"
             textSize = 16f
         })
         statusView = TextView(this).apply {
@@ -173,7 +173,7 @@ class MainActivity : Activity() {
     private fun connectAndPrintIfReady(device: BluetoothDevice) {
         val text = pendingText
         if (text.isNullOrBlank()) {
-            updateStatus("Impressora selecionada. Compartilhe um texto com Superquina Impressão para imprimir.")
+            updateStatus("Impressora selecionada. Compartilhe um texto com Super Quina Impressão para imprimir.")
             return
         }
         thread(name = "superquina-bt-connect") {
