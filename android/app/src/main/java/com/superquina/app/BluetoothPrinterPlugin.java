@@ -164,7 +164,7 @@ public class BluetoothPrinterPlugin extends Plugin {
 
             // RawBT-style compatibility: try the secure SPP channel first, then
             // the insecure RFCOMM channel used by some low-cost thermal printers.
-            adapter.cancelDiscovery();
+            // No active device discovery is performed; BLUETOOTH_SCAN is not requested.
             BluetoothDevice device = adapter.getRemoteDevice(address);
             socket = device.createRfcommSocketToServiceRecord(SPP_UUID);
             try {
