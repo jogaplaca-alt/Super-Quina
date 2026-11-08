@@ -3246,3 +3246,18 @@ html.is-android {
     padding-left: 10px !important;
   }
 }
+
+
+/* Android: cria folga real abaixo do cabeçalho fixo para impedir sobreposição
+   do primeiro formulário/conteúdo em todas as páginas. */
+@media screen and (max-width: 900px) {
+  html.is-android .area-page,
+  html.is-android .auth-layout,
+  html.is-android .site-page-shell,
+  html.is-android .home-page:not(.home-page-compact) {
+    padding-top: calc(var(--site-header-height, 120px) + 28px) !important;
+  }
+  html.is-android .home-page.home-page-compact {
+    margin-top: calc(var(--site-header-height, 120px) + 28px) !important;
+  }
+}
