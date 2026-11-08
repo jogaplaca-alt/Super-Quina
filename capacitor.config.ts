@@ -4,7 +4,7 @@ const config = {
   // Dedicated APK identity, retaining the complete public app experience.
   webDir: "www",
   server: {
-    url: "https://superquina.com",
+    url: "https://superquina.com/login?app=cashier",
     cleartext: false,
   },
   android: {
