@@ -25,6 +25,13 @@ Não é necessário que o APK consulte a API do site para descobrir recibos. O p
 - O perfil inicial usa 384 pontos de largura (perfil térmico 58 mm) e raster ESC/POS. A largura, densidade e qualidade precisam ser validadas no papel real da OY-581P.
 - A conclusão do Android indica que os dados foram transmitidos sem erro de socket; não é uma confirmação física de que o papel saiu.
 
+## Dois caminhos de integração
+
+- **Imprimir recibo:** usa o Android Print Framework; o Chrome entrega um PDF ao serviço Superquina, que rasteriza a página e envia ESC/POS.
+- **Enviar para Superquina Impressão:** usa o compartilhamento Android (`ACTION_SEND`, `text/plain`) com um payload JSON `superquina-receipt` versão 1; o app valida o status confirmado e gera texto/QR Code em ESC/POS.
+
+Os dois caminhos usam a impressora Bluetooth pareada e selecionada no app. O segundo caminho não depende de API adicional no servidor: usa os dados oficiais do recibo que o site já carregou autenticadamente.
+
 ## Limitação atual
 
 A primeira versão do serviço imprime páginas PDF rasterizadas. Não implementa descoberta Bluetooth de impressoras não pareadas, BLE/GATT, USB, Wi-Fi, corte automático ou confirmação de papel. Para adicionar outra impressora, faça o pareamento nas configurações Android e selecione-a no app.
