@@ -2803,3 +2803,28 @@ body:has(.home-page.home-page-compact) {
   font-weight: 800 !important;
   line-height: 1.3 !important;
 }
+
+
+/* Página inicial: somente a imagem principal, ocupando toda a área disponível. */
+.home-page.home-page-compact .home-entry {
+  grid-template-rows: minmax(0, 1fr) auto !important;
+}
+.home-page.home-page-compact .home-entry > .home-how-infographic {
+  display: flex !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+.home-page.home-page-compact .home-entry > .home-how-infographic img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+}
