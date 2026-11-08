@@ -26,9 +26,9 @@ O autoteste fotografado informa **OY-580IP**, firmware V3.2F, Bluetooth `KPrinte
 
 ## Limitações ainda existentes
 - A tela `ThermalBluetoothPrinter` já está integrada ao modal do recibo oficial do jogador: lista dispositivos pareados, atualiza a lista, conecta, imprime e desconecta.
-- O plugin nativo ainda não está registrado em um projeto Android Capacitor. A ponte de UI consulta o plugin registrado em runtime (`window.Capacitor.Plugins.RawBtPrinter`).
-- `capacitor.config.ts` existe e o plugin declara `@capacitor/core` como peer dependency, mas o pacote não está nas dependências raiz e não foi localizado um projeto Android `android/` no branch. Portanto, ainda não há caminho completo para gerar APK.
-- Não houve execução de testes, build Android ou teste físico desta etapa.
+- A ponte JavaScript agora registra o plugin com `registerPlugin("RawBtPrinter")`; o pacote local declara a pasta Android para descoberta pelo Capacitor.
+- Dependências `@capacitor/core`, `@capacitor/android`, `@capacitor/cli` e pacote local `@superquina/rawbt-printer` foram adicionadas ao `package.json`. O projeto Android será gerado no CI por `npx cap add android`; ainda não há plataforma Android versionada no branch.
+- Foi criado `.github/workflows/android-printer-apk.yml` para instalar dependências, gerar a plataforma Android, sincronizar o plugin, compilar `assembleDebug` e publicar o APK como artefato. O workflow ainda não foi executado; não há APK disponível nem resultado de compilação/testes desta etapa.
 - O comando ESC/POS de QR é padronizado, mas precisa ser validado no firmware real; o autoteste mostra QR interno, o que não garante suporte a todos os comandos GS ( k).
 
 ## Observação operacional
