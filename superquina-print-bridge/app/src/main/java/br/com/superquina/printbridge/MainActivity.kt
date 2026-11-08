@@ -15,6 +15,7 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import java.io.IOException
+import java.nio.charset.Charset
 import java.util.UUID
 import kotlin.concurrent.thread
 
@@ -175,8 +176,13 @@ class MainActivity : Activity() {
 
     private fun encodeEscPos(text: String): ByteArray {
         val cleanText = text.replace("\r\n", "\n").replace("\r", "\n")
-        val body = cleanText.toByteArray(Charsets.UTF_8)
-        return byteArrayOf(0x1B, 0x40) + body + byteArrayOf(0x0A, 0x0A, 0x0A)
+        // Self-test da OY-5801P indica code page 3 = PC860 (português).
+        // ESC t 3 seleciona a tabela de caracteres no firmware ESC/POS.
+        val body = cleanText.toByteArray(Charset.forName("IBM860"))
+        return byteArrayOf(
+            0x1B, 0x40,       // ESC @: inicializar
+            0x1B, 0x74, 0x03  // ESC t 3: selecionar PC860
+        ) + body + byteArrayOf(0x0A, 0x0A, 0x0A)
     }
 
     private fun closeSocket() {
