@@ -76,6 +76,9 @@ class SuperquinaPrintService : PrintService() {
                     val documentFd = printJob.document.data ?: throw IOException("Documento PDF vazio recebido do Android.")
                     val renderer = PdfRenderer(documentFd)
                     try {
+                        // Regra do produto: recibos da Super Quina são sempre uma via (cliente).
+                        // O PrintService transmite cada página uma única vez, mesmo que a tela
+                        // nativa do Android mostre uma quantidade de cópias diferente.
                         for (pageIndex in 0 until renderer.pageCount) {
                             val page = renderer.openPage(pageIndex)
                             try {
