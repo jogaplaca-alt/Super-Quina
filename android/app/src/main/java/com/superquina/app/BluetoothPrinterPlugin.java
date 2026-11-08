@@ -161,8 +161,16 @@ public class BluetoothPrinterPlugin extends Plugin {
                 connectTimeout.cancel(false);
             }
             OutputStream output = socket.getOutputStream();
-            output.write(payload);
-            output.flush();
+            final BluetoothSocket sendingSocket = socket;
+            ScheduledFuture<?> sendTimeout = TIMEOUTS.schedule(() -> {
+                try { sendingSocket.close(); } catch (Exception ignored) { }
+            }, 30, TimeUnit.SECONDS);
+            try {
+                output.write(payload);
+                output.flush();
+            } finally {
+                sendTimeout.cancel(false);
+            }
 
             JSObject result = new JSObject();
             result.put("bytesWritten", payload.length);
