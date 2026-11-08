@@ -1,7 +1,7 @@
 "use client";
 import { encodeThermalReceipt } from "@/modules/printing/escpos/encode-thermal-receipt";
 import { GENERIC_58MM_SPP_PROFILE_FONT_A } from "@/modules/printing/escpos/generic-58mm-profile";
-import { RawBtPrinter } from "../../../../plugins/rawbt-printer/src";
+import { getRawBtPrinter } from "@/modules/printing/client/rawbt-printer-bridge";
 type OfficialReceipt = Parameters<typeof encodeThermalReceipt>[0];
 type PrintJobResponse = { created: boolean; job: { id: string; status: string; purpose: string }; maySend: boolean };
 async function postJson<T>(url: string, body?: unknown): Promise<T> {
@@ -35,8 +35,9 @@ export async function printOfficialPurchaseReceipt(input: { purchaseId: string; 
   let encoded: Uint8Array;
   try { encoded = encodeThermalReceipt(receipt, GENERIC_58MM_SPP_PROFILE_FONT_A); }
   catch (error) { await transition(reservation.job.id, "FAILED", input.deviceName, "ENCODING_FAILED"); throw error; }
-  let state: Awaited<ReturnType<typeof RawBtPrinter.getConnectionState>>;
-  try { state = await RawBtPrinter.getConnectionState(); }
+  const printer = getRawBtPrinter();
+  let state: Awaited<ReturnType<typeof printer.getConnectionState>>;
+  try { state = await printer.getConnectionState(); }
   catch {
     await transition(reservation.job.id, "FAILED", input.deviceName, "DEVICE_UNAVAILABLE");
     throw new Error("Não foi possível verificar a conexão com a impressora.");
@@ -47,7 +48,7 @@ export async function printOfficialPurchaseReceipt(input: { purchaseId: string; 
   }
   await transition(reservation.job.id, "SENDING", input.deviceName);
   try {
-    const result = await RawBtPrinter.send({ dataBase64: toBase64(encoded) });
+    const result = await printer.send({ dataBase64: toBase64(encoded) });
     await transition(reservation.job.id, "SENT", input.deviceName);
     return { jobId: reservation.job.id, bytesWritten: result.bytesWritten };
   } catch (error) {
