@@ -5,6 +5,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import type { ThermalReceiptEntry } from "./thermal-receipt-types";
 import { getReceiptRepetitionNumbers } from "./receipt-repetition";
 import { createReceiptQrDataUrl } from "./receipt-qr";
+import { getRawBtPrinter } from "@/modules/printing/client/rawbt-printer-bridge";
 export { getReceiptRepetitionNumbers } from "./receipt-repetition";
 
 export type ThermalReceiptProps = {
@@ -38,6 +39,30 @@ export function ThermalReceipt({
   onClose,
 }: ThermalReceiptProps) {
   const [generatedQr, setGeneratedQr] = useState<{ receiptCode: string; url: string } | null>(null);
+  const [printing, setPrinting] = useState(false);
+  const [printError, setPrintError] = useState("");
+
+  async function handlePrintReceipt() {
+    setPrinting(true);
+    setPrintError("");
+    try {
+      if (typeof window !== "undefined") {
+        try {
+          await getRawBtPrinter().printCurrentWebView({ jobName: `Super Quina - ${receiptCode}` });
+        } catch (error) {
+          if (error instanceof Error && error.message.includes("somente no aplicativo Android")) {
+            window.print();
+          } else {
+            throw error;
+          }
+        }
+      }
+    } catch (error) {
+      setPrintError(error instanceof Error ? error.message : "Não foi possível abrir a impressão do Android.");
+    } finally {
+      setPrinting(false);
+    }
+  }
   useEffect(() => {
     if (paymentStatus !== "CONFIRMED" || !/^SQ-[A-Z0-9]{8,32}$/.test(receiptCode)) {
       return;
