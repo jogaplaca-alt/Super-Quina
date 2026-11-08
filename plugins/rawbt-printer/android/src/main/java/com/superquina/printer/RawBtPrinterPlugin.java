@@ -102,6 +102,8 @@ public class RawBtPrinterPlugin extends Plugin {
                 try {
                     candidate = device.createRfcommSocketToServiceRecord(SPP_UUID);
                     connectWithTimeout(candidate);
+                } catch (ConnectTimeoutException timeoutError) {
+                    throw timeoutError;
                 } catch (IOException secureError) {
                     closeQuietly(candidate);
                     candidate = device.createInsecureRfcommSocketToServiceRecord(SPP_UUID);
