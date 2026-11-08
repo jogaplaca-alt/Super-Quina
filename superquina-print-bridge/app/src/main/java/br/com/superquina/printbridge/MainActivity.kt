@@ -17,6 +17,7 @@ import android.widget.TextView
 import java.io.IOException
 import java.nio.charset.Charset
 import java.util.UUID
+import org.json.JSONObject
 import kotlin.concurrent.thread
 
 class MainActivity : Activity() {
@@ -185,14 +186,98 @@ class MainActivity : Activity() {
     }
 
     private fun encodeEscPos(text: String): ByteArray {
-        val cleanText = text.replace("\r\n", "\n").replace("\r", "\n")
-        // Self-test da OY-5801P indica code page 3 = PC860 (português).
-        // ESC t 3 seleciona a tabela de caracteres no firmware ESC/POS.
+        val payload = runCatching { JSONObject(text) }.getOrNull()
+        if (payload?.optString("type") == "superquina-receipt" && payload.optInt("version") == 1) {
+            return encodeOfficialReceipt(payload)
+        }
+        val cleanText = text.replace("\\r\\n", "\\n").replace("\\r", "\\n")
         val body = cleanText.toByteArray(Charset.forName("IBM860"))
-        return byteArrayOf(
-            0x1B, 0x40,       // ESC @: inicializar
-            0x1B, 0x74, 0x03  // ESC t 3: selecionar PC860
-        ) + body + byteArrayOf(0x0A, 0x0A, 0x0A)
+        return byteArrayOf(0x1B, 0x40, 0x1B, 0x74, 0x03) + body + byteArrayOf(0x0A, 0x0A, 0x0A)
+    }
+
+    private fun encodeOfficialReceipt(payload: JSONObject): ByteArray {
+        val receipt = payload.optJSONObject("receipt") ?: throw IOException("Recibo inválido.")
+        val code = receipt.optString("receiptCode")
+        if (!code.matches(Regex("SQ-[A-Z0-9]{8,32}")) || receipt.optString("paymentStatus") != "CONFIRMED") {
+            throw IOException("Somente recibos oficiais confirmados podem ser impressos.")
+        }
+        if (receipt.optString("currency") != "BRL") throw IOException("Moeda do recibo não suportada.")
+        val entries = receipt.optJSONArray("entries") ?: throw IOException("Recibo sem apostas.")
+        if (entries.length() !in 1..100) throw IOException("Quantidade de apostas inválida.")
+
+        val lines = mutableListOf<String>()
+        lines += "SUPER QUINA"
+        lines += "COMPROVANTE DE APOSTA"
+        lines += receipt.optString("issuedAt").replace("T", " ").take(16)
+        lines += ""
+        lines += "CODIGO DO RECIBO"
+        lines += code
+        lines += "PAGAMENTO: " + receipt.optString("paymentMethod")
+        receipt.optString("customerLabel").takeIf { it.isNotBlank() }?.let { lines += "CLIENTE: $it" }
+        receipt.optString("cashierLabel").takeIf { it.isNotBlank() }?.let { lines += "CAMBISTA: $it" }
+        lines += "--------------------------------"
+        lines += "APOSTAS"
+        for (i in 0 until entries.length()) {
+            val entry = entries.getJSONObject(i)
+            lines += entry.optString("numberValue")
+            lines += "Rodada: " + entry.optString("roundCode")
+            lines += "Sorteio: " + entry.optString("resultAt").replace("T", " ").take(16)
+            lines += "Unid: ${money(entry.optLong("unitCents"))} Dez: ${money(entry.optLong("tensCents"))}"
+            lines += "Cent: ${money(entry.optLong("hundredsCents"))} Mil: ${money(entry.optLong("thousandsCents"))}"
+            lines += "Quina: ${money(entry.optLong("quinaCents"))}"
+            lines += "Valor: ${money(entry.optLong("stakeCents"))}"
+            lines += ""
+        }
+        lines += "--------------------------------"
+        lines += "TOTAL PAGO: ${money(receipt.optLong("totalCents"))}"
+        lines += ""
+        lines += "Guarde este comprovante."
+        lines += "Consulte pelo codigo ou QR Code."
+
+        val verificationUrl = payload.optString("verificationUrl")
+        if (!verificationUrl.startsWith("https://") || verificationUrl.length > 240) {
+            throw IOException("Endereço de validação do recibo inválido.")
+        }
+
+        val charset = Charset.forName("IBM860")
+        val bytes = ArrayList<Byte>()
+        fun add(vararg values: Int) { values.forEach { bytes.add(it.toByte()) } }
+        fun addText(value: String) {
+            val encoded = value.toByteArray(charset)
+            encoded.forEach { bytes.add(it) }
+            add(0x0A)
+        }
+
+        add(0x1B, 0x40, 0x1B, 0x74, 0x03)
+        add(0x1B, 0x61, 0x01, 0x1B, 0x45, 0x01)
+        addText("SUPER QUINA")
+        add(0x1B, 0x45, 0x00)
+        add(0x1B, 0x61, 0x00)
+        lines.drop(1).forEach { addText(it) }
+        add(0x0A)
+        add(0x1B, 0x61, 0x01)
+        qrCodeCommand(verificationUrl).forEach { bytes.add(it) }
+        add(0x0A, 0x0A, 0x0A)
+        return bytes.toByteArray()
+    }
+
+    private fun money(cents: Long): String {
+        val safe = cents.coerceAtLeast(0)
+        return "R$ ${safe / 100},${(safe % 100).toString().padStart(2, '0')}"
+    }
+
+    private fun qrCodeCommand(value: String): ByteArray {
+        val data = value.toByteArray(Charsets.UTF_8)
+        val bytes = ArrayList<Byte>()
+        fun add(vararg values: Int) { values.forEach { bytes.add(it.toByte()) } }
+        add(0x1D, 0x28, 0x6B, 4, 0, 0x31, 0x41, 0x32, 0)
+        add(0x1D, 0x28, 0x6B, 3, 0, 0x31, 0x43, 6)
+        add(0x1D, 0x28, 0x6B, 3, 0, 0x31, 0x45, 0x30)
+        val length = data.size + 3
+        add(0x1D, 0x28, 0x6B, length and 0xFF, (length shr 8) and 0xFF, 0x31, 0x50, 0x30)
+        data.forEach { bytes.add(it) }
+        add(0x1D, 0x28, 0x6B, 3, 0, 0x31, 0x51, 0x30)
+        return bytes.toByteArray()
     }
 
     private fun closeSocket() {
