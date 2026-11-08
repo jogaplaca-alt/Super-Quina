@@ -35,3 +35,8 @@ Os dois caminhos usam a impressora Bluetooth pareada e selecionada no app. O seg
 ## Limitação atual
 
 A primeira versão do serviço imprime páginas PDF rasterizadas. Não implementa descoberta Bluetooth de impressoras não pareadas, BLE/GATT, USB, Wi-Fi, corte automático ou confirmação de papel. Para adicionar outra impressora, faça o pareamento nas configurações Android e selecione-a no app.
+
+
+## Quantidade de cópias
+
+O recibo da Super Quina é emitido em uma única via para o cliente. O serviço Bluetooth próprio transmite cada página do trabalho apenas uma vez; ele não repete a impressão para produzir uma segunda via. A quantidade que aparece na tela nativa do Android é controlada pelo sistema de impressão e pode variar conforme aparelho/aplicativo. O PrintService não possui uma API pública para impor globalmente o valor inicial desse controle. Para evitar essa tela e suas preferências, o caminho **Enviar para Super Quina Impressão** usa o compartilhamento direto e, com a impressora já selecionada, envia uma única via.
