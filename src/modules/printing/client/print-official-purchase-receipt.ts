@@ -21,7 +21,7 @@ async function transition(jobId: string, nextStatus: "SENDING" | "SENT" | "FAILE
 /** Prints only the server-issued confirmed receipt. It never retries uncertain transport outcomes. */
 export async function printOfficialPurchaseReceipt(input: { purchaseId: string; deviceId: string; deviceName: string }): Promise<{ jobId: string; bytesWritten: number }> {
   const reservation = await postJson<PrintJobResponse>("/api/purchases/" + encodeURIComponent(input.purchaseId) + "/print-jobs/auto", {});
-  if (!reservation.maySend || reservation.job.status !== "RESERVED") throw new Error("Este recibo já foi enviado ou está em processamento. Não será impresso novamente automaticamente.");
+  if (!reservation.created || !reservation.maySend || reservation.job.status !== "RESERVED") throw new Error("Este recibo já foi enviado ou está em processamento. Não será impresso novamente automaticamente.");
   let receipt: OfficialReceipt;
   try {
     const response = await fetch("/api/player/purchases/" + encodeURIComponent(input.purchaseId) + "/receipt", { credentials: "same-origin", cache: "no-store" });
