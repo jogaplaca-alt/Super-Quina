@@ -48,3 +48,8 @@ O projeto Android inicial, a tela de seleção Bluetooth, o PrintService e o wor
 ## Sobre o APK RawBT
 
 A inspeção inicial identificou Bluetooth Classic, BLE/GATT, USB, Android PrintService e funções de demonstração/editor. O arquivo de licenças lista bibliotecas open-source, mas isso não concede automaticamente direitos sobre o aplicativo proprietário completo. Este projeto não altera nem remove avisos, verificações ou controles de licença do RawBT.
+
+
+## Quantidade de vias
+
+Por regra do produto, o recibo é impresso em uma única via para o cliente. O PrintService envia cada página uma vez. A preferência visual de quantidade de cópias na tela nativa Android é controlada pelo sistema e não pode ser globalmente pré-configurada pelo serviço. O compartilhamento direto para o app evita essa tela depois que a impressora foi selecionada.
