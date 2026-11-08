@@ -13,10 +13,10 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
   robots: { index: true, follow: true },
   title: {
-    default: "Super Quina | Jogo Numérico e Credenciamento de Pontos",
+    default: "Super Quina | Página Inicial Oficial",
     template: "%s | Super Quina",
   },
-  description: "Seja um ponto credenciado Super Quina. Solicite seu kit gratuito, gerencie suas apostas de forma segura e faça parte da nossa rede.",
+  description: "Página inicial oficial da Super Quina. Conheça como funciona o jogo, veja as informações e acesse sua conta quando desejar.",
   applicationName: "Super Quina",
   appleWebApp: {
     capable: true,
