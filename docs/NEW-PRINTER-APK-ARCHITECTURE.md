@@ -1,80 +1,69 @@
-# Decisão de arquitetura — novo APK de impressão Super Quina
+# Arquitetura — aplicativo de impressão Super Quina
 
-Data: 2026-11-08
+Data: 08/11/2026
+Status: especificação de implementação; build e impressão física ainda pendentes.
 
-## Decisão
+## Objetivo e limite
+Criar um aplicativo Android próprio, inspirado no comportamento de configuração de impressoras do RawBT 7.0.2, para uso exclusivo com o site Super Quina. Não copiar código, marca, recursos visuais proprietários nem contornar licenças. O APK terá uma interface de gerenciamento de impressoras e uma WebView para o site. Não terá editor de documentos, editor de imagens, galeria, gerenciador de arquivos, conversor nem impressão genérica de arquivos. O recibo oficial continuará sendo criado e autorizado pelo site.
 
-Construir um APK Super Quina independente, com código nativo próprio e interface mínima, usando o RawBT 7.0.2 somente como referência comportamental/técnica. Não reutilizar nem transportar a implementação Bluetooth antiga que falhou nos testes. Não desmontar nem copiar código proprietário do RawBT.
+## Decisão técnica: um único caminho de impressão
+O repositório contém hoje dois caminhos concorrentes: (1) Android Print Framework/PrintService com PDF rasterizado e (2) plugin Capacitor com conexão SPP e encoder ESC/POS do site. Isso é incoerente e deve ser consolidado.
 
-A inspeção estática do APK RawBT confirmou componentes de serviço de impressão Android, SDK/ESC-POS, transporte Bluetooth clássico e BLE, drivers, persistência de perfis e transportes USB/rede. O APK não fornece o código-fonte original. A inspeção por strings/recursos não permite afirmar detalhes internos completos do algoritmo de pareamento ou de cada driver.
+O caminho escolhido é plugin Capacitor + encoder ESC/POS oficial + Bluetooth Classic SPP:
+1. O site autentica o usuário e disponibiliza o DTO oficial de recibo confirmado.
+2. O encoder ESC/POS do Super Quina gera os bytes.
+3. O usuário escolhe a impressora e seu perfil salvo.
+4. O plugin nativo conecta por RFCOMM/SPP e transmite os bytes.
+5. O resultado de transporte é registrado no fluxo de impressão existente.
+6. Falha durante transmissão pode deixar o resultado físico incerto; nunca repetir automaticamente.
 
-## Reutilização segura do Super Quina
+O Android Print Framework/PrintService, printCurrentWebView() e PDF rasterizado não fazem parte do fluxo final e devem ser removidos depois que o caminho direto estiver integrado e validado ponta a ponta.
 
-Não reconstruir o sistema de vendas nem duplicar regras financeiras. Reutilizar apenas as partes já existentes e comprovadamente úteis:
-- autenticação e sessão no site;
-- rotas oficiais que autorizam recibos;
-- encoder ESC/POS em `src/modules/printing/escpos/encode-thermal-receipt.ts`;
-- ledger/idempotência em `src/modules/printing/print-job-service.ts`;
-- rotas de reserva, transição e reimpressão de `PrintJob`.
+## Interface inspirada nas telas de referência
+- Adicionar impressora.
+- Método de conexão: Bluetooth habilitado na primeira versão; Wi-Fi/Ethernet e USB ficam planejados/ocultos até implementação. AIDL/POS fica fora do primeiro escopo.
+- Lista de dispositivos pareados com nome e endereço.
+- Escolha de driver/protocolo. ESC/POS geral é o primeiro driver ativo. Não exibir protocolos sem encoder e transporte testados.
+- Perfil de papel individual por impressora.
+- Botão Para testar, que envia teste ESC/POS sem dados financeiros.
+- Campos de nome e descrição.
+- Salvar/selecionar impressora padrão, reconectar e desconectar.
+- Mensagens claras de permissão, Bluetooth desligado, impressora indisponível e falha de transmissão.
 
-A estrutura anterior de integração Bluetooth/APK que apresentou falhas não será tratada como base confiável. O módulo `plugins/rawbt-printer` desta branch é um protótipo isolado novo, não uma continuação da implementação Bluetooth antiga.
+## Modelo de perfil de impressora
+Persistir por endereço/identidade do dispositivo: identificador e nome amigável; tipo de conexão; driver/protocolo; largura nominal do papel e largura imprimível em pontos; DPI horizontal/vertical; colunas de texto; página de códigos e mapa de caracteres; avanço final; corte (desabilitado por padrão, ativado só se suportado); densidade/limiar de raster quando aplicável; perfil padrão e data de atualização.
 
-## Novo APK
+Não usar largura fixa global de 58 mm. Opções candidatas da referência: 58 mm, 58 mm Max, 80 mm, 80 mm Max, 110 mm e bobina contínua. Cada opção precisa mapear para largura útil e limites reais da impressora. Não habilitar opção apenas por aparecer na referência. Largura nominal do rolo não é igual à largura imprimível.
 
-O projeto web atual já contém `capacitor.config.ts` apontando para `https://superquina.com`, mas `package.json` ainda não declara dependências Capacitor e não há diretório Android no repositório. Portanto, ainda não existe uma plataforma Android pronta para compilar.
+## Drivers
+Primeiro perfil funcional: ESC/POS geral. Outros perfis só podem ser ativados após implementação e teste: GS v 0 only, Peripage, Paperang, CPCL, EPL, TSPL, ZPL e demais perfis de fabricante. Driver deve ser independente do transporte.
 
-A primeira versão do APK deverá ser um cliente Android/Capacitor enxuto, com:
-- WebView carregando o Super Quina autenticado;
-- plugin nativo próprio para Bluetooth clássico SPP/RFCOMM;
-- seleção de dispositivos previamente pareados;
-- estado de conexão e teste de impressão;
-- impressão de recibos oficiais;
-- tela mínima de configuração do serviço; o tamanho da bobina é escolhido no diálogo de impressão do Android (58 mm ou 80 mm).
+## Transportes
+- Bluetooth Classic SPP/RFCOMM: primeira versão.
+- Wi-Fi/Ethernet: futuro; requer endereço/porta e transporte socket validado.
+- USB: futuro; requer USB Host, descoberta VID/PID e permissões.
+- BLE: não presumir compatibilidade com impressoras SPP; protocolo GATT específico precisa ser implementado.
+- AIDL/POS: fora do escopo inicial, depende do SDK do terminal.
 
-Não incluir serviço genérico Android PrintService, compartilhamento de arquivos, PDF, Word, impressão de imagens avulsas, BLE, USB, Wi-Fi, drivers CPCL/ZPL/EPL ou ferramentas genéricas do RawBT.
+## Estado real do código auditado
+- Plugin Capacitor possui listagem de pareados, connect, send, disconnect e getConnectionState.
+- Encoder ESC/POS do site suporta perfil 58/80 mm, colunas, code page/mapa, QR, avanço e corte.
+- UI atual ThermalBluetoothPrinter é apenas texto informativo e não liga esses métodos; precisa ser substituída por fluxo real de cadastro/configuração.
+- ThermalReceipt ainda chama printCurrentWebView(), que abre o Android Print Framework. Isso conflita com a arquitetura escolhida.
+- Há um PrintService separado com PDF rasterizado e perfis fixos. Deve ser removido após migração e testes do fluxo direto.
+- Encoder e plugin precisam compartilhar o perfil salvo; hoje não existe persistência completa de perfil por impressora.
+- A tela nativa atual só solicita permissão e não implementa o gerenciador mostrado nas imagens.
+- Não há evidência de build Android ou teste físico aprovado nesta etapa.
 
-## Pareamento
+## Plano de implementação
+1. Consolidar o fluxo direto SPP e retirar a chamada concorrente ao Print Framework.
+2. Integrar UI do site ao plugin: listar, selecionar, conectar, testar, salvar e desconectar.
+3. Criar persistência de perfis por impressora e seleção de papel sem largura fixa.
+4. Implementar teste ESC/POS para validar comunicação e largura útil.
+5. Validar acentos, QR, densidade, avanço, corte e recibo completo na impressora real.
+6. Adicionar Wi-Fi/Ethernet e USB somente se houver necessidade e hardware para teste.
+7. Rodar lint, typecheck, testes e build do APK; instalar e testar em aparelho real.
+8. Não mesclar em main nem publicar sem autorização.
 
-Na primeira versão, o usuário faz o pareamento no menu Bluetooth do Android. O APK lista os dispositivos pareados usando BluetoothAdapter.getBondedDevices() e conecta ao dispositivo escolhido por BluetoothSocket/RFCOMM com UUID SPP. A descoberta de dispositivos próximos fica fora do escopo para evitar permissões de localização/scan desnecessárias.
-
-## Fluxo financeiro e de entrega
-
-1. O servidor autentica o usuário e reserva o PrintJob.
-2. O cliente obtém o DTO oficial do recibo por rota autenticada.
-3. O encoder ESC/POS existente gera bytes.
-4. A ponte nativa transmite bytes ao socket Bluetooth.
-5. O cliente registra o resultado no ledger.
-
-Não aceitar dados financeiros calculados localmente como fonte de verdade. Falha durante escrita pode deixar a entrega fisicamente incerta; marcar UNKNOWN, nunca repetir automaticamente. Reimpressão é explícita e auditada. `bytesWritten` significa somente que o OutputStream aceitou os bytes, não confirmação de saída de papel.
-
-## Estado real em 08/11/2026
-
-- [x] APK RawBT de referência localizado e inspecionado estaticamente.
-- [x] Componentes de alto nível do RawBT identificados.
-- [x] Decisão de não reaproveitar a implementação Bluetooth antiga.
-- [x] Encoder ESC/POS e ledger atuais do Super Quina identificados para reutilização.
-- [x] Protótipo novo e isolado de ponte SPP criado na branch.
-- [ ] Adicionar Capacitor core/cli/android em versões compatíveis e atualizar lockfile.
-- [ ] Gerar e configurar plataforma Android.
-- [ ] Registrar e compilar o plugin local no Android.
-- [ ] Validar seleção de papel no diálogo do Android (58 mm e 80 mm) em aparelho real.
-- [x] Ligar o recibo do site ao Android Print Framework e ao PrintService, que converte PDF temporário em ESC/POS e transmite por SPP.
-- [ ] Executar lint, typecheck e testes.
-- [ ] Confirmar que a interface do recibo não oferece ferramentas genéricas de edição/arquivos.
-- [ ] Gerar APK de debug após validar o fluxo e os perfis de papel.
-- [ ] Testar em aparelho e impressora Bluetooth reais.
-
-Nenhum APK novo foi gerado nesta etapa. Não marcar a implementação como pronta até o teste físico.
-
-## Atualização após evidência do aparelho
-
-A tela de recibo do site anteriormente oferecia window.print() e, separadamente, a ponte Bluetooth. O primeiro botão abria o Android Print Framework e provocava o erro de serviço não ativado visto no aparelho. Essa ação foi removida. O modal agora mantém o recibo visível no site e usa o painel Bluetooth para seleção, conexão, teste e envio ESC/POS. O APK não precisa receber PDF nem criar uma cópia local do recibo.
-
-A validação da sessão Bluetooth foi antecipada para antes da reserva de PrintJob. A ponte serializa operações, tenta RFCOMM seguro e inseguro, aplica timeout de conexão e envia em blocos de 1 KiB. A compilação e o teste físico continuam pendentes.
-
-
-## Ajuste de perfil de papel — 08/11/2026
-
-A largura de papel deixou de ser um valor único. O PrintService anuncia bobinas térmicas de 58 mm e 80 mm para seleção no diálogo de impressão do Android. A conversão usa a largura imprimível validada de cada perfil (384 pontos para bobina nominal de 58 mm e 576 pontos para bobina nominal de 80 mm em 203 dpi), em vez de rasterizar usando a largura nominal total do rolo. Não há editor de documentos ou imagens no APK; o escopo é somente abrir o site e imprimir o recibo oficial.
-
-Build Android, seleção no dispositivo e impressão física ainda precisam ser testados. A opção de papel selecionada deve ser conferida em cada modelo de impressora antes de considerar o perfil aprovado.
+## Critério de conclusão
+Só considerar concluído após build reproduzível, cadastro/seleção do dispositivo, teste de impressão, recibo oficial impresso corretamente e confirmação de que erros não provocam duplicidade automática.
