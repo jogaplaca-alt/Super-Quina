@@ -2356,14 +2356,15 @@ body {
 }
 
 
-/* Página inicial estática: toda a composição cabe em uma única tela. */
+/* A página inicial também pode rolar normalmente em telas pequenas. */
 html:has(.home-page.home-page-compact),
 body:has(.home-page.home-page-compact) {
   width: 100%;
-  height: 100%;
-  min-height: 0 !important;
-  overflow: hidden !important;
-  overscroll-behavior: none !important;
+  min-height: 100% !important;
+  height: auto !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior-y: auto !important;
 }
 
 .home-page.home-page-compact {
