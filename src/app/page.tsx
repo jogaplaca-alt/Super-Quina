@@ -26,7 +26,7 @@ export default function HomePage() {
           />
           <a
             className="home-kit-whatsapp-link"
-            href="https://wa.me/5577991601217?text=Quero%20ser%20um%20ponto%20credenciado%20da%20Super%20Quina."
+            href="https://wa.me/5577991601217?text=Quero%20ser%20um%20cambista%20credenciado%20da%20Super%20Quina."
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Solicitar o kit gratuito da Super Quina pelo WhatsApp"
