@@ -319,8 +319,8 @@ public final class SuperQuinaPrintService extends PrintService {
             PrintAttributes.Resolution dpi203 = new PrintAttributes.Resolution(
                 "THERMAL_203", "Térmica 203 dpi", 203, 203);
             return new PrinterCapabilitiesInfo.Builder(id)
-                .addMediaSize(roll58, true)
-                .addMediaSize(roll80, false)
+                .addMediaSize(roll58, false)
+                .addMediaSize(roll80, true)
                 .addResolution(dpi203, true)
                 .setColorModes(PrintAttributes.COLOR_MODE_MONOCHROME, PrintAttributes.COLOR_MODE_MONOCHROME)
                 .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
