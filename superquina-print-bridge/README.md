@@ -25,7 +25,7 @@ Editor de documentos/imagens, galeria, compras, contas, pagamentos, servidor web
 
 O site continua sendo responsável por autenticação, compra, confirmação financeira e geração do recibo oficial. O bridge recebe somente o conteúdo já autorizado para impressão. Não recebe credenciais do Mercado Pago e não confirma pagamentos.
 
-A primeira etapa usa o compartilhamento Android para validar o transporte independente. Uma integração por intent/deep link poderá ser adicionada depois, sem incorporar o site ao APK.
+O APK recebe trabalhos do Android Print Framework por meio de um PrintService declarado no manifesto. O site abre a tela padrão com `window.print()`; o Android entrega o PDF ao serviço Superquina, que rasteriza e transmite por Bluetooth. O compartilhamento de texto também é aceito para testes simples.
 
 ## Requisitos de compatibilidade
 
@@ -37,7 +37,7 @@ A primeira etapa usa o compartilhamento Android para validar o transporte indepe
 
 ## Estado
 
-Este é o início do projeto Android independente. Ainda não é um APK compilado ou validado em impressoras reais. A validação exige build Android e testes em aparelhos e impressoras físicas.
+O projeto Android inicial, a tela de seleção Bluetooth, o PrintService e o workflow de compilação foram adicionados. O APK ainda precisa passar pelo build do GitHub Actions e por testes em aparelhos e impressoras reais. A validação exige build Android e testes em aparelhos e impressoras físicas.
 
 ## Sobre o APK RawBT
 
