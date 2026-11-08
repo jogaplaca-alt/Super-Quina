@@ -2622,3 +2622,60 @@ body:has(.home-page) {
     min-height: 32px !important;
   }
 }
+
+
+/* Impressão do recibo no Chrome: uma única via em bobina térmica de 58 mm.
+   O site controla o layout/páginas, mas a quantidade de cópias é definida
+   pelo diálogo de impressão e pelo driver do sistema. */
+@page {
+  size: 58mm auto;
+  margin: 0;
+}
+@media print {
+  html,
+  body {
+    width: 58mm !important;
+    min-width: 58mm !important;
+    max-width: 58mm !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+  body * {
+    visibility: hidden !important;
+  }
+  .thermal-receipt-print-root,
+  .thermal-receipt-print-root * {
+    visibility: visible !important;
+  }
+  .thermal-receipt-print-root {
+    position: static !important;
+    display: block !important;
+    width: 48mm !important;
+    max-width: 48mm !important;
+    height: auto !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    break-after: auto !important;
+    page-break-after: auto !important;
+  }
+  .thermal-receipt {
+    display: block !important;
+    width: 48mm !important;
+    max-width: 48mm !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 1mm 0 !important;
+    overflow: visible !important;
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+  }
+  .thermal-receipt-actions,
+  .receipt-modal > h2 {
+    display: none !important;
+  }
+}

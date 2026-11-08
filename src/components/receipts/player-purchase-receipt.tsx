@@ -101,6 +101,34 @@ export function PlayerPurchaseReceipt({ purchaseId, autoOpen = false, onClose }:
     }
   }
 
+  async function testBluetoothPrinter() {
+    if (!selectedPrinter || printerBusy) {
+      setPrinterMessage("Selecione uma impressora pareada antes do teste.");
+      return;
+    }
+    setPrinterBusy(true);
+    setPrinterMessage("Conectando e enviando página de teste…");
+    try {
+      // Minimal ESC/POS diagnostic page; this does not create a sale or print-job ledger entry.
+      const testBytes = new Uint8Array([
+        0x1b, 0x40, 0x1b, 0x61, 0x01, 0x1b, 0x45, 0x01,
+        ...new TextEncoder().encode("SUPER QUINA"),
+        0x0a, 0x1b, 0x45, 0x00,
+        ...new TextEncoder().encode("TESTE DE IMPRESSORA"),
+        0x0a, ...new TextEncoder().encode("Bluetooth SPP / ESC-POS"),
+        0x0a, ...new TextEncoder().encode("Se esta mensagem saiu,"),
+        0x0a, ...new TextEncoder().encode("a conexao esta funcionando."),
+        0x0a, 0x0a, 0x0a,
+      ]);
+      const result = await sendEscPosToBluetoothPrinter(selectedPrinter, testBytes);
+      setPrinterMessage(`Teste enviado: ${result.bytesWritten} bytes. Confira o papel.`);
+    } catch (reason) {
+      setPrinterMessage(reason instanceof Error ? reason.message : "Falha no teste. Verifique se a impressora está ligada e pareada.");
+    } finally {
+      setPrinterBusy(false);
+    }
+  }
+
   async function printViaBluetooth() {
     if (!receipt || receipt.purchaseId !== purchaseId || !selectedPrinter || printerBusy) return;
     setPrinterBusy(true);
@@ -160,6 +188,19 @@ export function PlayerPurchaseReceipt({ purchaseId, autoOpen = false, onClose }:
   }
 
 
+  async function handleReceiptPrint() {
+    if (!isAndroidBluetoothPrinterAvailable()) {
+      window.print();
+      return;
+    }
+    if (!selectedPrinter) {
+      await loadPrinters();
+      setPrinterMessage("Escolha a impressora pareada e toque novamente em Imprimir recibo.");
+      return;
+    }
+    await printViaBluetooth();
+  }
+
   return (
     <div className="player-purchase-receipt">
       {!receipt && !autoOpen && (
@@ -193,6 +234,7 @@ export function PlayerPurchaseReceipt({ purchaseId, autoOpen = false, onClose }:
               customerLabel={receipt.data.customerLabel}
               cashierLabel={receipt.data.cashierLabel}
               paymentLabel={paymentLabels[receipt.data.paymentMethod] ?? "Pagamento confirmado"}
+              onPrint={handleReceiptPrint}
               onClose={() => { setReceipt(null); onClose?.(); }}
             />
 
@@ -205,8 +247,8 @@ export function PlayerPurchaseReceipt({ purchaseId, autoOpen = false, onClose }:
                     <select id="receipt-bluetooth-printer" value={selectedPrinter} onChange={(event) => setSelectedPrinter(event.target.value)}>
                       {printers.map((device) => <option key={device.id} value={device.id}>{device.name}</option>)}
                     </select>
-                    <button type="button" onClick={() => { void printViaBluetooth(); }} disabled={printerBusy || !selectedPrinter}>
-                      {printerBusy ? "Enviando impressão…" : "Imprimir via Bluetooth"}
+                    <button type="button" onClick={() => { void testBluetoothPrinter(); }} disabled={printerBusy || !selectedPrinter}>
+                      {printerBusy ? "Aguarde…" : "Testar impressora"}
                     </button>
                   </>
                 )}

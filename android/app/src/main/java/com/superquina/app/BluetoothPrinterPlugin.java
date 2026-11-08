@@ -19,11 +19,15 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 @CapacitorPlugin(
     name = "BluetoothPrinter",
@@ -38,6 +42,8 @@ public class BluetoothPrinterPlugin extends Plugin {
     private static final UUID SPP_UUID =
         UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private static final ExecutorService IO = Executors.newSingleThreadExecutor();
+    private static final ScheduledExecutorService TIMEOUTS = Executors.newSingleThreadScheduledExecutor();
+    private static final long CONNECT_TIMEOUT_SECONDS = 15;
 
     @PluginMethod
     public void listPairedDevices(PluginCall call) {
@@ -135,6 +141,18 @@ public class BluetoothPrinterPlugin extends Plugin {
         return manager == null ? BluetoothAdapter.getDefaultAdapter() : manager.getAdapter();
     }
 
+    private void connectWithTimeout(BluetoothSocket socket) throws IOException {
+        final BluetoothSocket connectingSocket = socket;
+        ScheduledFuture<?> connectTimeout = TIMEOUTS.schedule(() -> {
+            try { connectingSocket.close(); } catch (Exception ignored) { }
+        }, CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        try {
+            socket.connect();
+        } finally {
+            connectTimeout.cancel(false);
+        }
+    }
+
     private void sendToPrinter(PluginCall call, String address, byte[] payload) {
         BluetoothSocket socket = null;
         try {
@@ -144,12 +162,34 @@ public class BluetoothPrinterPlugin extends Plugin {
                 return;
             }
 
+            // RawBT-style compatibility: try the secure SPP channel first, then
+            // the insecure RFCOMM channel used by some low-cost thermal printers.
+            // No active device discovery is performed; BLUETOOTH_SCAN is not requested.
             BluetoothDevice device = adapter.getRemoteDevice(address);
             socket = device.createRfcommSocketToServiceRecord(SPP_UUID);
-            socket.connect();
+            try {
+                connectWithTimeout(socket);
+            } catch (IOException secureError) {
+                try { socket.close(); } catch (Exception ignored) { }
+                socket = device.createInsecureRfcommSocketToServiceRecord(SPP_UUID);
+                try {
+                    connectWithTimeout(socket);
+                } catch (IOException insecureError) {
+                    insecureError.addSuppressed(secureError);
+                    throw insecureError;
+                }
+            }
             OutputStream output = socket.getOutputStream();
-            output.write(payload);
-            output.flush();
+            final BluetoothSocket sendingSocket = socket;
+            ScheduledFuture<?> sendTimeout = TIMEOUTS.schedule(() -> {
+                try { sendingSocket.close(); } catch (Exception ignored) { }
+            }, 30, TimeUnit.SECONDS);
+            try {
+                output.write(payload);
+                output.flush();
+            } finally {
+                sendTimeout.cancel(false);
+            }
 
             JSObject result = new JSObject();
             result.put("bytesWritten", payload.length);

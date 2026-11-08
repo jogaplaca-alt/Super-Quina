@@ -159,6 +159,25 @@ O recibo web atual é HTML/CSS e não deve ser enviado diretamente à impressora
 - A reserva idempotente da impressão automática continua pendente. A confirmação do pagamento e a disponibilidade do recibo seguem exclusivamente no backend.
 
 
+## Evolução da ponte Bluetooth (2026-11-08)
+
+Na branch `feature/cashier-apk-from-public`, a ponte nativa passou a tentar duas formas de abertura do canal Bluetooth clássico:
+
+1. RFCOMM seguro com UUID SPP padrão.
+2. Se a abertura segura falhar, fecha o socket e tenta RFCOMM inseguro com o mesmo UUID, para atender firmwares de impressoras térmicas que não aceitam o primeiro modo.
+
+Antes da conexão, o Android cancela eventual descoberta Bluetooth ativa. O limite de conexão continua em 15 segundos e o envio tem limite de 30 segundos.
+
+A tela do recibo também ganhou a ação **Testar impressora**. Ela envia uma página ESC/POS curta diretamente para a impressora selecionada, sem criar venda, recibo, cobrança ou registro de reimpressão financeira. Isso separa o diagnóstico do transporte da lógica de pagamento.
+
+### Limites ainda existentes
+
+- A listagem continua mostrando dispositivos já pareados pelo Android; não faz varredura de dispositivos próximos.
+- A implementação atual é Bluetooth clássico SPP/RFCOMM. USB e Wi-Fi/TCP ainda não foram adicionados.
+- Ainda não existe tela persistente de preferências para largura, densidade, velocidade, code page e corte.
+- O teste de envio confirma que o socket aceitou os bytes, não que o mecanismo imprimiu fisicamente o papel.
+- Não foi executado build Android nem teste físico depois destas alterações. A validação com a QY-5801P e a MTP5 continua pendente.
+
 ## Estratégia universal de compatibilidade ESC/POS
 
 O objetivo do Super Quina não é suportar uma impressora específica. O requisito é atender uma ampla variedade de impressoras térmicas que implementem Bluetooth clássico SPP/RFCOMM e comandos ESC/POS compatíveis.
