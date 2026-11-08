@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { HomeAccess, HomeAccessFooter } from "@/components/home-access";
 
 export const metadata: Metadata = {
@@ -42,6 +43,7 @@ export default function HomePage() {
             sizes="(max-width: 768px) 100vw, 988px"
           />
         </a>
+        <Link href="/aplicativo" className="home-app-download-link">Baixar aplicativo</Link>
         <HomeAccessFooter />
       </main>
     </div>
