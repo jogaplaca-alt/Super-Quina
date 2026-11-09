@@ -10,8 +10,7 @@ type Cashier = {
   city: string | null;
   address: string | null;
   referencePoint: string | null;
-  suppliesPrinter: boolean;
-  suppliesPaper: boolean;
+  suppliesMaterial: boolean;
   commissionRateBasisPoints: number;
   commissionPercent: number;
   status: "ACTIVE" | "BLOCKED" | "PENDING";
@@ -29,13 +28,13 @@ type FormState = {
   city: string;
   address: string;
   referencePoint: string;
-  suppliesPrinter: boolean;
-  suppliesPaper: boolean;
+  suppliesMaterial: boolean;
+  suppliesMaterial: boolean;
   status: "ACTIVE" | "BLOCKED";
 };
 
 const emptyForm: FormState = {
-  fullName: "", username: "", password: "", whatsapp: "", city: "", address: "", referencePoint: "", suppliesPrinter: false, suppliesPaper: false, status: "ACTIVE",
+  fullName: "", username: "", password: "", whatsapp: "", city: "", address: "", referencePoint: "", suppliesMaterial: false, suppliesMaterial: false, status: "ACTIVE",
 };
 
 const money = (cents: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
@@ -86,8 +85,7 @@ export function AdminCashierManager({ mode }: { mode: "create" | "manage" }) {
       city: cashier.city ?? "",
       address: cashier.address ?? "",
       referencePoint: cashier.referencePoint ?? "",
-      suppliesPrinter: cashier.suppliesPrinter,
-      suppliesPaper: cashier.suppliesPaper,
+      suppliesMaterial: cashier.suppliesMaterial,
       status: cashier.status === "BLOCKED" ? "BLOCKED" : "ACTIVE",
     });
     setError(""); setNotice("");
@@ -108,7 +106,7 @@ export function AdminCashierManager({ mode }: { mode: "create" | "manage" }) {
       const payload: Record<string, unknown> = {
         fullName: form.fullName, username: form.username, whatsapp: form.whatsapp,
         city: form.city, address: form.address, referencePoint: form.referencePoint,
-        suppliesPrinter: form.suppliesPrinter, suppliesPaper: form.suppliesPaper,
+        suppliesMaterial: form.suppliesMaterial,
       };
       // The create API uses a strict schema and intentionally does not accept
       // status: new cashiers are created ACTIVE on the server. Status is only
@@ -160,9 +158,8 @@ export function AdminCashierManager({ mode }: { mode: "create" | "manage" }) {
       </label>
       <fieldset>
         <legend>Fornecimento de material</legend>
-        <label><input type="checkbox" checked={form.suppliesPrinter} onChange={(event) => setForm({ ...form, suppliesPrinter: event.target.checked })} /> Forneço a impressora</label>
-        <label><input type="checkbox" checked={form.suppliesPaper} onChange={(event) => setForm({ ...form, suppliesPaper: event.target.checked })} /> Forneço as bobinas</label>
-        <p>Comissão automática: {form.suppliesPrinter || form.suppliesPaper ? "10% (com fornecimento de material)" : "20% (sem fornecimento de material)"}</p>
+        <label><input type="checkbox" checked={form.suppliesMaterial} onChange={(event) => setForm({ ...form, suppliesMaterial: event.target.checked })} /> Forneço material</label>
+        <p>Comissão automática: {form.suppliesMaterial ? "10% (com fornecimento de material)" : "20% (sem fornecimento de material)"}</p>
       </fieldset>
       {editingId && <label>Status da conta
         <select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as FormState["status"] })}>
@@ -191,7 +188,7 @@ export function AdminCashierManager({ mode }: { mode: "create" | "manage" }) {
           <p>Usuário: {cashier.username} · WhatsApp: {cashier.whatsapp || "Não informado"}</p>
           <p>Cidade: {cashier.city || "Não informada"} · Endereço: {cashier.address || "Não informado"}</p>
           <p>Ponto de referência: {cashier.referencePoint || "Não informado"}</p>
-          <p>Material fornecido: {cashier.suppliesPrinter ? "Impressora" : ""}{cashier.suppliesPrinter && cashier.suppliesPaper ? " e " : ""}{cashier.suppliesPaper ? "Bobinas" : ""}{!cashier.suppliesPrinter && !cashier.suppliesPaper ? "Nenhum" : ""} · Comissão automática: <strong>{cashier.commissionPercent.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%</strong> · Status: {cashier.status === "ACTIVE" ? "Ativo" : cashier.status === "BLOCKED" ? "Bloqueado" : "Pendente"}</p>
+          <p>Fornece material: {cashier.suppliesMaterial ? "Sim" : "Não"} · Comissão automática: <strong>{cashier.commissionPercent.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%</strong> · Status: {cashier.status === "ACTIVE" ? "Ativo" : cashier.status === "BLOCKED" ? "Bloqueado" : "Pendente"}</p>
           <p>Cadastro: {new Date(cashier.createdAt).toLocaleDateString("pt-BR")}{cashier.mustChangePassword ? " · Troca de senha no primeiro acesso" : ""}</p>
         </div>
         <button type="button" className="secondary-button" disabled={busy} onClick={() => beginEdit(cashier)}>Editar cadastro</button>
