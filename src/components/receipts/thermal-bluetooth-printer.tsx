@@ -14,7 +14,7 @@ const PROFILE_PRESETS: Record<Exclude<PaperPreset, "custom">, EscPosProfile> = {
 };
 const PROFILE_STORAGE_KEY = "superquina-printer-profile-v2";
 
-export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) {
+export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId?: string }) {
   const [devices, setDevices] = useState<PairedPrinter[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [connectedId, setConnectedId] = useState("");
@@ -170,6 +170,7 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
   }
 
   async function printReceipt() {
+    if (!purchaseId) return;
     const device = devices.find((item) => item.id === connectedId);
     if (!device || printing) return;
     setPrinting(true);
@@ -248,9 +249,9 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
           <button type="button" onClick={() => void printTestPage()} disabled={!connectedId || connectedId !== selectedId || printing || loading}>
             {printing ? "Enviando…" : "Imprimir teste"}
           </button>
-          <button type="button" onClick={() => void printReceipt()} disabled={!connectedId || connectedId !== selectedId || printing || loading}>
+          {purchaseId ? <button type="button" onClick={() => void printReceipt()} disabled={!connectedId || connectedId !== selectedId || printing || loading}>
             {printing ? "Enviando…" : "Imprimir recibo"}
-          </button>
+          </button> : null}
         </div>
       </div>
       <p role="status">{connectedId ? `Conectada: ${connectedName}` : "Nenhuma impressora conectada."}</p>
