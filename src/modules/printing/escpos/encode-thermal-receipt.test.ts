@@ -64,6 +64,22 @@ describe("encodeThermalReceipt", () => {
     expect(Array.from(bytes)).toContain(0xe3);
   });
 
+  it("encodes Portuguese accents using the OY-581P CP860 code page", () => {
+    const bytes = encodeThermalReceipt(receipt, {
+      ...profile,
+      codePageCommand: 3,
+      characterMap: { "ã": 0x84, "ç": 0x87, "á": 0xa0, "é": 0x82 },
+    });
+    const sequence = [0x1b, 0x74, 0x03];
+    expect(Array.from(bytes).some((_, index) =>
+      sequence.every((value, offset) => bytes[index + offset] === value),
+    )).toBe(true);
+    expect(Array.from(bytes)).toContain(0x84);
+    expect(Array.from(bytes)).toContain(0x87);
+    expect(Array.from(bytes)).toContain(0xa0);
+    expect(Array.from(bytes)).toContain(0x82);
+  });
+
   it("does not send a cutter command unless the profile opts in", () => {
     const bytes = encodeThermalReceipt(receipt, profile);
     const fullCut = [0x1d, 0x56, 0x00];
