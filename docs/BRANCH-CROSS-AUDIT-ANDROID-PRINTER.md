@@ -93,3 +93,17 @@ Não fazer merge integral da branch anterior. O APK anterior é referência func
 - Nenhum merge integral realizado.
 - Nenhuma alteração em main.
 - Build Android e teste físico ainda não executados nesta auditoria.
+
+
+## Confirmação pelos logs do GitHub Actions
+
+A leitura dos logs completos confirmou dois bloqueios reais em execuções anteriores:
+
+- Execução `42711524185`: instalação e geração Prisma passaram; o typecheck falhou exatamente por importar o módulo removido `rawbt-printer-bridge`. A referência foi corrigida.
+- Execução `42710778477`: typecheck, lint e os 31 testes selecionados passaram; a etapa `npx cap add android` falhou com a mensagem `android platform already exists`.
+
+A causa do segundo bloqueio foi confirmada na árvore Git: a pasta raiz `android/` continha apenas `rawbt-reconstruction/` e seus documentos, não uma plataforma Android Capacitor. O CLI considera a existência da pasta suficiente para recusar `cap add android`.
+
+**Correção aplicada:** os cinco documentos de auditoria foram movidos para `docs/rawbt-reconstruction/`, liberando a pasta `android/` para a plataforma nativa gerada pelo Capacitor. O workflow também foi ajustado para disparar em push na branch de integração.
+
+A execução disparada após essas correções deve ser acompanhada até o fim. Até obter resultado verde, não declarar APK recompilado.
