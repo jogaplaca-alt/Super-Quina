@@ -190,8 +190,11 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
   async function printReceipt() {
     const savedPrinterId = getSavedCashierPrinterId();
     const device = devices.find((item) => item.id === connectedId && item.id === savedPrinterId && item.id === selectedId);
-    if (!device || printing) {
-      setError("Conecte a impressora salva na configuração do cambista antes de imprimir.");
+    if (printing) return;
+    if (!device) {
+      setError(!savedPrinterId
+        ? "Nenhuma impressora foi configurada. Volte à seção Impressão no início da página do cambista."
+        : "A impressora salva não está conectada. Toque em Conectar e depois tente imprimir novamente.");
       return;
     }
     setPrinting(true);
@@ -274,7 +277,7 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
           <button type="button" onClick={() => void printTestPage()} disabled={!connectedId || connectedId !== selectedId || printing || loading}>
             {printing ? "Enviando…" : "Imprimir teste"}
           </button>
-          <button type="button" onClick={() => void printReceipt()} disabled={!connectedId || connectedId !== selectedId || printing || loading}>
+          <button type="button" onClick={() => void printReceipt()} disabled={printing || loading}>
             {printing ? "Enviando…" : "Imprimir recibo"}
           </button>
         </div>
