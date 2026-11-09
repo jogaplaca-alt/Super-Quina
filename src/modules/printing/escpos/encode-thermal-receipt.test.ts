@@ -49,6 +49,11 @@ describe("encodeThermalReceipt", () => {
     expect(text).toContain("05/11/2026 10:00");
   });
 
+  it("selects ESC/POS font B for narrow-column profiles", () => {
+    const bytes = encodeThermalReceipt(receipt, { ...profile, fontMode: "B" });
+    expect(Array.from(bytes.slice(0, 5))).toEqual([0x1b, 0x40, 0x1b, 0x4d, 0x01]);
+  });
+
   it("uses an explicitly configured character map and code page", () => {
     const bytes = encodeThermalReceipt(receipt, {
       ...profile,
