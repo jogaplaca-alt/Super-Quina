@@ -49,6 +49,20 @@ public class RawBtPrinterPlugin extends Plugin {
 
 
     @PluginMethod
+    public void openBluetoothSettings(PluginCall call) {
+        try {
+            android.content.Intent intent = new android.content.Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS);
+            intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(intent);
+            JSObject result = new JSObject();
+            result.put("opened", true);
+            call.resolve(result);
+        } catch (Exception error) {
+            call.reject("Não foi possível abrir as configurações Bluetooth do Android.", "BLUETOOTH_SETTINGS_FAILED");
+        }
+    }
+
+    @PluginMethod
     public void listPairedDevices(PluginCall call) {
         if (!ensureConnectPermission(call, "list")) return;
         ioExecutor.execute(() -> {
