@@ -6,16 +6,28 @@ type OfficialReceipt = Parameters<typeof encodeThermalReceipt>[0];
 type PrintJobResponse = { created: boolean; job: { id: string; status: string; purpose: string }; maySend: boolean };
 
 async function postJson<T>(url: string, body?: unknown): Promise<T> {
-  const response = await fetch(url, {
-    method: body === undefined ? "GET" : "POST",
-    credentials: "same-origin",
-    cache: "no-store",
-    headers: body === undefined ? undefined : { "Content-Type": "application/json" },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-  const payload = await response.json().catch(() => ({})) as T & { error?: string };
-  if (!response.ok) throw new Error(payload.error || "Não foi possível concluir a operação.");
-  return payload;
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 20000);
+  try {
+    const response = await fetch(url, {
+      method: body === undefined ? "GET" : "POST",
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: body === undefined ? undefined : { "Content-Type": "application/json" },
+      body: body === undefined ? undefined : JSON.stringify(body),
+      signal: controller.signal,
+    });
+    const payload = await response.json().catch(() => ({})) as T & { error?: string };
+    if (!response.ok) throw new Error(payload.error || "Não foi possível concluir a operação.");
+    return payload;
+  } catch (reason) {
+    if (controller.signal.aborted) {
+      throw new Error("O servidor demorou mais de 20 segundos para responder. Verifique a conexão e o estado do recibo antes de tentar novamente.");
+    }
+    throw reason;
+  } finally {
+    window.clearTimeout(timeout);
+  }
 }
 
 function toBase64(bytes: Uint8Array): string {
@@ -72,10 +84,17 @@ export async function printOfficialPurchaseReceipt(input: {
 
   let receipt: OfficialReceipt;
   try {
-    const response = await fetch(
-      "/api/player/purchases/" + encodeURIComponent(input.purchaseId) + "/receipt",
-      { credentials: "same-origin", cache: "no-store" },
-    );
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 20000);
+    let response: Response;
+    try {
+      response = await fetch(
+        "/api/player/purchases/" + encodeURIComponent(input.purchaseId) + "/receipt",
+        { credentials: "same-origin", cache: "no-store", signal: controller.signal },
+      );
+    } finally {
+      window.clearTimeout(timeout);
+    }
     const payload = await response.json() as { receipt?: OfficialReceipt; error?: string };
     if (!response.ok || !payload.receipt) {
       throw new Error(payload.error || "Recibo oficial indisponível.");
