@@ -1,13 +1,13 @@
 # Arquitetura — aplicativo de impressão Super Quina
 
 Data: 08/11/2026
-Status: especificação de implementação; build e impressão física ainda pendentes.
+Status: implementação parcial. Fluxo direto SPP definido; registro do PrintService e chamada ao Print Framework removidos nesta etapa. Build e impressão física ainda pendentes.
 
 ## Objetivo e limite
 Criar um aplicativo Android próprio, inspirado no comportamento de configuração de impressoras do RawBT 7.0.2, para uso exclusivo com o site Super Quina. Não copiar código, marca, recursos visuais proprietários nem contornar licenças. O APK terá uma interface de gerenciamento de impressoras e uma WebView para o site. Não terá editor de documentos, editor de imagens, galeria, gerenciador de arquivos, conversor nem impressão genérica de arquivos. O recibo oficial continuará sendo criado e autorizado pelo site.
 
 ## Decisão técnica: um único caminho de impressão
-O repositório contém hoje dois caminhos concorrentes: (1) Android Print Framework/PrintService com PDF rasterizado e (2) plugin Capacitor com conexão SPP e encoder ESC/POS do site. Isso é incoerente e deve ser consolidado.
+A implementação anterior continha dois caminhos concorrentes. Nesta etapa, o manifesto deixou de registrar o PrintService e a ponte Capacitor deixou de expor printCurrentWebView(). A classe Java antiga e o XML do serviço ainda permanecem como arquivos órfãos e deverão ser removidos após a verificação final de referências.
 
 O caminho escolhido é plugin Capacitor + encoder ESC/POS oficial + Bluetooth Classic SPP:
 1. O site autentica o usuário e disponibiliza o DTO oficial de recibo confirmado.
@@ -17,7 +17,7 @@ O caminho escolhido é plugin Capacitor + encoder ESC/POS oficial + Bluetooth Cl
 5. O resultado de transporte é registrado no fluxo de impressão existente.
 6. Falha durante transmissão pode deixar o resultado físico incerto; nunca repetir automaticamente.
 
-O Android Print Framework/PrintService, printCurrentWebView() e PDF rasterizado não fazem parte do fluxo final e devem ser removidos depois que o caminho direto estiver integrado e validado ponta a ponta.
+O Android Print Framework/PrintService, printCurrentWebView() e PDF rasterizado não fazem parte do fluxo final. O manifesto e as interfaces públicas já não os utilizam; falta excluir os arquivos órfãos do PrintService.
 
 ## Interface inspirada nas telas de referência
 - Adicionar impressora.
@@ -48,16 +48,16 @@ Primeiro perfil funcional: ESC/POS geral. Outros perfis só podem ser ativados a
 ## Estado real do código auditado
 - Plugin Capacitor possui listagem de pareados, connect, send, disconnect e getConnectionState.
 - Encoder ESC/POS do site suporta perfil 58/80 mm, colunas, code page/mapa, QR, avanço e corte.
-- UI atual ThermalBluetoothPrinter é apenas texto informativo e não liga esses métodos; precisa ser substituída por fluxo real de cadastro/configuração.
-- ThermalReceipt ainda chama printCurrentWebView(), que abre o Android Print Framework. Isso conflita com a arquitetura escolhida.
-- Há um PrintService separado com PDF rasterizado e perfis fixos. Deve ser removido após migração e testes do fluxo direto.
+- ThermalBluetoothPrinter já lista dispositivos pareados, permite conectar/desconectar e envia o recibo oficial pelo fluxo de impressão; ainda precisa de teste integrado e persistência de perfil.
+- ThermalReceipt é o componente visual do recibo; a ponte printCurrentWebView() foi removida das interfaces e do plugin nativo.
+- A classe SuperQuinaPrintService.java e seu XML permanecem sem registro no manifesto; são código morto e devem ser excluídos para evitar regressão/confusão.
 - Encoder e plugin precisam compartilhar o perfil salvo; hoje não existe persistência completa de perfil por impressora.
 - A tela nativa atual só solicita permissão e não implementa o gerenciador mostrado nas imagens.
 - Não há evidência de build Android ou teste físico aprovado nesta etapa.
 
 ## Plano de implementação
-1. Consolidar o fluxo direto SPP e retirar a chamada concorrente ao Print Framework.
-2. Integrar UI do site ao plugin: listar, selecionar, conectar, testar, salvar e desconectar.
+1. [Concluído parcialmente] Retirar o registro do PrintService e a API printCurrentWebView() do manifesto, plugin e interfaces.
+2. Integrar e validar a UI do site ao plugin: listar, selecionar, conectar, testar, salvar perfil e desconectar.
 3. Criar persistência de perfis por impressora e seleção de papel sem largura fixa.
 4. Implementar teste ESC/POS para validar comunicação e largura útil.
 5. Validar acentos, QR, densidade, avanço, corte e recibo completo na impressora real.
