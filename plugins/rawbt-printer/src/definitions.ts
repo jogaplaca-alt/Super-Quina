@@ -13,7 +13,7 @@ export type PrinterWriteResult = {
   bytesWritten: number;
 };
 
-export interface RawBtPrinterPlugin {
+export interface SuperQuinaPrinterPlugin {
   listPairedDevices(): Promise<{ devices: PairedPrinter[] }>;
   connect(options: { deviceId: string }): Promise<PrinterConnectionResult>;
   send(options: { dataBase64: string }): Promise<PrinterWriteResult>;
