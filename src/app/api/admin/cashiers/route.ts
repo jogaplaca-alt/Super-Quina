@@ -23,8 +23,8 @@ const profileSchema = z.object({
   city: z.string().trim().max(120).optional().default(""),
   address: z.string().trim().max(200).optional().default(""),
   referencePoint: z.string().trim().max(200).optional().default(""),
-  suppliesPrinter: z.boolean().optional().default(false),
-  suppliesPaper: z.boolean().optional().default(false),
+  suppliesMaterial: z.boolean().optional().default(false),
+  suppliesMaterial: z.boolean().optional().default(false),
 }).strict();
 
 function normalizeWhatsapp(value: string) {
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       authPrisma.user.count({ where }),
       authPrisma.user.findMany({
         where,
-        select: { id: true, username: true, fullName: true, whatsapp: true, city: true, address: true, referencePoint: true, suppliesPrinter: true, suppliesPaper: true, commissionRateBasisPoints: true, status: true, mustChangePassword: true, createdAt: true },
+        select: { id: true, username: true, fullName: true, whatsapp: true, city: true, address: true, referencePoint: true, suppliesMaterial: true, suppliesMaterial: true, commissionRateBasisPoints: true, status: true, mustChangePassword: true, createdAt: true },
         orderBy: [{ status: "asc" }, { username: "asc" }, { id: "asc" }],
         skip: (requestedPage - 1) * requestedLimit,
         take: requestedLimit,
@@ -103,14 +103,14 @@ export async function POST(request: NextRequest) {
           username, passwordHash, role: "CASHIER", status: "ACTIVE", mustChangePassword: true,
           fullName: parsed.data.fullName, whatsapp,
           city: parsed.data.city || null, address: parsed.data.address || null, referencePoint: parsed.data.referencePoint || null,
-          suppliesPrinter: parsed.data.suppliesPrinter, suppliesPaper: parsed.data.suppliesPaper,
-          commissionRateBasisPoints: parsed.data.suppliesPrinter || parsed.data.suppliesPaper ? 1000 : 2000,
+          suppliesMaterial: parsed.data.suppliesMaterial,
+          commissionRateBasisPoints: parsed.data.suppliesMaterial ? 1000 : 2000,
         },
-        select: { id: true, username: true, fullName: true, whatsapp: true, city: true, address: true, referencePoint: true, suppliesPrinter: true, suppliesPaper: true, commissionRateBasisPoints: true, status: true, createdAt: true },
+        select: { id: true, username: true, fullName: true, whatsapp: true, city: true, address: true, referencePoint: true, suppliesMaterial: true, suppliesMaterial: true, commissionRateBasisPoints: true, status: true, createdAt: true },
       });
       await tx.auditEvent.create({ data: {
         actorId: auth.user.id, action: "CASHIER_CREATED", entityType: "User", entityId: created.id,
-        metadata: { username: created.username, fullName: created.fullName, whatsapp: created.whatsapp, city: created.city, address: created.address, referencePoint: created.referencePoint, suppliesPrinter: created.suppliesPrinter, suppliesPaper: created.suppliesPaper, commissionRateBasisPoints: created.commissionRateBasisPoints },
+        metadata: { username: created.username, fullName: created.fullName, whatsapp: created.whatsapp, city: created.city, address: created.address, referencePoint: created.referencePoint, suppliesMaterial: created.suppliesMaterial, suppliesMaterial: created.suppliesMaterial, commissionRateBasisPoints: created.commissionRateBasisPoints },
       } });
       return created;
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
