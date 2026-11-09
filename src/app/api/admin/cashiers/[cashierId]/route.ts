@@ -60,7 +60,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     const updated = await authPrisma.$transaction(async (tx) => {
       const previous = await tx.user.findFirst({
         where: { id: cashierId, role: "CASHIER" },
-        select: { id: true, username: true, fullName: true, whatsapp: true, city: true, address: true, referencePoint: true, suppliesMaterial: true, suppliesMaterial: true, commissionRateBasisPoints: true, status: true },
+        select: { id: true, username: true, fullName: true, whatsapp: true, city: true, address: true, referencePoint: true, suppliesMaterial: true, commissionRateBasisPoints: true, status: true },
       });
       if (!previous) throw new Error("NOT_FOUND");
       const nextRate = parsed.data.suppliesMaterial ? 1000 : 2000;
@@ -74,7 +74,6 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
           city: parsed.data.city || null,
           address: parsed.data.address || null,
           referencePoint: parsed.data.referencePoint || null,
-          suppliesMaterial: parsed.data.suppliesMaterial,
           suppliesMaterial: parsed.data.suppliesMaterial,
           commissionRateBasisPoints: nextRate,
           status: parsed.data.status,
