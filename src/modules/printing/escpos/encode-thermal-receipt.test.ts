@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { encodeThermalReceipt, type EscPosProfile, type ThermalReceiptForEncoding } from "./encode-thermal-receipt";
+import { encodeThermalReceipt, PRINTER_CHARACTER_MAPS, type EscPosProfile, type ThermalReceiptForEncoding } from "./encode-thermal-receipt";
 
 const receipt: ThermalReceiptForEncoding = {
   receiptCode: "SQ-1234567890ABCDEF",
@@ -64,23 +64,20 @@ describe("encodeThermalReceipt", () => {
     expect(Array.from(bytes)).toContain(0xe3);
   });
 
-  it("encodes Portuguese accents using the OY-581P CP860 code page", () => {
-    const bytes = encodeThermalReceipt({ ...receipt, customerLabel: "João, São Paulo, prêmio, comissão" }, {
+  it("encodes Portuguese accents using the configured CP860 character map", () => {
+    const sample = "á à â ã Á À Â Ã é ê É Ê í Í ó ô õ Ó Ô Õ ú Ú ç Ç ñ Ñ º ª";
+    const bytes = encodeThermalReceipt({ ...receipt, customerLabel: sample }, {
       ...profile,
       codePageCommand: 3,
-      characterMap: { "ã": 0x84, "ç": 0x87, "á": 0xa0, "é": 0x82, "õ": 0x94, "í": 0xa1, "ó": 0xa2 },
+      characterMap: PRINTER_CHARACTER_MAPS.cp860,
     });
     const sequence = [0x1b, 0x74, 0x03];
     expect(Array.from(bytes).some((_, index) =>
       sequence.every((value, offset) => bytes[index + offset] === value),
     )).toBe(true);
-    expect(Array.from(bytes)).toContain(0x84);
-    expect(Array.from(bytes)).toContain(0x87);
-    expect(Array.from(bytes)).toContain(0xa0);
-    expect(Array.from(bytes)).toContain(0x82);
-    expect(Array.from(bytes)).toContain(0x94);
-    expect(Array.from(bytes)).toContain(0xa1);
-    expect(Array.from(bytes)).toContain(0xa2);
+    for (const byte of Object.values(PRINTER_CHARACTER_MAPS.cp860)) {
+      expect(Array.from(bytes)).toContain(byte);
+    }
   });
 
   it("does not send a cutter command unless the profile opts in", () => {
