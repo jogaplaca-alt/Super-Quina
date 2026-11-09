@@ -140,7 +140,23 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
     <section className="thermal-bluetooth-printer" aria-label="Configuração da impressora térmica">
       <h3>Impressora térmica Bluetooth</h3>
       <p>1. Pareie a impressora nas configurações Bluetooth do Android. 2. Selecione-a abaixo e conecte. 3. Envie o recibo oficial.</p>
-      <div className="thermal-printer-controls">\n        <label htmlFor="superquina-paper-profile">Largura e perfil do papel</label>\n        <select id="superquina-paper-profile" value={paperPreset} onChange={(event) => savePaperProfile(event.target.value as PaperPreset)}>\n          <option value="58-a">Bobina 58 mm — fonte A (32 colunas)</option>\n          <option value="58-b">Bobina 58 mm — fonte B (42 colunas)</option>\n          <option value="80-a">Bobina 80 mm — fonte A (48 colunas)</option>\n          <option value="80-b">Bobina 80 mm — fonte B (64 colunas)</option>\n          <option value="custom">Personalizar largura e colunas</option>\n        </select>\n        {paperPreset === "custom" && <div className="thermal-printer-custom-profile">\n          <label htmlFor="superquina-paper-width">Largura da bobina</label>\n          <select id="superquina-paper-width" value={customWidth} onChange={(event) => { const width = Number(event.target.value) as 58 | 80; setCustomWidth(width); savePaperProfile("custom", width, customColumns); }}>\n            <option value={58}>58 mm</option><option value={80}>80 mm</option>\n          </select>\n          <label htmlFor="superquina-paper-columns">Colunas de impressão</label>\n          <input id="superquina-paper-columns" type="number" min={16} max={96} value={customColumns} onChange={(event) => { const columns = Math.max(16, Math.min(96, Number(event.target.value) || 16)); setCustomColumns(columns); savePaperProfile("custom", customWidth, columns); }} />\n        </div>}
+      <div className="thermal-printer-controls">
+        <label htmlFor="superquina-paper-profile">Largura e perfil do papel</label>
+        <select id="superquina-paper-profile" value={paperPreset} onChange={(event) => savePaperProfile(event.target.value as PaperPreset)}>
+          <option value="58-a">Bobina 58 mm — fonte A (32 colunas)</option>
+          <option value="58-b">Bobina 58 mm — fonte B (42 colunas)</option>
+          <option value="80-a">Bobina 80 mm — fonte A (48 colunas)</option>
+          <option value="80-b">Bobina 80 mm — fonte B (64 colunas)</option>
+          <option value="custom">Personalizar largura e colunas</option>
+        </select>
+        {paperPreset === "custom" && <div className="thermal-printer-custom-profile">
+          <label htmlFor="superquina-paper-width">Largura da bobina</label>
+          <select id="superquina-paper-width" value={customWidth} onChange={(event) => { const width = Number(event.target.value) as 58 | 80; setCustomWidth(width); savePaperProfile("custom", width, customColumns); }}>
+            <option value={58}>58 mm</option><option value={80}>80 mm</option>
+          </select>
+          <label htmlFor="superquina-paper-columns">Colunas de impressão</label>
+          <input id="superquina-paper-columns" type="number" min={16} max={96} value={customColumns} onChange={(event) => { const columns = Math.max(16, Math.min(96, Number(event.target.value) || 16)); setCustomColumns(columns); savePaperProfile("custom", customWidth, columns); }} />
+        </div>}
         <label htmlFor="superquina-printer-select">Impressora pareada</label>
         <select
           id="superquina-printer-select"
