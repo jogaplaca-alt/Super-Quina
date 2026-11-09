@@ -54,6 +54,12 @@ jobs:
       - name: TypeScript validation
         run: npm run typecheck
 
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm test
+
       - name: Prepare Capacitor web directory
         run: |
           mkdir -p www
