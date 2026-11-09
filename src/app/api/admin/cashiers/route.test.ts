@@ -77,7 +77,7 @@ describe("admin cashiers collection API", () => {
     expect(mocks.hashPassword).toHaveBeenCalledWith(profile.password);
     expect(mocks.userCreate).toHaveBeenCalledWith({ data: expect.objectContaining({
       username: "cashier.one", passwordHash: "hashed-password", role: "CASHIER",
-      whatsapp: "5577991234567", suppliesMaterial: true, suppliesMaterial: false, commissionRateBasisPoints: 1000, mustChangePassword: true,
+      whatsapp: "5577991234567", suppliesMaterial: true, commissionRateBasisPoints: 1000, mustChangePassword: true,
     }), select: expect.any(Object) });
     expect(mocks.auditCreate).toHaveBeenCalledWith({ data: expect.objectContaining({ actorId: "admin-1", action: "CASHIER_CREATED" }) });
   });
