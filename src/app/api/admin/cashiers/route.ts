@@ -23,7 +23,8 @@ const profileSchema = z.object({
   city: z.string().trim().max(120).optional().default(""),
   address: z.string().trim().max(200).optional().default(""),
   referencePoint: z.string().trim().max(200).optional().default(""),
-  commissionPercent: z.number().finite().min(0).max(100).refine((value) => Number.isInteger(value * 100), "Use até duas casas decimais."),
+  suppliesPrinter: z.boolean().optional().default(false),
+  suppliesPaper: z.boolean().optional().default(false),
 }).strict();
 
 function normalizeWhatsapp(value: string) {
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest) {
       authPrisma.user.count({ where }),
       authPrisma.user.findMany({
         where,
-        select: { id: true, username: true, fullName: true, whatsapp: true, city: true, address: true, referencePoint: true, commissionRateBasisPoints: true, status: true, mustChangePassword: true, createdAt: true },
+        select: { id: true, username: true, fullName: true, whatsapp: true, city: true, address: true, referencePoint: true, suppliesPrinter: true, suppliesPaper: true, commissionRateBasisPoints: true, status: true, mustChangePassword: true, createdAt: true },
         orderBy: [{ status: "asc" }, { username: "asc" }, { id: "asc" }],
         skip: (requestedPage - 1) * requestedLimit,
         take: requestedLimit,
@@ -90,7 +91,7 @@ export async function POST(request: NextRequest) {
   let body: unknown;
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Dados inválidos." }, { status: 400, headers }); }
   const parsed = profileSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: "Informe nome completo, usuário válido, senha com pelo menos 6 caracteres, WhatsApp e comissão de 0% a 100%." }, { status: 400, headers });
+  if (!parsed.success) return NextResponse.json({ error: "Informe nome completo, usuário válido, senha com pelo menos 6 caracteres e WhatsApp válidos." }, { status: 400, headers });
   const whatsapp = normalizeWhatsapp(parsed.data.whatsapp);
   if (whatsapp.length < 10 || whatsapp.length > 15) return NextResponse.json({ error: "Informe um WhatsApp válido com DDD e código do país, se aplicável." }, { status: 400, headers });
   const username = parsed.data.username.toLowerCase();
@@ -102,13 +103,14 @@ export async function POST(request: NextRequest) {
           username, passwordHash, role: "CASHIER", status: "ACTIVE", mustChangePassword: true,
           fullName: parsed.data.fullName, whatsapp,
           city: parsed.data.city || null, address: parsed.data.address || null, referencePoint: parsed.data.referencePoint || null,
-          commissionRateBasisPoints: Math.round(parsed.data.commissionPercent * 100),
+          suppliesPrinter: parsed.data.suppliesPrinter, suppliesPaper: parsed.data.suppliesPaper,
+          commissionRateBasisPoints: parsed.data.suppliesPrinter || parsed.data.suppliesPaper ? 1000 : 2000,
         },
-        select: { id: true, username: true, fullName: true, whatsapp: true, city: true, address: true, referencePoint: true, commissionRateBasisPoints: true, status: true, createdAt: true },
+        select: { id: true, username: true, fullName: true, whatsapp: true, city: true, address: true, referencePoint: true, suppliesPrinter: true, suppliesPaper: true, commissionRateBasisPoints: true, status: true, createdAt: true },
       });
       await tx.auditEvent.create({ data: {
         actorId: auth.user.id, action: "CASHIER_CREATED", entityType: "User", entityId: created.id,
-        metadata: { username: created.username, fullName: created.fullName, whatsapp: created.whatsapp, city: created.city, address: created.address, referencePoint: created.referencePoint, commissionRateBasisPoints: created.commissionRateBasisPoints },
+        metadata: { username: created.username, fullName: created.fullName, whatsapp: created.whatsapp, city: created.city, address: created.address, referencePoint: created.referencePoint, suppliesPrinter: created.suppliesPrinter, suppliesPaper: created.suppliesPaper, commissionRateBasisPoints: created.commissionRateBasisPoints },
       } });
       return created;
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });

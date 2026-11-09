@@ -101,6 +101,8 @@ model User {
   city                  String?
   address               String?
   referencePoint        String?
+  suppliesPrinter       Boolean       @default(false)
+  suppliesPaper         Boolean       @default(false)
   commissionRateBasisPoints Int       @default(0)
   passwordHash          String
   role                  UserRole      @default(PLAYER)
