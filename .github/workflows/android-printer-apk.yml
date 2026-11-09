@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - feature/rawbt-inspired-printer-core
+      - feature/android-integrated-printer-app
   pull_request:
     branches:
       - main
