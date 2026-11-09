@@ -50,9 +50,14 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
     setEncoding(parsed.encoding && parsed.encoding in ENCODING_OPTIONS ? parsed.encoding : "cp860");
   }
 
-  const selectedProfile: EscPosProfile = paperPreset === "custom"
+  const baseProfile: EscPosProfile = paperPreset === "custom"
     ? { paperWidthMm: customWidth, columns: customColumns, fontMode: customFontMode, copies: 1, feedLines: 3, qrCode: true, unsupportedCharacter: "transliterate" }
     : PROFILE_PRESETS[paperPreset];
+  const selectedProfile: EscPosProfile = {
+    ...baseProfile,
+    codePageCommand: ENCODING_OPTIONS[encoding].command,
+    characterMap: ENCODING_OPTIONS[encoding].map,
+  };
 
   function savePaperProfile(preset: PaperPreset, width = customWidth, columns = customColumns, fontMode = customFontMode) {
     setPaperPreset(preset);
