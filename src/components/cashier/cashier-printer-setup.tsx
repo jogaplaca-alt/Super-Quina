@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { getRawBtPrinter, type PairedPrinter } from "@/modules/printing/client/rawbt-printer-bridge";
+import { CASHIER_PRINTER_CASHIER_PRINTER_STORAGE_KEY } from "@/modules/printing/client/printer-selection";
 
-const STORAGE_KEY = "superquina-cashier-printer-device-v1";
 
 export function CashierPrinterSetup() {
   const [devices, setDevices] = useState<Array<PairedPrinter & { paired?: boolean }>>([]);
@@ -16,8 +16,8 @@ export function CashierPrinterSetup() {
   async function refreshPaired() {
     const result = await getRawBtPrinter().listPairedDevices();
     setDevices(result.devices.map((device) => ({ ...device, paired: true })));
-    const saved = localStorage.getItem(STORAGE_KEY) || "";
-    const selected = result.devices.find((device) => device.id === saved) ?? result.devices[0];
+    const saved = localStorage.getItem(CASHIER_PRINTER_STORAGE_KEY) || "";
+    const selected = result.devices.find((device) => device.id === saved);
     if (selected) setSelectedId(selected.id);
   }
 
@@ -26,8 +26,8 @@ export function CashierPrinterSetup() {
     try {
       const result = await getRawBtPrinter().discoverDevices();
       setDevices(result.devices);
-      const saved = localStorage.getItem(STORAGE_KEY) || "";
-      const selected = result.devices.find((device) => device.id === saved) ?? result.devices.find((device) => device.paired);
+      const saved = localStorage.getItem(CASHIER_PRINTER_STORAGE_KEY) || "";
+      const selected = result.devices.find((device) => device.id === saved);
       if (selected) setSelectedId(selected.id);
       setMessage(result.devices.length ? "Selecione sua impressora na lista." : "Nenhuma impressora encontrada. Ligue a impressora e tente novamente.");
     } catch (reason) {
@@ -66,7 +66,7 @@ export function CashierPrinterSetup() {
       }
       setMessage("Vínculo confirmado. Abrindo a conexão de impressão…");
       await getRawBtPrinter().connect({ deviceId: selectedId });
-      localStorage.setItem(STORAGE_KEY, selectedId);
+      localStorage.setItem(CASHIER_PRINTER_STORAGE_KEY, selectedId);
       setConnectedName(confirmed.name);
       setMessage("Impressora emparelhada e conectada. Ela ficará salva neste aparelho.");
     } catch (reason) {
@@ -78,7 +78,7 @@ export function CashierPrinterSetup() {
     let active = true;
     void (async () => {
       try {
-        const saved = localStorage.getItem(STORAGE_KEY) || "";
+        const saved = localStorage.getItem(CASHIER_PRINTER_STORAGE_KEY) || "";
         if (saved) {
           const state = await getRawBtPrinter().getConnectionState();
           if (state.connected && state.deviceId === saved) {
