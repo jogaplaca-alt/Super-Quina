@@ -37,7 +37,8 @@ public class RawBtPrinterPlugin extends Plugin {
     private static final UUID SPP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private static final long CONNECT_TIMEOUT_SECONDS = 15;
     private static final int MAX_PRINT_BYTES = 512 * 1024;
-    private static final int WRITE_CHUNK_BYTES = 1024;
+    private static final int WRITE_CHUNK_BYTES = 256;
+    private static final long WRITE_PAUSE_MILLIS = 30;
 
     // Serialize socket operations so connect/disconnect/send cannot race.
     private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
@@ -161,8 +162,16 @@ public class RawBtPrinterPlugin extends Plugin {
                 for (int offset = 0; offset < data.length; offset += WRITE_CHUNK_BYTES) {
                     int length = Math.min(WRITE_CHUNK_BYTES, data.length - offset);
                     output.write(data, offset, length);
+                    output.flush();
+                    if (offset + length < data.length) {
+                        try {
+                            Thread.sleep(WRITE_PAUSE_MILLIS);
+                        } catch (InterruptedException interrupted) {
+                            Thread.currentThread().interrupt();
+                            throw new IOException("Bluetooth write interrupted.", interrupted);
+                        }
+                    }
                 }
-                output.flush();
                 JSObject result = new JSObject();
                 result.put("bytesWritten", data.length);
                 result.put("transportAccepted", true);
