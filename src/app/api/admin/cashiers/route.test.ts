@@ -18,8 +18,8 @@ function request(method = "GET", body?: unknown, origin = "https://example.test"
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
 }
-const profile = { fullName: "Cashier Test", username: "Cashier.One", password: "secret123", whatsapp: "+55 (77) 99123-4567", suppliesPrinter: true, suppliesPaper: false };
-const created = { id: "cashier-123456", username: "cashier.one", fullName: "Cashier Test", whatsapp: "5577991234567", suppliesPrinter: true, suppliesPaper: false, commissionRateBasisPoints: 1000, status: "ACTIVE", createdAt: new Date("2026-01-01T00:00:00Z") };
+const profile = { fullName: "Cashier Test", username: "Cashier.One", password: "secret123", whatsapp: "+55 (77) 99123-4567", suppliesMaterial: true };
+const created = { id: "cashier-123456", username: "cashier.one", fullName: "Cashier Test", whatsapp: "5577991234567", suppliesMaterial: true, suppliesMaterial: false, commissionRateBasisPoints: 1000, status: "ACTIVE", createdAt: new Date("2026-01-01T00:00:00Z") };
 
 describe("admin cashiers collection API", () => {
   beforeEach(() => {
@@ -77,7 +77,7 @@ describe("admin cashiers collection API", () => {
     expect(mocks.hashPassword).toHaveBeenCalledWith(profile.password);
     expect(mocks.userCreate).toHaveBeenCalledWith({ data: expect.objectContaining({
       username: "cashier.one", passwordHash: "hashed-password", role: "CASHIER",
-      whatsapp: "5577991234567", suppliesPrinter: true, suppliesPaper: false, commissionRateBasisPoints: 1000, mustChangePassword: true,
+      whatsapp: "5577991234567", suppliesMaterial: true, suppliesMaterial: false, commissionRateBasisPoints: 1000, mustChangePassword: true,
     }), select: expect.any(Object) });
     expect(mocks.auditCreate).toHaveBeenCalledWith({ data: expect.objectContaining({ actorId: "admin-1", action: "CASHIER_CREATED" }) });
   });
