@@ -245,6 +245,7 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
         <select
           id="superquina-printer-select"
           value={selectedId}
+          disabled={true}
           onChange={(event) => {
             const printerId = event.target.value;
             setSelectedId(printerId);
