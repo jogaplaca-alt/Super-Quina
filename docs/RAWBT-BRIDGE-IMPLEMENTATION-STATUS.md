@@ -14,7 +14,7 @@ Foi criado o pacote local inicial `plugins/rawbt-printer`, com:
 - listagem restrita a dispositivos já pareados;
 - execução de conexão e escrita fora da thread principal;
 - serialização das operações em executor único;
-- tentativa de conexão RFCOMM segura e fallback inseguro (somente após falha normal, não após timeout);\n- timeout real de 12 segundos aplicado às tentativas segura e insegura, com fechamento do socket e erro `CONNECTION_TIMEOUT` separado;
+- tentativa de conexão RFCOMM segura e fallback inseguro (somente após falha normal, não após timeout);\n- timeout de 15 segundos aplicado a cada tentativa RFCOMM, segura e insegura; timeout encerra a tentativa e não aciona fallback adicional;
 - limite de tamanho de payload para evitar envio excessivo;
 - erros técnicos categorizados para a camada de interface.
 
@@ -27,18 +27,20 @@ Foi criado o pacote local inicial `plugins/rawbt-printer`, com:
 - serviço Android de impressão genérico do sistema;
 - confirmação de pagamento ou montagem de valores financeiros.
 
-## Integração ainda pendente
+## Integração no branch
 
-O repositório não possui a plataforma `android/` gerada. Por isso, o pacote é um módulo fonte versionado, mas ainda não está instalado/registrado no aplicativo final. Para ativá-lo será necessário:
+- `@capacitor/core`, `@capacitor/android` e `@capacitor/cli` estão declarados na versão 7.4.3; o pacote local `@superquina/rawbt-printer` está listado como dependência `file:`.
+- O pacote declara `capacitor.android.src = android`, permitindo ao Capacitor localizar o módulo nativo durante `cap sync`.
+- A classe nativa registra o nome `SuperQuinaPrinter`; a ponte TypeScript do app usa o mesmo identificador.
+- A plataforma `android/` não está versionada no branch. O workflow gera o projeto temporariamente no CI por `npx cap add android` e sincroniza o pacote local.
+- A tela de seleção/conexão/teste e o cliente do recibo oficial já existem no branch; a validação de runtime ainda depende do CI e de aparelho físico.
 
-1. definir e instalar uma versão compatível de Capacitor core/cli/android;
-2. executar a instalação real de dependências para atualizar package-lock;
-3. inicializar a plataforma Android sem alterar o endereço remoto HTTPS de produção;
-4. integrar o pacote local no Gradle e registrar o plugin;
-5. validar Manifest, permissões e lifecycle na versão efetiva do Capacitor;
-6. implementar a tela de seleção/conexão;
-7. ligar a ponte ao encoder ESC/POS e ao ledger de PrintJob;
-8. executar testes automatizados e compilar em ambiente Android.
+## Próxima validação
+
+1. concluir lint e testes automatizados;
+2. gerar a plataforma Android e sincronizar o plugin no CI;
+3. compilar `assembleDebug` e publicar o APK como artefato;
+4. instalar o APK em Android físico e testar a impressora SPP real.
 
 ## Limitações conhecidas que precisam de teste
 
@@ -50,12 +52,15 @@ O repositório não possui a plataforma `android/` gerada. Por isso, o pacote é
 
 ## Estado de validação
 
-- [x] Código fonte inicial da ponte criado.\n- [x] Timeout de conexão aplicado às duas tentativas RFCOMM; timeout não dispara fallback adicional.
+- [x] Código fonte inicial da ponte criado.
+- [x] Timeout de 15 segundos aplicado individualmente às tentativas RFCOMM segura e insegura; timeout não dispara fallback adicional.
 - [x] Contrato TypeScript documentado.
 - [x] Permissões mínimas de manifesto declaradas no módulo.
-- [ ] Dependências Capacitor instaladas no app.
-- [ ] Plataforma Android gerada e plugin registrado.
-- [ ] Typecheck/lint/build executados.
+- [x] Dependências Capacitor declaradas no app e pacote local incluído.
+- [x] Registro do plugin nativo alinhado como `SuperQuinaPrinter` na camada Android e TypeScript.
+- [ ] Plataforma Android gerada e plugin sincronizado com sucesso no CI.
+- [x] TypeScript validation executada no workflow atual.
+- [ ] Lint, testes e build Android concluídos.
 - [ ] Testes em emulador/dispositivo Android.
 - [ ] Teste físico com impressora Bluetooth SPP.
 - [ ] Fluxo automático/reimpressão integrado ao PrintJob.
