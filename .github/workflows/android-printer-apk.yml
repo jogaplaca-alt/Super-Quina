@@ -81,8 +81,19 @@ jobs:
           sed -i 's/networkTimeout=10000/networkTimeout=60000/' android/gradle/wrapper/gradle-wrapper.properties
           grep -q '^networkTimeout=60000$' android/gradle/wrapper/gradle-wrapper.properties
 
+      - name: Cache Gradle wrapper distribution
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/wrapper/dists
+          key: gradle-wrapper-${{ hashFiles('android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-wrapper-
+
       - name: Setup Gradle cache
         uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
+          gradle-home-cache-includes: caches;notifications;wrapper/dists
 
       - name: Build debug APK
         working-directory: android
