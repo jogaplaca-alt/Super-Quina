@@ -1,13 +1,13 @@
 # Arquitetura — aplicativo de impressão Super Quina
 
 Data: 08/11/2026
-Status: implementação parcial. Fluxo direto SPP definido; registro do PrintService e chamada ao Print Framework removidos nesta etapa. Build e impressão física ainda pendentes.
+Status: implementação parcial. Fluxo direto SPP definido; PrintService e chamada ao Print Framework removidos. Perfil por impressora, página de teste e envio em blocos com pausa implementados nesta etapa. Build final e impressão física ainda pendentes.
 
 ## Objetivo e limite
 Criar um aplicativo Android próprio, inspirado no comportamento de configuração de impressoras do RawBT 7.0.2, para uso exclusivo com o site Super Quina. Não copiar código, marca, recursos visuais proprietários nem contornar licenças. O APK terá uma interface de gerenciamento de impressoras e uma WebView para o site. Não terá editor de documentos, editor de imagens, galeria, gerenciador de arquivos, conversor nem impressão genérica de arquivos. O recibo oficial continuará sendo criado e autorizado pelo site.
 
 ## Decisão técnica: um único caminho de impressão
-A implementação anterior continha dois caminhos concorrentes. Nesta etapa, o manifesto deixou de registrar o PrintService e a ponte Capacitor deixou de expor printCurrentWebView(). A classe Java antiga e o XML do serviço ainda permanecem como arquivos órfãos e deverão ser removidos após a verificação final de referências.
+A implementação anterior continha dois caminhos concorrentes. Nesta etapa, o manifesto deixou de registrar o PrintService e a ponte Capacitor deixou de expor printCurrentWebView(). Os arquivos órfãos do PrintService e a antiga atividade de configuração foram removidos do branch; o manifesto não registra atividade de impressão.
 
 O caminho escolhido é plugin Capacitor + encoder ESC/POS oficial + Bluetooth Classic SPP:
 1. O site autentica o usuário e disponibiliza o DTO oficial de recibo confirmado.
@@ -17,15 +17,17 @@ O caminho escolhido é plugin Capacitor + encoder ESC/POS oficial + Bluetooth Cl
 5. O resultado de transporte é registrado no fluxo de impressão existente.
 6. Falha durante transmissão pode deixar o resultado físico incerto; nunca repetir automaticamente.
 
-O Android Print Framework/PrintService, printCurrentWebView() e PDF rasterizado não fazem parte do fluxo final. O manifesto e as interfaces públicas já não os utilizam; falta excluir os arquivos órfãos do PrintService.
+O Android Print Framework/PrintService, printCurrentWebView() e PDF rasterizado não fazem parte do fluxo final. O manifesto, as interfaces e os arquivos nativos não mantêm mais esse caminho.
 
 ## Interface inspirada nas telas de referência
 - Adicionar impressora.
 - Método de conexão: Bluetooth habilitado na primeira versão; Wi-Fi/Ethernet e USB ficam planejados/ocultos até implementação. AIDL/POS fica fora do primeiro escopo.
 - Lista de dispositivos pareados com nome e endereço.
 - Escolha de driver/protocolo. ESC/POS geral é o primeiro driver ativo. Não exibir protocolos sem encoder e transporte testados.
-- Perfil de papel individual por impressora.
-- Botão Para testar, que envia teste ESC/POS sem dados financeiros.
+- Perfil de papel individual por endereço Bluetooth da impressora, salvo localmente no dispositivo Android.
+- Página de teste ESC/POS sem reservar job e sem consultar/alterar recibos financeiros.
+- Botão Imprimir teste, que envia teste ESC/POS sem dados financeiros nem criação de job de recibo.
+- Envio nativo em blocos de 256 bytes, com flush e pausa curta entre blocos para reduzir risco de saturação do buffer em impressoras de entrada.
 - Campos de nome e descrição.
 - Salvar/selecionar impressora padrão, reconectar e desconectar.
 - Mensagens claras de permissão, Bluetooth desligado, impressora indisponível e falha de transmissão.
@@ -48,18 +50,20 @@ Primeiro perfil funcional: ESC/POS geral. Outros perfis só podem ser ativados a
 ## Estado real do código auditado
 - Plugin Capacitor possui listagem de pareados, connect, send, disconnect e getConnectionState.
 - Encoder ESC/POS do site suporta perfil 58/80 mm, colunas, code page/mapa, QR, avanço e corte.
-- ThermalBluetoothPrinter já lista dispositivos pareados, permite conectar/desconectar e envia o recibo oficial pelo fluxo de impressão; ainda precisa de teste integrado e persistência de perfil.
+- ThermalBluetoothPrinter lista dispositivos pareados, conecta/desconecta, envia recibo oficial e possui página de teste sem reserva financeira.
+- Perfis são persistidos por endereço Bluetooth; cada impressora mantém sua própria largura e quantidade de colunas.
+- O plugin envia em blocos de 256 bytes com pausa de 30 ms entre blocos; é uma proteção conservadora inicial, que precisa ser ajustada com a impressora real.
 - ThermalReceipt é o componente visual do recibo; a ponte printCurrentWebView() foi removida das interfaces e do plugin nativo.
-- A classe SuperQuinaPrintService.java e seu XML permanecem sem registro no manifesto; são código morto e devem ser excluídos para evitar regressão/confusão.
-- Encoder e plugin precisam compartilhar o perfil salvo; hoje não existe persistência completa de perfil por impressora.
+- A antiga classe SuperQuinaPrintService.java, o XML correspondente e PrinterSetupActivity.java foram removidos; a antiga orientação para habilitar serviço de impressão não permanece no APK.
+- O perfil da impressora é carregado pela interface e aplicado ao encoder; a configuração fica individual por dispositivo pareado.
 - A tela nativa atual só solicita permissão e não implementa o gerenciador mostrado nas imagens.
 - Não há evidência de build Android ou teste físico aprovado nesta etapa.
 
 ## Plano de implementação
 1. [Concluído parcialmente] Retirar o registro do PrintService e a API printCurrentWebView() do manifesto, plugin e interfaces.
-2. Integrar e validar a UI do site ao plugin: listar, selecionar, conectar, testar, salvar perfil e desconectar.
-3. Criar persistência de perfis por impressora e seleção de papel sem largura fixa.
-4. Implementar teste ESC/POS para validar comunicação e largura útil.
+2. [Implementado; falta validar em aparelho] Integrar UI ao plugin: listar, selecionar, conectar, testar, salvar perfil e desconectar.
+3. [Implementado] Persistir perfil por impressora e permitir seleção de papel 58/80 mm e colunas personalizadas.
+4. [Implementado] Página de teste ESC/POS sem reserva de recibo; validar comunicação e largura útil na impressora real.
 5. Validar acentos, QR, densidade, avanço, corte e recibo completo na impressora real.
 6. Adicionar Wi-Fi/Ethernet e USB somente se houver necessidade e hardware para teste.
 7. Rodar lint, typecheck, testes e build do APK; instalar e testar em aparelho real.
