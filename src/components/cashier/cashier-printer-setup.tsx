@@ -45,14 +45,26 @@ export function CashierPrinterSetup() {
       if (!device.paired) {
         setMessage("Solicitando emparelhamento ao Android. Confirme a solicitação na tela do celular.");
         await getRawBtPrinter().pairDevice({ deviceId: selectedId });
-        await new Promise((resolve) => window.setTimeout(resolve, 1800));
+        let confirmedDevice: PairedPrinter | undefined;
+        for (let attempt = 0; attempt < 30; attempt += 1) {
+          setMessage("Aguardando a confirmação do emparelhamento no Android…");
+          await new Promise((resolve) => window.setTimeout(resolve, 1000));
+          const pairedNow = await getRawBtPrinter().listPairedDevices();
+          confirmedDevice = pairedNow.devices.find((item) => item.id === selectedId);
+          if (confirmedDevice) break;
+        }
+        if (!confirmedDevice) {
+          setMessage("O Android ainda não confirmou o vínculo. Confirme a solicitação no celular e tente novamente.");
+          return;
+        }
       }
       const paired = await getRawBtPrinter().listPairedDevices();
       const confirmed = paired.devices.find((item) => item.id === selectedId);
       if (!confirmed) {
-        setMessage("O emparelhamento foi iniciado. Confirme no Android e toque em Atualizar dispositivos.");
+        setMessage("A impressora não aparece mais na lista de pareadas. Atualize e tente novamente.");
         return;
       }
+      setMessage("Vínculo confirmado. Abrindo a conexão de impressão…");
       await getRawBtPrinter().connect({ deviceId: selectedId });
       localStorage.setItem(STORAGE_KEY, selectedId);
       setConnectedName(confirmed.name);
