@@ -59,7 +59,7 @@ describe("PATCH /api/admin/cashiers/[cashierId]", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({ cashier: { id: updated.id, commissionPercent: 10 } });
     expect(mocks.userUpdate).toHaveBeenCalledWith(expect.objectContaining({ where: { id: previous.id }, data: expect.objectContaining({
-      username: "cashier.updated", whatsapp: "77991234567", suppliesMaterial: true, suppliesMaterial: false, commissionRateBasisPoints: 1000, status: "ACTIVE",
+      username: "cashier.updated", whatsapp: "77991234567", suppliesMaterial: true, commissionRateBasisPoints: 1000, status: "ACTIVE",
     }) }));
     expect(mocks.auditCreate).toHaveBeenCalledWith({ data: expect.objectContaining({ actorId: "admin-1", action: "CASHIER_UPDATED", entityId: previous.id }) });
     expect(mocks.hashPassword).not.toHaveBeenCalled();
