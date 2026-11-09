@@ -33,7 +33,7 @@ Os registros anteriores preservaram os nomes abaixo, mas não preservaram os URL
 4. **Transporte:** plugin Capacitor nativo usando Bluetooth Classic RFCOMM/SPP (`00001101-0000-1000-8000-00805F9B34FB`) e lista de dispositivos já pareados. Sem descoberta desnecessária, BLE ou AIDL/POS nesta primeira versão.
 5. **Proteção de buffer:** envio serializado em blocos de 256 bytes, com flush e pausa de 30 ms entre blocos. O intervalo é uma configuração inicial conservadora, não garantia universal; precisa de teste na MTP5.
 6. **Perfis:** salvos por endereço Bluetooth no aparelho, não em uma configuração global compartilhada entre impressoras.
-7. **Teste sem risco financeiro:** página ESC/POS de teste envia texto simples diretamente ao dispositivo, sem criar ou alterar job de recibo.
+7. **Teste sem risco financeiro:** página ESC/POS de teste envia texto simples, seleção de fonte e régua com a largura configurada diretamente ao dispositivo, sem criar ou alterar job de recibo.
 8. **Interface:** apenas selecionar, conectar, desconectar, escolher papel/perfil, testar e imprimir recibo oficial. Sem editor, imagens, arquivos ou impressão genérica.
 
 ## Estado das atualizações nesta branch
@@ -43,8 +43,11 @@ Os registros anteriores preservaram os nomes abaixo, mas não preservaram os URL
 - [x] Salvar perfis por endereço Bluetooth.
 - [x] Acrescentar página de teste sem reserva de recibo.
 - [x] Fracionar envio Bluetooth para impressoras com buffer pequeno.
+- [x] Aplicar fonte ESC/POS A/B conforme perfil e colunas.
+- [x] Permitir que a falha de obtenção do recibo seja registrada como `RECEIPT_UNAVAILABLE` na API, sem deixar o job preso em `RESERVED`.
 - [x] Manter uma cópia por ação e não repetir automaticamente quando o resultado físico for incerto.
-- [ ] Criar/expandir testes automatizados do encoder e do fluxo de estados.
+- [x] Expandir testes automatizados do encoder para cobrir a seleção de fonte A/B.
+- [ ] Criar testes automatizados do fluxo de estados e das rotas de impressão.
 - [ ] Executar typecheck, lint, testes e build Android no HEAD final.
 - [ ] Instalar o APK e validar na Goldensky MTP5: 58/80 mm, acentos, QR, avanço, largura, desconexão e recibo completo.
 
