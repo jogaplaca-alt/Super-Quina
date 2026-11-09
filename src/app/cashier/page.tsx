@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function CashierPage() {
   const user = await requireRole("CASHIER");
   return (
-    <AreaShell title="Área do cambista" username={user.username} compact footerContent={
+    <AreaShell title="Área do cambista" username={user.username} compact logoutRedirectTo="/cashier-app-login" footerContent={
       <details className="cashier-printer-settings">
         <summary>Configurar impressora Bluetooth</summary>
         <ThermalBluetoothPrinter />
