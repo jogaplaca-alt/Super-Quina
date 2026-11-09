@@ -54,7 +54,6 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
     setError("");
     setNotice("");
     try {
-      const device = devices.find((item) => item.id === selectedId);
       const result = await getRawBtPrinter().connect({ deviceId: selectedId });
       setConnectedId(result.deviceId);
       setConnectedName(result.name);
