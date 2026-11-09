@@ -6,8 +6,8 @@ import { AdminCashierManager } from "@/components/admin/admin-cashier-manager";
 import { requireRole } from "@/lib/auth/require-role";
 export const dynamic = "force-dynamic";
 export default async function AdminPage() {
-  const user = await requireRole("ADMIN");
-  return <AreaShell title="Administração" username={user.username} description="Configuração e supervisão da plataforma.">
+  await requireRole("ADMIN");
+  return <AreaShell>
     <div className="admin-page-layout">
     <div className="admin-accordion-list">
       <details className="admin-accordion">
