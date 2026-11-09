@@ -107,3 +107,30 @@ A causa do segundo bloqueio foi confirmada na árvore Git: a pasta raiz `android
 **Correção aplicada:** os cinco documentos de auditoria foram movidos para `docs/rawbt-reconstruction/`, liberando a pasta `android/` para a plataforma nativa gerada pelo Capacitor. O workflow também foi ajustado para disparar em push na branch de integração.
 
 A execução disparada após essas correções deve ser acompanhada até o fim. Até obter resultado verde, não declarar APK recompilado.
+
+
+## Escopo confirmado — APK privado do cambista (09/11/2026)
+
+O produto Android não é um aplicativo público e não terá fluxo de impressão para jogador. O escopo é exclusivamente operacional para o cambista:
+
+- Ícone do APK abre diretamente `/cashier-app-login`.
+- Login aceita somente perfil `CASHIER`; o servidor continua validando sessão e papel em cada rota protegida.
+- Após autenticação, a navegação principal é a área `/cashier`.
+- Não incluir atalhos para jogador, administração, cadastro público ou páginas institucionais no fluxo do APK.
+- A configuração Bluetooth fica recolhida no rodapé da área do cambista, imediatamente acima de **Sair**.
+- O recibo da venda continua oferecendo a ação de impressão Bluetooth; a configuração persistente do dispositivo e o teste da impressora ficam no rodapé.
+- Um único plugin nativo SPP atende o fluxo de venda do cambista.
+
+### Alterações aplicadas nesta etapa
+
+- `capacitor.config.ts`: URL inicial do WebView alterada para `https://superquina.com/cashier-app-login`; nome do app ajustado para “Super Quina Cambista”.
+- `src/app/cashier/page.tsx`: painel recolhível de configuração Bluetooth inserido em `footerContent`, antes do botão Sair.
+- `src/components/receipts/thermal-bluetooth-printer.tsx`: componente permite uso sem compra ativa para configurar, conectar e testar; a ação “Imprimir recibo” só aparece quando há um `purchaseId`, dentro do recibo oficial.
+
+### Pontos de validação antes de distribuir o APK
+
+- Confirmar que o login de cambista direciona para `/cashier` e rejeita jogador/administrador.
+- Confirmar que o painel de impressora permanece recolhido por padrão e aparece acima de Sair.
+- Confirmar no Android físico permissões, pareamento, conexão SPP, teste e impressão de recibo.
+- Confirmar que a sessão expirada retorna ao login exclusivo do cambista.
+- O endereço inicial do Capacitor não substitui autorização no servidor; APIs e páginas protegidas devem continuar verificando o papel do usuário.
