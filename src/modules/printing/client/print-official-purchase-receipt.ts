@@ -1,6 +1,5 @@
 "use client";
 import { encodeThermalReceipt } from "@/modules/printing/escpos/encode-thermal-receipt";
-import { GENERIC_58MM_SPP_PROFILE_FONT_A } from "@/modules/printing/escpos/generic-58mm-profile";
 import { getRawBtPrinter } from "@/modules/printing/client/rawbt-printer-bridge";
 
 type OfficialReceipt = Parameters<typeof encodeThermalReceipt>[0];
@@ -49,6 +48,7 @@ export async function printOfficialPurchaseReceipt(input: {
   purchaseId: string;
   deviceId: string;
   deviceName: string;
+  profile: import("@/modules/printing/escpos/encode-thermal-receipt").EscPosProfile;
 }): Promise<{ jobId: string; bytesWritten: number }> {
   // Validate native runtime and printer session BEFORE reserving a job.
   const printer = getRawBtPrinter();
@@ -88,7 +88,7 @@ export async function printOfficialPurchaseReceipt(input: {
 
   let encoded: Uint8Array;
   try {
-    encoded = encodeThermalReceipt(receipt, GENERIC_58MM_SPP_PROFILE_FONT_A);
+    encoded = encodeThermalReceipt(receipt, input.profile);
   } catch (error) {
     await transition(reservation.job.id, "FAILED", input.deviceName, "ENCODING_FAILED");
     throw error;
