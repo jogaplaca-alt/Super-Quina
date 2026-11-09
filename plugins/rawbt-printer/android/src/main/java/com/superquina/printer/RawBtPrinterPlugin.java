@@ -30,7 +30,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @CapacitorPlugin(
     name = "SuperQuinaPrinter",
     permissions = {
-        @Permission(alias = "bluetoothConnect", strings = { Manifest.permission.BLUETOOTH_CONNECT })
+        @Permission(alias = "bluetoothConnect", strings = { Manifest.permission.BLUETOOTH_CONNECT }),
+        @Permission(alias = "bluetoothScan", strings = { Manifest.permission.BLUETOOTH_SCAN }),
+        @Permission(alias = "location", strings = { Manifest.permission.ACCESS_FINE_LOCATION })
     }
 )
 public class RawBtPrinterPlugin extends Plugin {
@@ -50,6 +52,7 @@ public class RawBtPrinterPlugin extends Plugin {
 
     @PluginMethod
     public void discoverDevices(PluginCall call) {
+        if (!ensureConnectPermission(call, "discover")) return;
         if (!ensureScanPermission(call)) return;
         ioExecutor.execute(() -> {
             BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
@@ -385,7 +388,7 @@ public class RawBtPrinterPlugin extends Plugin {
         }
         saveCall(call);
         String callback = "list".equals(operation) ? "listPermissionCallback" :
-            ("connect".equals(operation) ? "connectPermissionCallback" : ("pair".equals(operation) ? "pairPermissionCallback" : "sendPermissionCallback"));
+            ("connect".equals(operation) ? "connectPermissionCallback" : ("pair".equals(operation) ? "pairPermissionCallback" : ("discover".equals(operation) ? "discoverPermissionCallback" : "sendPermissionCallback")));
         requestPermissionForAlias("bluetoothConnect", call, callback);
         return false;
     }
@@ -400,6 +403,12 @@ public class RawBtPrinterPlugin extends Plugin {
     private void connectPermissionCallback(PluginCall call) {
         if (hasPermission("bluetoothConnect")) connect(call);
         else call.reject("Permissão para conectar à impressora negada.", "PERMISSION_DENIED");
+    }
+
+    @PermissionCallback
+    private void discoverPermissionCallback(PluginCall call) {
+        if (hasPermission("bluetoothConnect")) discoverDevices(call);
+        else call.reject("Permissão para acessar dispositivos Bluetooth negada.", "PERMISSION_DENIED");
     }
 
     @PermissionCallback
