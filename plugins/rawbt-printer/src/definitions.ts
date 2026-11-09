@@ -14,7 +14,6 @@ export type PrinterWriteResult = {
 };
 
 export interface RawBtPrinterPlugin {
-  printCurrentWebView(options?: { jobName?: string }): Promise<{ submitted: boolean }>;
   listPairedDevices(): Promise<{ devices: PairedPrinter[] }>;
   connect(options: { deviceId: string }): Promise<PrinterConnectionResult>;
   send(options: { dataBase64: string }): Promise<PrinterWriteResult>;
