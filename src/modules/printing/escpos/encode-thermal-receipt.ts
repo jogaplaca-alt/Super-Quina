@@ -16,6 +16,8 @@ export type EscPosProfile = {
   paperWidthMm: 58 | 80;
   /** Printable character columns measured/selected for this printer profile. */
   columns: number;
+  /** ESC/POS built-in font selection; A is wider, B is narrower. */
+  fontMode?: "A" | "B";
   /** Optional ESC t code-page selector. Omit unless verified for the printer. */
   codePageCommand?: number;
   /** Explicit Unicode-to-single-byte mapping verified for the selected printer. */
@@ -184,6 +186,7 @@ export function encodeThermalReceipt(receipt: ThermalReceiptForEncoding, profile
   const cashier = cleanLabel(receipt.cashierLabel, "cashier label");
   const columns = profile.columns;
   const bytes: number[] = [ESC, 0x40];
+  if (profile.fontMode !== undefined) bytes.push(ESC, 0x4d, profile.fontMode === "B" ? 0x01 : 0x00);
   if (profile.codePageCommand !== undefined) bytes.push(ESC, 0x74, profile.codePageCommand);
   bytes.push(ESC, 0x61, 0x01, ESC, 0x45, 0x01);
   bytes.push(...line("SUPER QUINA", profile));
