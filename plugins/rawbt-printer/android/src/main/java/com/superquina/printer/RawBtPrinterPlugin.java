@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @CapacitorPlugin(
-    name = "RawBtPrinter",
+    name = "SuperQuinaPrinter",
     permissions = {
         @Permission(alias = "bluetoothConnect", strings = { Manifest.permission.BLUETOOTH_CONNECT })
     }
