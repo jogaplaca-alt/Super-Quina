@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getRawBtPrinter, type PairedPrinter } from "@/modules/printing/client/rawbt-printer-bridge";
-import { CASHIER_PRINTER_CASHIER_PRINTER_STORAGE_KEY } from "@/modules/printing/client/printer-selection";
+import { CASHIER_PRINTER_STORAGE_KEY } from "@/modules/printing/client/printer-selection";
 
 
 export function CashierPrinterSetup() {
