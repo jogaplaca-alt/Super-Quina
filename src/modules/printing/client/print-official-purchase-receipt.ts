@@ -1,6 +1,6 @@
 "use client";
 import { encodeThermalReceipt } from "@/modules/printing/escpos/encode-thermal-receipt";
-import { getRawBtPrinter } from "@/modules/printing/client/rawbt-printer-bridge";
+import { getSuperQuinaPrinter } from "@/modules/printing/client/superquina-printer-bridge";
 
 type OfficialReceipt = Parameters<typeof encodeThermalReceipt>[0];
 type PrintJobResponse = { created: boolean; job: { id: string; status: string; purpose: string }; maySend: boolean };
@@ -51,7 +51,7 @@ export async function printOfficialPurchaseReceipt(input: {
   profile: import("@/modules/printing/escpos/encode-thermal-receipt").EscPosProfile;
 }): Promise<{ jobId: string; bytesWritten: number }> {
   // Validate native runtime and printer session BEFORE reserving a job.
-  const printer = getRawBtPrinter();
+  const printer = getSuperQuinaPrinter();
   let state: Awaited<ReturnType<typeof printer.getConnectionState>>;
   try {
     state = await printer.getConnectionState();
