@@ -4,6 +4,7 @@ import { CashierSaleForm } from "@/components/cashier/cashier-sale-form";
 import { PlayerRecentResults } from "@/components/player/player-recent-results";
 import { CashierSalesSummary } from "@/components/cashier/cashier-sales-summary";
 import { CashierPrizePayout } from "@/components/cashier/cashier-prize-payout";
+import { CashierPrinterSetup } from "@/components/cashier/cashier-printer-setup";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,7 @@ export default async function CashierPage() {
   return (
     <AreaShell title="Área do cambista" username={user.username} compact>
       <CashierSaleForm />
+      <CashierPrinterSetup />
       <section className="cashier-info-card" aria-label="Informações do cambista">
         <CashierPrizePayout />
         <details className="player-collapsible-section cashier-info-results">
