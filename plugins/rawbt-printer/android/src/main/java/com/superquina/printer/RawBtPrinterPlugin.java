@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class RawBtPrinterPlugin extends Plugin {
     private static final UUID SPP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private static final long CONNECT_TIMEOUT_SECONDS = 15;
+    private static final long WRITE_TIMEOUT_SECONDS = 45;
     private static final int MAX_PRINT_BYTES = 512 * 1024;
     private static final int WRITE_CHUNK_BYTES = 256;
     private static final long WRITE_PAUSE_MILLIS = 30;
@@ -45,7 +46,7 @@ public class RawBtPrinterPlugin extends Plugin {
     // Serialize socket operations so connect/disconnect/send cannot race.
     private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
     private final ScheduledExecutorService timeoutExecutor = Executors.newSingleThreadScheduledExecutor();
-    private BluetoothSocket socket;
+    private volatile BluetoothSocket socket;
     private String connectedDeviceId;
     private String connectedDeviceName;
 
@@ -323,7 +324,16 @@ public class RawBtPrinterPlugin extends Plugin {
                     call.reject("Tamanho dos dados de impressão inválido.", "PRINT_DATA_TOO_LARGE");
                     return;
                 }
-                OutputStream output = socket.getOutputStream();
+                BluetoothSocket activeSocket = socket;
+                OutputStream output = activeSocket.getOutputStream();
+                AtomicBoolean writeTimedOut = new AtomicBoolean(false);
+                ScheduledFuture<?> writeTimeout = timeoutExecutor.schedule(() -> {
+                    if (writeTimedOut.compareAndSet(false, true)) {
+                        closeQuietly(activeSocket);
+                        call.reject("O envio Bluetooth excedeu 45 segundos. Confira a impressora antes de tentar novamente.", "WRITE_TIMEOUT");
+                    }
+                }, WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                try {
                 for (int offset = 0; offset < data.length; offset += WRITE_CHUNK_BYTES) {
                     int length = Math.min(WRITE_CHUNK_BYTES, data.length - offset);
                     output.write(data, offset, length);
@@ -337,10 +347,14 @@ public class RawBtPrinterPlugin extends Plugin {
                         }
                     }
                 }
+                if (writeTimedOut.get()) throw new IOException("Bluetooth write timed out.");
                 JSObject result = new JSObject();
                 result.put("bytesWritten", data.length);
                 result.put("transportAccepted", true);
                 call.resolve(result);
+                } finally {
+                    writeTimeout.cancel(false);
+                }
             } catch (SecurityException error) {
                 call.reject("Permissão Bluetooth não concedida.", "PERMISSION_DENIED");
             } catch (IOException error) {
