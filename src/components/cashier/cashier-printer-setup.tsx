@@ -14,15 +14,28 @@ export function CashierPrinterSetup() {
   const [error, setError] = useState("");
 
   async function refreshPaired() {
-    const result = await getRawBtPrinter().listPairedDevices();
-    setDevices(result.devices.map((device) => ({ ...device, paired: true })));
-    const saved = localStorage.getItem(CASHIER_PRINTER_STORAGE_KEY) || "";
-    const selected = result.devices.find((device) => device.id === saved);
-    setSelectedId(selected?.id ?? "");
+    setBusy(true);
+    setError("");
+    setMessage("Atualizando dispositivos já pareados…");
+    try {
+      const result = await getRawBtPrinter().listPairedDevices();
+      setDevices(result.devices.map((device) => ({ ...device, paired: true })));
+      const saved = localStorage.getItem(CASHIER_PRINTER_STORAGE_KEY) || "";
+      const selected = result.devices.find((device) => device.id === saved);
+      setSelectedId(selected?.id ?? "");
+      setMessage(result.devices.length
+        ? "Lista atualizada. Selecione a impressora e emparelhe/conecte se necessário."
+        : "Nenhuma impressora pareada encontrada. Use “Localizar impressoras” para procurar dispositivos próximos.");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Não foi possível atualizar os dispositivos pareados.");
+      setMessage("");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function discover() {
-    setBusy(true); setError(""); setMessage("Procurando impressoras próximas…");
+    setBusy(true); setError(""); setMessage("Procurando impressoras próximas…"); setConnectedName("");
     try {
       const result = await getRawBtPrinter().discoverDevices();
       setDevices(result.devices);
@@ -38,7 +51,7 @@ export function CashierPrinterSetup() {
 
   async function pairAndConnect() {
     if (!selectedId || busy) return;
-    setBusy(true); setError("");
+    setBusy(true); setError(""); setConnectedName("");
     try {
       const device = devices.find((item) => item.id === selectedId);
       if (!device) throw new Error("Selecione uma impressora.");
@@ -65,11 +78,15 @@ export function CashierPrinterSetup() {
         return;
       }
       setMessage("Vínculo confirmado. Abrindo a conexão de impressão…");
-      await getRawBtPrinter().connect({ deviceId: selectedId });
+      const connection = await getRawBtPrinter().connect({ deviceId: selectedId });
+      if (!connection.connected || connection.deviceId !== selectedId) {
+        throw new Error("O Android não confirmou a conexão com a impressora selecionada.");
+      }
       localStorage.setItem(CASHIER_PRINTER_STORAGE_KEY, selectedId);
       setConnectedName(confirmed.name);
       setMessage("Impressora emparelhada e conectada. Ela ficará salva neste aparelho.");
     } catch (reason) {
+      setConnectedName("");
       setError(reason instanceof Error ? reason.message : "Não foi possível emparelhar ou conectar.");
     } finally { setBusy(false); }
   }
@@ -109,7 +126,7 @@ export function CashierPrinterSetup() {
         <div className="thermal-printer-controls">
           <p>Na primeira utilização, localize sua impressora, selecione o dispositivo e emparelhe. Depois, a conexão será recuperada automaticamente quando possível.</p>
           <button type="button" onClick={() => void discover()} disabled={busy}>{busy ? "Procurando…" : "Localizar impressoras"}</button>
-          <button type="button" onClick={() => void refreshPaired()} disabled={busy}>Atualizar dispositivos pareados</button>
+          <button type="button" onClick={() => void refreshPaired()} disabled={busy}>{busy ? "Aguarde…" : "Atualizar dispositivos pareados"}</button>
           <label htmlFor="cashier-printer-device">Impressora encontrada</label>
           <select id="cashier-printer-device" value={selectedId} onChange={(event) => setSelectedId(event.target.value)} disabled={busy || devices.length === 0}>
             <option value="">Selecione uma impressora</option>
