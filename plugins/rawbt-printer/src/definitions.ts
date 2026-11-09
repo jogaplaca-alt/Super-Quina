@@ -15,6 +15,8 @@ export type PrinterWriteResult = {
 
 export interface SuperQuinaPrinterPlugin {
   openBluetoothSettings(): Promise<{ opened: boolean }>;
+  discoverDevices(): Promise<{ devices: Array<PairedPrinter & { paired: boolean }> }>;
+  pairDevice(options: { deviceId: string }): Promise<{ paired: boolean; pairingStarted?: boolean; deviceId: string }>;
   listPairedDevices(): Promise<{ devices: PairedPrinter[] }>;
   connect(options: { deviceId: string }): Promise<PrinterConnectionResult>;
   send(options: { dataBase64: string }): Promise<PrinterWriteResult>;
