@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function CashierPage() {
   const user = await requireRole("CASHIER");
   return (
-    <AreaShell title="Área do cambista" username={user.username} compact logoutRedirectTo="/cashier-app-login">
+    <AreaShell title="Área do cambista" username={user.username} compact logoutRedirectTo="/cashier-app-login" headerHomeLink={false}>
       <CashierPrinterSetup />
       <CashierSaleForm />
       <section className="cashier-info-card" aria-label="Informações do cambista">
