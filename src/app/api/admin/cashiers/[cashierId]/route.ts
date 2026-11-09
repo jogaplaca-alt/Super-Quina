@@ -17,8 +17,7 @@ const updateSchema = z.object({
   city: z.string().trim().max(120).optional().default(""),
   address: z.string().trim().max(200).optional().default(""),
   referencePoint: z.string().trim().max(200).optional().default(""),
-  suppliesPrinter: z.boolean().optional().default(false),
-  suppliesPaper: z.boolean().optional().default(false),
+  suppliesMaterial: z.boolean().optional().default(false),
   status: z.enum(["ACTIVE", "BLOCKED"]),
 }).strict();
 
@@ -61,10 +60,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     const updated = await authPrisma.$transaction(async (tx) => {
       const previous = await tx.user.findFirst({
         where: { id: cashierId, role: "CASHIER" },
-        select: { id: true, username: true, fullName: true, whatsapp: true, city: true, address: true, referencePoint: true, suppliesPrinter: true, suppliesPaper: true, commissionRateBasisPoints: true, status: true },
+        select: { id: true, username: true, fullName: true, whatsapp: true, city: true, address: true, referencePoint: true, suppliesMaterial: true, suppliesMaterial: true, commissionRateBasisPoints: true, status: true },
       });
       if (!previous) throw new Error("NOT_FOUND");
-      const nextRate = parsed.data.suppliesPrinter || parsed.data.suppliesPaper ? 1000 : 2000;
+      const nextRate = parsed.data.suppliesMaterial ? 1000 : 2000;
       const nextUsername = parsed.data.username.toLowerCase();
       const cashier = await tx.user.update({
         where: { id: cashierId },
@@ -75,13 +74,13 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
           city: parsed.data.city || null,
           address: parsed.data.address || null,
           referencePoint: parsed.data.referencePoint || null,
-          suppliesPrinter: parsed.data.suppliesPrinter,
-          suppliesPaper: parsed.data.suppliesPaper,
+          suppliesMaterial: parsed.data.suppliesMaterial,
+          suppliesMaterial: parsed.data.suppliesMaterial,
           commissionRateBasisPoints: nextRate,
           status: parsed.data.status,
           ...(passwordHash ? { passwordHash, mustChangePassword: true } : {}),
         },
-        select: { id: true, username: true, fullName: true, whatsapp: true, city: true, address: true, referencePoint: true, suppliesPrinter: true, suppliesPaper: true, commissionRateBasisPoints: true, status: true, createdAt: true },
+        select: { id: true, username: true, fullName: true, whatsapp: true, city: true, address: true, referencePoint: true, suppliesMaterial: true, suppliesMaterial: true, commissionRateBasisPoints: true, status: true, createdAt: true },
       });
       await tx.auditEvent.create({ data: {
         actorId: auth.user.id, action: "CASHIER_UPDATED", entityType: "User", entityId: cashier.id,
@@ -92,8 +91,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
           cityBefore: previous.city, cityAfter: cashier.city,
           addressBefore: previous.address, addressAfter: cashier.address,
           referencePointBefore: previous.referencePoint, referencePointAfter: cashier.referencePoint,
-          suppliesPrinterBefore: previous.suppliesPrinter, suppliesPrinterAfter: cashier.suppliesPrinter,
-          suppliesPaperBefore: previous.suppliesPaper, suppliesPaperAfter: cashier.suppliesPaper,
+          suppliesMaterialBefore: previous.suppliesMaterial, suppliesMaterialAfter: cashier.suppliesMaterial,
           commissionRateBasisPointsBefore: previous.commissionRateBasisPoints,
           commissionRateBasisPointsAfter: cashier.commissionRateBasisPoints,
           statusBefore: previous.status, statusAfter: cashier.status,
