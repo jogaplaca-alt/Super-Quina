@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="#061B8F" />
+    <item>
+        <color android:color="#061B8F" />
+    </item>
     <item>
         <bitmap android:src="@drawable-nodpi/superquina_splash_image" android:gravity="center" />
     </item>
