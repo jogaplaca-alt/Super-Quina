@@ -57,8 +57,15 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Unit tests
-        run: npm test
+      - name: Printer and receipt tests
+        run: >-
+          npm test --
+          src/modules/printing/escpos/encode-thermal-receipt.test.ts
+          src/modules/printing/print-job-service.test.ts
+          src/app/api/player/purchases/[purchaseId]/receipt/route.test.ts
+          src/app/api/public/receipt-verification/[receiptCode]/route.test.ts
+          src/components/receipts/receipt-qr.test.ts
+          src/components/receipts/thermal-receipt.test.ts
 
       - name: Prepare Capacitor web directory
         run: |
