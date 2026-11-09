@@ -28,29 +28,19 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
   const [customColumns, setCustomColumns] = useState(32);
   const [customFontMode, setCustomFontMode] = useState<"A" | "B">("A");
 
-  useEffect(() => {
-    if (!selectedId) return;
+  function loadPaperProfile(printerId: string) {
+    let parsed: { preset?: PaperPreset; width?: 58 | 80; columns?: number; fontMode?: "A" | "B" } = {};
     try {
-      const saved = localStorage.getItem(`${PROFILE_STORAGE_KEY}:${selectedId}`);
-      if (!saved) {
-        setPaperPreset("58-a");
-        setCustomWidth(58);
-        setCustomColumns(32);
-        setCustomFontMode("A");
-        return;
-      }
-      const parsed = JSON.parse(saved) as { preset?: PaperPreset; width?: 58 | 80; columns?: number; fontMode?: "A" | "B" };
-      setPaperPreset(parsed.preset && ["58-a", "58-b", "80-a", "80-b", "custom"].includes(parsed.preset) ? parsed.preset : "58-a");
-      setCustomWidth(parsed.width === 80 ? 80 : 58);
-      setCustomColumns(Number.isInteger(parsed.columns) && parsed.columns! >= 16 && parsed.columns! <= 96 ? parsed.columns! : 32);
-      setCustomFontMode(parsed.fontMode === "B" ? "B" : "A");
+      const saved = localStorage.getItem(PROFILE_STORAGE_KEY + ":" + printerId);
+      if (saved) parsed = JSON.parse(saved) as typeof parsed;
     } catch {
-      setPaperPreset("58-a");
-      setCustomWidth(58);
-      setCustomColumns(32);
-      setCustomFontMode("A");
+      // Invalid or unavailable local settings fall back to the safe default profile.
     }
-  }, [selectedId]);
+    setPaperPreset(parsed.preset && ["58-a", "58-b", "80-a", "80-b", "custom"].includes(parsed.preset) ? parsed.preset : "58-a");
+    setCustomWidth(parsed.width === 80 ? 80 : 58);
+    setCustomColumns(Number.isInteger(parsed.columns) && parsed.columns! >= 16 && parsed.columns! <= 96 ? parsed.columns! : 32);
+    setCustomFontMode(parsed.fontMode === "B" ? "B" : "A");
+  }
 
   const selectedProfile: EscPosProfile = paperPreset === "custom"
     ? { paperWidthMm: customWidth, columns: customColumns, fontMode: customFontMode, copies: 1, feedLines: 3, qrCode: true, unsupportedCharacter: "transliterate" }
@@ -75,13 +65,14 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
         printer.getConnectionState(),
       ]);
       setDevices(result.devices);
-      setSelectedId((current) =>
-        current && result.devices.some((device) => device.id === current)
-          ? current
+      const nextSelectedId =
+        selectedId && result.devices.some((device) => device.id === selectedId)
+          ? selectedId
           : state.connected && result.devices.some((device) => device.id === state.deviceId)
             ? state.deviceId!
-            : result.devices[0]?.id ?? "",
-      );
+            : result.devices[0]?.id ?? "";
+      setSelectedId(nextSelectedId);
+      if (nextSelectedId) loadPaperProfile(nextSelectedId);
       setConnectedId(state.connected ? state.deviceId ?? "" : "");
       setConnectedName(state.connected ? state.name ?? "" : "");
       if (result.devices.length === 0) {
@@ -95,7 +86,14 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
   }
 
   useEffect(() => {
-    void refreshDevices();
+    let cancelled = false;
+    void Promise.resolve().then(() => {
+      if (!cancelled) return refreshDevices();
+      return undefined;
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function connectPrinter() {
@@ -211,7 +209,9 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
           id="superquina-printer-select"
           value={selectedId}
           onChange={(event) => {
-            setSelectedId(event.target.value);
+            const printerId = event.target.value;
+            setSelectedId(printerId);
+            if (printerId) loadPaperProfile(printerId);
             setNotice("");
             setError("");
           }}
