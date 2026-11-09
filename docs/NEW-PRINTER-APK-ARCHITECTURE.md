@@ -24,7 +24,7 @@ O Android Print Framework/PrintService, printCurrentWebView() e PDF rasterizado 
 - Método de conexão: Bluetooth habilitado na primeira versão; Wi-Fi/Ethernet e USB ficam planejados/ocultos até implementação. AIDL/POS fica fora do primeiro escopo.
 - Lista de dispositivos pareados com nome e endereço.
 - Escolha de driver/protocolo. ESC/POS geral é o primeiro driver ativo. Não exibir protocolos sem encoder e transporte testados.
-- Perfil de papel individual por endereço Bluetooth da impressora, salvo localmente no dispositivo Android.
+- Perfil de papel individual por endereço Bluetooth da impressora, salvo localmente no dispositivo Android; cada perfil define largura, colunas e fonte ESC/POS A/B.
 - Página de teste ESC/POS sem reservar job e sem consultar/alterar recibos financeiros.
 - Botão Imprimir teste, que envia teste ESC/POS sem dados financeiros nem criação de job de recibo.
 - Envio nativo em blocos de 256 bytes, com flush e pausa curta entre blocos para reduzir risco de saturação do buffer em impressoras de entrada.
@@ -51,7 +51,7 @@ Primeiro perfil funcional: ESC/POS geral. Outros perfis só podem ser ativados a
 - Plugin Capacitor possui listagem de pareados, connect, send, disconnect e getConnectionState.
 - Encoder ESC/POS do site suporta perfil 58/80 mm, colunas, code page/mapa, QR, avanço e corte.
 - ThermalBluetoothPrinter lista dispositivos pareados, conecta/desconecta, envia recibo oficial e possui página de teste sem reserva financeira.
-- Perfis são persistidos por endereço Bluetooth; cada impressora mantém sua própria largura e quantidade de colunas.
+- Perfis são persistidos por endereço Bluetooth; cada impressora mantém sua própria largura, quantidade de colunas e seleção da fonte ESC/POS A/B.
 - O plugin envia em blocos de 256 bytes com pausa de 30 ms entre blocos; é uma proteção conservadora inicial, que precisa ser ajustada com a impressora real.
 - ThermalReceipt é o componente visual do recibo; a ponte printCurrentWebView() foi removida das interfaces e do plugin nativo.
 - A antiga classe SuperQuinaPrintService.java, o XML correspondente e PrinterSetupActivity.java foram removidos; a antiga orientação para habilitar serviço de impressão não permanece no APK.
