@@ -18,7 +18,7 @@ export function CashierPrinterSetup() {
     setDevices(result.devices.map((device) => ({ ...device, paired: true })));
     const saved = localStorage.getItem(CASHIER_PRINTER_STORAGE_KEY) || "";
     const selected = result.devices.find((device) => device.id === saved);
-    if (selected) setSelectedId(selected.id);
+    setSelectedId(selected?.id ?? "");
   }
 
   async function discover() {
@@ -28,7 +28,7 @@ export function CashierPrinterSetup() {
       setDevices(result.devices);
       const saved = localStorage.getItem(CASHIER_PRINTER_STORAGE_KEY) || "";
       const selected = result.devices.find((device) => device.id === saved);
-      if (selected) setSelectedId(selected.id);
+      setSelectedId(selected?.id ?? "");
       setMessage(result.devices.length ? "Selecione sua impressora na lista." : "Nenhuma impressora encontrada. Ligue a impressora e tente novamente.");
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Não foi possível localizar dispositivos Bluetooth.");
