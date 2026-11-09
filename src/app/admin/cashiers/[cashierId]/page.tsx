@@ -14,7 +14,7 @@ const pageNumber = (value: string | string[] | undefined) => {
 const money = (cents: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
 
 export default async function AdminCashierDetailPage({ params, searchParams }: { params: Promise<{ cashierId: string }>; searchParams: Promise<{ salesPage?: string | string[]; settlementsPage?: string | string[] }> }) {
-  const admin = await requireRole("ADMIN");
+  await requireRole("ADMIN");
   const { cashierId } = await params;
   const query = await searchParams;
   const salesPage = pageNumber(query.salesPage);
@@ -73,7 +73,7 @@ export default async function AdminCashierDetailPage({ params, searchParams }: {
   const cashTotal = cashNow._sum.totalCents ?? 0;
   const pixTotal = pixNow._sum.totalCents ?? 0;
   const commissionTotal = commissionNow._sum.amountCents ?? 0;
-  return <AreaShell title="Financeiro do cambista" username={admin.username} description="Cadastro, vendas e histórico de acertos.">
+  return <AreaShell>
     <div className="admin-cashier-detail">
       <p><Link href="/admin">← Voltar ao administrador</Link></p>
       <section className="feature-card admin-cashier-current">
