@@ -3,4 +3,4 @@ import type { SuperQuinaPrinterPlugin } from "./definitions";
 
 export * from "./definitions";
 
-export const SuperQuinaPrinter = registerPlugin<RawBtPrinterPlugin>("RawBtPrinter");
+export const SuperQuinaPrinter = registerPlugin<SuperQuinaPrinterPlugin>("SuperQuinaPrinter");
