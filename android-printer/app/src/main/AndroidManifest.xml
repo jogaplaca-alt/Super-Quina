@@ -16,17 +16,16 @@
         android:label="Super Quina Impressora"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
-        <service
-            android:name=".BluetoothPrintService"
-            android:label="Super Quina Bluetooth Printer"
-            android:permission="android.permission.BIND_PRINT_SERVICE"
-            android:exported="true">
+        <activity
+            android:name=".PrintRequestActivity"
+            android:exported="true"
+            android:launchMode="singleTop">
             <intent-filter>
-                <action android:name="android.printservice.PrintService" />
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="superquina-printer" android:host="print" />
             </intent-filter>
-            <meta-data
-                android:name="android.printservice"
-                android:resource="@xml/print_service" />
-        </service>
+        </activity>
     </application>
 </manifest>
