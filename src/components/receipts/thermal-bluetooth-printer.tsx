@@ -253,7 +253,6 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
             setNotice("");
             setError("");
           }}
-          disabled={loading || devices.length === 0}
         >
           {devices.length === 0 ? <option value="">Nenhuma impressora encontrada</option> : null}
           {devices.map((device) => (
