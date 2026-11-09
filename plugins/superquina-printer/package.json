@@ -1,8 +1,8 @@
 {
-  "name": "@superquina/rawbt-printer",
+  "name": "@superquina/printer-bridge",
   "version": "0.1.0",
   "private": true,
-  "description": "Minimal Capacitor bridge for paired Bluetooth Classic SPP thermal printers",
+  "description": "Capacitor bridge for Super Quina Bluetooth Classic SPP thermal printing",
   "main": "dist/plugin.cjs",
   "module": "dist/plugin.js",
   "types": "dist/definitions.d.ts",

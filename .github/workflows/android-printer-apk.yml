@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - feature/rawbt-inspired-printer-core
       - feature/superquina-rawbt-rebuild
   pull_request:
     branches:
@@ -12,7 +11,7 @@ on:
     paths:
       - "src/modules/printing/**"
       - "src/components/receipts/**"
-      - "plugins/rawbt-printer/**"
+      - "plugins/superquina-printer/**"
       - "capacitor.config.ts"
       - "package.json"
       - "package-lock.json"

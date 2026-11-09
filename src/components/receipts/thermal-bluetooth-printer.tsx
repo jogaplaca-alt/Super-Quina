@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getRawBtPrinter, type PairedPrinter } from "@/modules/printing/client/rawbt-printer-bridge";
+import { getSuperQuinaPrinter, type PairedPrinter } from "@/modules/printing/client/superquina-printer-bridge";
 import { printOfficialPurchaseReceipt } from "@/modules/printing/client/print-official-purchase-receipt";
 import type { EscPosProfile } from "@/modules/printing/escpos/encode-thermal-receipt";
 
@@ -59,7 +59,7 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
     setError("");
     setNotice("");
     try {
-      const printer = getRawBtPrinter();
+      const printer = getSuperQuinaPrinter();
       const [result, state] = await Promise.all([
         printer.listPairedDevices(),
         printer.getConnectionState(),
@@ -100,7 +100,7 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
     setError("");
     setNotice("");
     try {
-      await getRawBtPrinter().openBluetoothSettings();
+      await getSuperQuinaPrinter().openBluetoothSettings();
       setNotice("Configurações Bluetooth abertas. Emparelhe a impressora e volte aqui para atualizar a lista.");
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Não foi possível abrir o emparelhamento Bluetooth.");
@@ -113,7 +113,7 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
     setError("");
     setNotice("");
     try {
-      const result = await getRawBtPrinter().connect({ deviceId: selectedId });
+      const result = await getSuperQuinaPrinter().connect({ deviceId: selectedId });
       setConnectedId(result.deviceId);
       setConnectedName(result.name);
       setNotice(`Conectado a ${result.name}. A impressora está pronta para receber o recibo.`);
@@ -130,7 +130,7 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
     setLoading(true);
     setError("");
     try {
-      await getRawBtPrinter().disconnect();
+      await getSuperQuinaPrinter().disconnect();
       setConnectedId("");
       setConnectedName("");
       setNotice("Impressora desconectada.");
@@ -160,7 +160,7 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
       ]);
       let binary = "";
       for (const byte of testBytes) binary += String.fromCharCode(byte);
-      const result = await getRawBtPrinter().send({ dataBase64: btoa(binary) });
+      const result = await getSuperQuinaPrinter().send({ dataBase64: btoa(binary) });
       setNotice(`Teste enviado (${result.bytesWritten} bytes). Confira a largura e a legibilidade no papel. O Android não confirma a saída física.`);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Não foi possível enviar a página de teste.");

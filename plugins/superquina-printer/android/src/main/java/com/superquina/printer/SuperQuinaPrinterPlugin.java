@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
         @Permission(alias = "bluetoothConnect", strings = { Manifest.permission.BLUETOOTH_CONNECT })
     }
 )
-public class RawBtPrinterPlugin extends Plugin {
+public class SuperQuinaPrinterPlugin extends Plugin {
     private static final UUID SPP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     private static final long CONNECT_TIMEOUT_SECONDS = 15;
     private static final int MAX_PRINT_BYTES = 512 * 1024;

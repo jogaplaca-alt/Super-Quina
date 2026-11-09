@@ -13,7 +13,7 @@ import { registerPlugin, Capacitor } from "@capacitor/core";
 
 const SuperQuinaPrinter = registerPlugin<SuperQuinaPrinterBridge>("SuperQuinaPrinter");
 
-export function getRawBtPrinter(): SuperQuinaPrinterBridge {
+export function getSuperQuinaPrinter(): SuperQuinaPrinterBridge {
   if (typeof window === "undefined" || !Capacitor.isNativePlatform()) {
     throw new Error("A impressão Bluetooth está disponível somente no aplicativo Android Super Quina instalado.");
   }

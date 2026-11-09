@@ -32,7 +32,7 @@
     "qrcode-generator": "2.0.4",
     "@capacitor/core": "^7.4.3",
     "@capacitor/android": "^7.4.3",
-    "@superquina/rawbt-printer": "file:plugins/rawbt-printer"
+    "@superquina/printer-bridge": "file:plugins/superquina-printer"
   },
   "devDependencies": {
     "@types/node": "^22.18.6",
