@@ -19,16 +19,16 @@ Arquivo: `src/modules/printing/escpos/encode-thermal-receipt.ts`.
 - Formata emissão e horário do sorteio em `America/Sao_Paulo`, não UTC.
 - Mantém PC860 como tabela padrão da impressora, sem enviar `ESC t` até validar a representação de acentos no equipamento.
 - O perfil genérico ativa o QR Code e mantém uma única cópia por trabalho.
-- Foram adicionados testes unitários para sequência QR e datas em São Paulo; eles ainda precisam ser executados em ambiente de projeto.
+- Foram adicionados testes unitários para sequência QR e datas em São Paulo; eles foram adicionados, mas sua execução no CI ainda está pendente.
 
 ## Equipamento de referência
 O autoteste fotografado informa **OY-580IP**, firmware V3.2F, Bluetooth `KPrinter_4765`, page 3 / PC860 e WPC1252 no índice 11. O perfil permanece genérico e não fica preso à marca ou ao modelo. Colunas 32/42 são presets provisórios.
 
 ## Limitações ainda existentes
 - A tela `ThermalBluetoothPrinter` já está integrada ao modal do recibo oficial do jogador: lista dispositivos pareados, atualiza a lista, conecta, imprime e desconecta.
-- A ponte JavaScript agora registra o plugin com `registerPlugin("RawBtPrinter")`; o pacote local declara a pasta Android para descoberta pelo Capacitor.
+- A ponte TypeScript e a classe Android registram o plugin com o mesmo identificador `SuperQuinaPrinter`; o pacote local declara `capacitor.android.src = "android"` para descoberta pelo Capacitor.
 - Dependências `@capacitor/core`, `@capacitor/android`, `@capacitor/cli` e pacote local `@superquina/rawbt-printer` foram adicionadas ao `package.json`. O projeto Android será gerado no CI por `npx cap add android`; ainda não há plataforma Android versionada no branch.
-- Foi criado `.github/workflows/android-printer-apk.yml` para instalar dependências, gerar a plataforma Android, sincronizar o plugin, compilar `assembleDebug` e publicar o APK como artefato. O workflow ainda não foi executado; não há APK disponível nem resultado de compilação/testes desta etapa.
+- Foi criado `.github/workflows/android-printer-apk.yml` para instalar dependências, gerar a plataforma Android, sincronizar o plugin, compilar `assembleDebug` e publicar o APK como artefato. O workflow foi executado no HEAD anterior e o TypeScript passou, mas o lint falhou por dois efeitos React na tela da impressora. A correção foi enviada à branch; a nova execução precisa concluir lint, testes, sincronização Capacitor e compilação antes de existir um APK validado.
 - O comando ESC/POS de QR é padronizado, mas precisa ser validado no firmware real; o autoteste mostra QR interno, o que não garante suporte a todos os comandos GS ( k).
 
 ## Observação operacional
