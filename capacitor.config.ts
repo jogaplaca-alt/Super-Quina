@@ -7,8 +7,6 @@ const config = {
   server: {
     // The Next.js application and its API routes remain hosted on the server.
     url: "https://superquina.com/cashier-app-login",
-    // Identifies the dedicated cashier WebView so the server can keep app navigation scoped.
-    appendUserAgent: " SuperQuinaCashierApp/1",
     cleartext: false,
   },
   android: {
