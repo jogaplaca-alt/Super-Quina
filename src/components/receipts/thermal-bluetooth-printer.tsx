@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react";
 import { getRawBtPrinter, type PairedPrinter } from "@/modules/printing/client/rawbt-printer-bridge";
 import { printOfficialPurchaseReceipt } from "@/modules/printing/client/print-official-purchase-receipt";
-import type { EscPosProfile } from "@/modules/printing/escpos/encode-thermal-receipt";
+import { PRINTER_CHARACTER_MAPS, type EscPosProfile } from "@/modules/printing/escpos/encode-thermal-receipt";
 
 type PaperPreset = "58-a" | "58-b" | "80-a" | "80-b" | "custom";
 type PrinterEncoding = "cp860" | "cp850" | "wpc1252";
 const ENCODING_OPTIONS: Record<PrinterEncoding, { label: string; command: number; map: Readonly<Record<string, number>> }> = {
-  cp860: { label: "CP860 — Português (recomendado)", command: 3, map: { "á": 0xa0, "à": 0x85, "â": 0x83, "ã": 0x84, "Á": 0x86, "À": 0x91, "Â": 0x8f, "Ã": 0x8e, "é": 0x82, "ê": 0x88, "É": 0x90, "Ê": 0x89, "í": 0xa1, "Í": 0x8b, "ó": 0xa2, "ô": 0x93, "õ": 0x94, "Ó": 0x9f, "Ô": 0x8c, "Õ": 0x99, "ú": 0xa3, "Ú": 0x96, "ç": 0x87, "Ç": 0x80, "ñ": 0xa4, "Ñ": 0xa5, "º": 0xa7, "ª": 0xa6 } },
-  cp850: { label: "CP850 — Multilingual", command: 2, map: { "á": 0xa0, "à": 0x85, "â": 0x83, "ã": 0xc6, "Á": 0xb5, "À": 0xb7, "Â": 0xb6, "Ã": 0xc7, "é": 0x82, "ê": 0x88, "É": 0x90, "Ê": 0xd2, "í": 0xa1, "ó": 0xa2, "ô": 0x93, "õ": 0xe4, "ú": 0xa3, "ç": 0x87, "Ç": 0x80, "ñ": 0xa4, "Ñ": 0xa5 } },
-  wpc1252: { label: "WPC1252 — Windows Latin 1", command: 18, map: { "á": 0xe1, "à": 0xe0, "â": 0xe2, "ã": 0xe3, "ä": 0xe4, "Á": 0xc1, "À": 0xc0, "Â": 0xc2, "Ã": 0xc3, "Ä": 0xc4, "é": 0xe9, "è": 0xe8, "ê": 0xea, "É": 0xc9, "È": 0xc8, "Ê": 0xca, "í": 0xed, "Í": 0xcd, "ó": 0xf3, "ô": 0xf4, "õ": 0xf5, "Ó": 0xd3, "Ô": 0xd4, "Õ": 0xd5, "ú": 0xfa, "Ú": 0xda, "ç": 0xe7, "Ç": 0xc7, "ñ": 0xf1, "Ñ": 0xd1, "º": 0xba, "ª": 0xaa } },
+  cp860: { label: "CP860 — Português (recomendado)", command: 3, map: PRINTER_CHARACTER_MAPS.cp860 },
+  cp850: { label: "CP850 — Multilingual", command: 2, map: PRINTER_CHARACTER_MAPS.cp850 },
+  wpc1252: { label: "WPC1252 — Windows Latin 1", command: 18, map: PRINTER_CHARACTER_MAPS.wpc1252 },
 };
 const PROFILE_PRESETS: Record<Exclude<PaperPreset, "custom">, EscPosProfile> = {
   "58-a": { paperWidthMm: 58, columns: 32, fontMode: "A", copies: 1, feedLines: 3, qrCode: true, unsupportedCharacter: "transliterate" },
