@@ -7,10 +7,10 @@ import type { EscPosProfile } from "@/modules/printing/escpos/encode-thermal-rec
 
 type PaperPreset = "58-a" | "58-b" | "80-a" | "80-b" | "custom";
 const PROFILE_PRESETS: Record<Exclude<PaperPreset, "custom">, EscPosProfile> = {
-  "58-a": { paperWidthMm: 58, columns: 32, copies: 1, feedLines: 3, qrCode: true, unsupportedCharacter: "transliterate" },
-  "58-b": { paperWidthMm: 58, columns: 42, copies: 1, feedLines: 3, qrCode: true, unsupportedCharacter: "transliterate" },
-  "80-a": { paperWidthMm: 80, columns: 48, copies: 1, feedLines: 3, qrCode: true, unsupportedCharacter: "transliterate" },
-  "80-b": { paperWidthMm: 80, columns: 64, copies: 1, feedLines: 3, qrCode: true, unsupportedCharacter: "transliterate" },
+  "58-a": { paperWidthMm: 58, columns: 32, fontMode: "A", copies: 1, feedLines: 3, qrCode: true, unsupportedCharacter: "transliterate" },
+  "58-b": { paperWidthMm: 58, columns: 42, fontMode: "B", copies: 1, feedLines: 3, qrCode: true, unsupportedCharacter: "transliterate" },
+  "80-a": { paperWidthMm: 80, columns: 48, fontMode: "A", copies: 1, feedLines: 3, qrCode: true, unsupportedCharacter: "transliterate" },
+  "80-b": { paperWidthMm: 80, columns: 64, fontMode: "B", copies: 1, feedLines: 3, qrCode: true, unsupportedCharacter: "transliterate" },
 };
 const PROFILE_STORAGE_KEY = "superquina-printer-profile-v2";
 
@@ -26,6 +26,7 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
   const [paperPreset, setPaperPreset] = useState<PaperPreset>("58-a");
   const [customWidth, setCustomWidth] = useState<58 | 80>(58);
   const [customColumns, setCustomColumns] = useState(32);
+  const [customFontMode, setCustomFontMode] = useState<"A" | "B">("A");
 
   useEffect(() => {
     if (!selectedId) return;
@@ -35,28 +36,31 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
         setPaperPreset("58-a");
         setCustomWidth(58);
         setCustomColumns(32);
+        setCustomFontMode("A");
         return;
       }
-      const parsed = JSON.parse(saved) as { preset?: PaperPreset; width?: 58 | 80; columns?: number };
+      const parsed = JSON.parse(saved) as { preset?: PaperPreset; width?: 58 | 80; columns?: number; fontMode?: "A" | "B" };
       setPaperPreset(parsed.preset && ["58-a", "58-b", "80-a", "80-b", "custom"].includes(parsed.preset) ? parsed.preset : "58-a");
       setCustomWidth(parsed.width === 80 ? 80 : 58);
       setCustomColumns(Number.isInteger(parsed.columns) && parsed.columns! >= 16 && parsed.columns! <= 96 ? parsed.columns! : 32);
+      setCustomFontMode(parsed.fontMode === "B" ? "B" : "A");
     } catch {
       setPaperPreset("58-a");
       setCustomWidth(58);
       setCustomColumns(32);
+      setCustomFontMode("A");
     }
   }, [selectedId]);
 
   const selectedProfile: EscPosProfile = paperPreset === "custom"
-    ? { paperWidthMm: customWidth, columns: customColumns, copies: 1, feedLines: 3, qrCode: true, unsupportedCharacter: "transliterate" }
+    ? { paperWidthMm: customWidth, columns: customColumns, fontMode: customFontMode, copies: 1, feedLines: 3, qrCode: true, unsupportedCharacter: "transliterate" }
     : PROFILE_PRESETS[paperPreset];
 
-  function savePaperProfile(preset: PaperPreset, width = customWidth, columns = customColumns) {
+  function savePaperProfile(preset: PaperPreset, width = customWidth, columns = customColumns, fontMode = customFontMode) {
     setPaperPreset(preset);
     if (!selectedId) return;
     try {
-      localStorage.setItem(`${PROFILE_STORAGE_KEY}:${selectedId}`, JSON.stringify({ preset, width, columns }));
+      localStorage.setItem(`${PROFILE_STORAGE_KEY}:${selectedId}`, JSON.stringify({ preset, width, columns, fontMode }));
     } catch { /* Settings remain usable for this session. */ }
   }
 
@@ -135,11 +139,13 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
     setNotice("");
     try {
       const testBytes = new Uint8Array([
-        0x1b, 0x40, 0x1b, 0x61, 0x01, 0x1b, 0x45, 0x01,
+        0x1b, 0x40, 0x1b, 0x4d, selectedProfile.fontMode === "B" ? 0x01 : 0x00,
+        0x1b, 0x61, 0x01, 0x1b, 0x45, 0x01,
         ...Array.from("SUPER QUINA", (char) => char.charCodeAt(0)), 0x0a,
         0x1b, 0x45, 0x00,
         ...Array.from("TESTE DE IMPRESSAO", (char) => char.charCodeAt(0)), 0x0a,
         ...Array.from(`PAPEL ${selectedProfile.paperWidthMm} MM - ${selectedProfile.columns} COLUNAS`, (char) => char.charCodeAt(0)), 0x0a,
+        ...Array.from("-".repeat(selectedProfile.columns), (char) => char.charCodeAt(0)), 0x0a,
         ...Array.from("ESTE TESTE NAO E UM RECIBO", (char) => char.charCodeAt(0)), 0x0a,
         0x0a, 0x0a, 0x0a,
       ]);
@@ -195,6 +201,10 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
           </select>
           <label htmlFor="superquina-paper-columns">Colunas de impressão</label>
           <input id="superquina-paper-columns" type="number" min={16} max={96} value={customColumns} onChange={(event) => { const columns = Math.max(16, Math.min(96, Number(event.target.value) || 16)); setCustomColumns(columns); savePaperProfile("custom", customWidth, columns); }} />
+          <label htmlFor="superquina-paper-font">Fonte ESC/POS</label>
+          <select id="superquina-paper-font" value={customFontMode} onChange={(event) => { const fontMode = event.target.value as "A" | "B"; setCustomFontMode(fontMode); savePaperProfile("custom", customWidth, customColumns, fontMode); }}>
+            <option value="A">Fonte A (mais larga)</option><option value="B">Fonte B (mais estreita)</option>
+          </select>
         </div>}
         <label htmlFor="superquina-printer-select">Impressora pareada</label>
         <select
