@@ -1,6 +1,6 @@
 import { registerPlugin } from "@capacitor/core";
-import type { RawBtPrinterPlugin } from "./definitions";
+import type { SuperQuinaPrinterPlugin } from "./definitions";
 
 export * from "./definitions";
 
-export const RawBtPrinter = registerPlugin<RawBtPrinterPlugin>("RawBtPrinter");
+export const SuperQuinaPrinter = registerPlugin<RawBtPrinterPlugin>("RawBtPrinter");
