@@ -1,37 +1,27 @@
-# Super Quina Bluetooth Printer
+# Super Quina — Impressora Bluetooth
 
-Standalone Android app whose only purpose is to connect to a paired Bluetooth Classic thermal printer and print receipt data sent by the website.
+Aplicativo Android independente que registra impressoras térmicas Bluetooth pareadas como destinos na interface padrão de impressão do Android.
 
-## Required user experience (direct print; no PDF)
+## Fluxo pretendido
 
-1. Install the app and pair the 58 mm ESC/POS printer in Android Bluetooth settings.
-2. Open Super Quina in Chrome.
-3. Generate a receipt and tap the site's **Print** button.
-4. The website launches this app through an Android intent/deep link and passes structured receipt data.
-5. The app sends ESC/POS bytes directly to the selected paired printer over Bluetooth SPP/RFCOMM.
+1. Parear a impressora térmica Bluetooth nas configurações do Android.
+2. Ativar o serviço Super Quina nas configurações de impressão do Android.
+3. Abrir o site no Chrome e tocar em Imprimir recibo.
+4. O Chrome/Android abre a interface padrão de impressão e sua pré-visualização.
+5. Selecionar a impressora Bluetooth anunciada pelo aplicativo e tocar em Imprimir.
+6. O serviço recebe o trabalho do Android, renderiza as páginas em memória, converte o conteúdo para raster ESC/POS e transmite pela conexão Bluetooth.
 
-No PDF is downloaded, saved, opened, or sent to this app. The app does not host the website and does not implement login, sales, payments, or receipt generation.
+## Papel do aplicativo
 
-## Important Android distinction
+- É somente a ponte entre o Android Print Framework e a impressora Bluetooth.
+- Não hospeda o site, não faz login, vendas, pagamentos ou geração de recibos.
+- Não exige que o usuário baixe, salve ou abra um PDF.
+- O Android pode usar um documento interno de spool para transportar o trabalho. O serviço precisa consumir esse conteúdo para convertê-lo ao formato da impressora. Isso é interno, não é um download apresentado ao usuário.
 
-The standard Chrome **system print dialog** uses Android's Print Framework and a document spool (typically PDF internally). That is a different integration and cannot satisfy the strict no-document-spool requirement. This project therefore targets a direct website-to-app Android intent integration. The website's print button must explicitly launch the app; merely tapping Chrome's generic system print command will not invoke this direct protocol.
+## Estado atual
 
-## Components
+O projeto foi corrigido para usar o Android Print Framework. O manifesto registra o PrintService e o serviço anuncia dispositivos Bluetooth Classic já pareados como destinos de impressão, com capacidade inicial para bobina monocromática de 58 mm.
 
-- Android manifest and runtime Bluetooth permissions, including Android 12+ `BLUETOOTH_CONNECT`.
-- Deep-link receiver for `superquina-printer://print` (initial protocol; production hardening required).
-- Paired Bluetooth Classic device selection and SPP/RFCOMM connection.
-- ESC/POS receipt encoder for 58 mm printers.
-- Job state, error handling, and safe retry behavior.
+A impressão real ainda NÃO está concluída. Faltam a tela de configuração/permissões, seleção persistente da impressora, renderização do documento recebido, conversão ESC/POS, transporte Bluetooth e testes físicos. O serviço atual recebe o trabalho e o encerra com uma mensagem de implementação pendente. Não considerar este código um APK pronto.
 
-## Payload contract (draft)
-
-The website launches a user-initiated Android intent with a URL-safe Base64-encoded UTF-8 JSON receipt payload. The payload should contain only receipt content and formatting data (text lines, emphasis, alignment, QR/barcode data, feed/cut options), never credentials or payment secrets. Keep payloads small; for large jobs use a short-lived authenticated fetch token instead of embedding the whole receipt in the URI. Validate origin/authorization and payload schema before printing.
-
-## Scope and licensing
-
-RawBT source/assets are not copied. This is an independent implementation of the required Android/Bluetooth/ESC/POS behavior. Third-party code may be included only after checking that its license permits the intended use and preserving required notices.
-
-## Current status
-
-This branch contains an initial Android project scaffold and an intent entry point. Bluetooth connection, real ESC/POS encoding, robust payload validation, website integration, and physical-device testing are still pending. Do not treat the current scaffold as a finished or tested APK.
+A compatibilidade final depende do perfil Bluetooth/SPP, da resolução e dos comandos ESC/POS suportados pela impressora real.
