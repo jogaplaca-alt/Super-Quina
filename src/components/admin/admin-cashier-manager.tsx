@@ -29,12 +29,11 @@ type FormState = {
   address: string;
   referencePoint: string;
   suppliesMaterial: boolean;
-  suppliesMaterial: boolean;
   status: "ACTIVE" | "BLOCKED";
 };
 
 const emptyForm: FormState = {
-  fullName: "", username: "", password: "", whatsapp: "", city: "", address: "", referencePoint: "", suppliesMaterial: false, suppliesMaterial: false, status: "ACTIVE",
+  fullName: "", username: "", password: "", whatsapp: "", city: "", address: "", referencePoint: "", suppliesMaterial: false, status: "ACTIVE",
 };
 
 const money = (cents: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
