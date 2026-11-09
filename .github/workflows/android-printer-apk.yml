@@ -44,6 +44,11 @@ jobs:
         run: npm install --no-audit --no-fund
 
       - name: Generate Prisma client
+        # Prisma 7 loads DATABASE_URL while reading prisma.config.ts, even though
+        # client generation does not connect to a database. Use a local-only
+        # placeholder; never expose production database credentials in this APK job.
+        env:
+          DATABASE_URL: postgresql://build:build@127.0.0.1:5432/superquina_build
         run: npm run db:generate
 
       - name: TypeScript validation
