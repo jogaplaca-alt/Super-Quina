@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getRawBtPrinter, type PairedPrinter } from "@/modules/printing/client/rawbt-printer-bridge";
+import { getSavedCashierPrinterId } from "@/modules/printing/client/printer-selection";
 import { printOfficialPurchaseReceipt } from "@/modules/printing/client/print-official-purchase-receipt";
 import { PRINTER_CHARACTER_MAPS, type EscPosProfile } from "@/modules/printing/escpos/encode-thermal-receipt";
 
@@ -10,7 +11,7 @@ type PrinterEncoding = "cp860" | "cp850" | "wpc1252";
 const ENCODING_OPTIONS: Record<PrinterEncoding, { label: string; command: number; map: Readonly<Record<string, number>> }> = {
   cp860: { label: "CP860 — Português (recomendado)", command: 3, map: PRINTER_CHARACTER_MAPS.cp860 },
   cp850: { label: "CP850 — Multilingual", command: 2, map: PRINTER_CHARACTER_MAPS.cp850 },
-  wpc1252: { label: "WPC1252 — Windows Latin 1", command: 18, map: PRINTER_CHARACTER_MAPS.wpc1252 },
+  wpc1252: { label: "WPC1252 — Windows Latin 1 (perfil OY)", command: 11, map: PRINTER_CHARACTER_MAPS.wpc1252 },
 };
 const PROFILE_PRESETS: Record<Exclude<PaperPreset, "custom">, EscPosProfile> = {
   "58-a": { paperWidthMm: 58, columns: 32, fontMode: "A", copies: 1, feedLines: 3, qrCode: true, unsupportedCharacter: "transliterate" },
@@ -78,16 +79,17 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
         printer.getConnectionState(),
       ]);
       setDevices(result.devices);
-      const nextSelectedId =
-        selectedId && result.devices.some((device) => device.id === selectedId)
-          ? selectedId
-          : state.connected && result.devices.some((device) => device.id === state.deviceId)
-            ? state.deviceId!
-            : result.devices[0]?.id ?? "";
+      const savedPrinterId = getSavedCashierPrinterId();
+      const nextSelectedId = savedPrinterId && result.devices.some((device) => device.id === savedPrinterId)
+        ? savedPrinterId
+        : "";
       setSelectedId(nextSelectedId);
       if (nextSelectedId) loadPaperProfile(nextSelectedId);
-      setConnectedId(state.connected ? state.deviceId ?? "" : "");
-      setConnectedName(state.connected ? state.name ?? "" : "");
+      const selectedIsConnected = Boolean(nextSelectedId && state.connected && state.deviceId === nextSelectedId);
+      setConnectedId(selectedIsConnected ? nextSelectedId : "");
+      setConnectedName(selectedIsConnected ? state.name ?? "" : "");
+      if (!savedPrinterId) setNotice("Configure e salve uma impressora na seção Impressão da área do cambista antes de imprimir.");
+      else if (!nextSelectedId) setNotice("A impressora salva não está pareada neste aparelho. Volte à configuração de impressão e selecione outra.");
       if (result.devices.length === 0) {
         setNotice("Nenhuma impressora pareada. Pareie a impressora nas configurações Bluetooth do Android e atualize a lista.");
       }
@@ -121,7 +123,10 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
   }
 
   async function connectPrinter() {
-    if (!selectedId) return;
+    if (!selectedId || selectedId !== getSavedCashierPrinterId()) {
+      setError("A impressora selecionada não corresponde à impressora salva na configuração do cambista.");
+      return;
+    }
     setLoading(true);
     setError("");
     setNotice("");
@@ -183,8 +188,12 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
   }
 
   async function printReceipt() {
-    const device = devices.find((item) => item.id === connectedId);
-    if (!device || printing) return;
+    const savedPrinterId = getSavedCashierPrinterId();
+    const device = devices.find((item) => item.id === connectedId && item.id === savedPrinterId && item.id === selectedId);
+    if (!device || printing) {
+      setError("Conecte a impressora salva na configuração do cambista antes de imprimir.");
+      return;
+    }
     setPrinting(true);
     setError("");
     setNotice("");
@@ -206,7 +215,7 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
   return (
     <section className="thermal-bluetooth-printer" aria-label="Configuração da impressora térmica">
       <h3>Impressora térmica Bluetooth</h3>
-      <p>1. Emparelhe a impressora nas configurações Bluetooth do Android. 2. Atualize a lista e selecione explicitamente a impressora. 3. Conecte antes de imprimir.</p>
+      <p>A impressora é selecionada e salva na configuração do caixa. Este painel usa somente esse dispositivo; não escolhe outra impressora automaticamente.</p>
       <div className="thermal-printer-controls">
         <label htmlFor="superquina-paper-profile">Largura e perfil do papel</label>
         <select id="superquina-paper-profile" value={paperPreset} onChange={(event) => savePaperProfile(event.target.value as PaperPreset)}>
@@ -228,7 +237,7 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
             <option value="A">Fonte A (mais larga)</option><option value="B">Fonte B (mais estreita)</option>
           </select>
         </div>}
-        <label htmlFor="superquina-printer-encoding">Codificação de caracteres</label>\n        <select id="superquina-printer-encoding" value={encoding} onChange={(event) => { const value = event.target.value as PrinterEncoding; setEncoding(value); if (selectedId) { try { const saved = localStorage.getItem(`${PROFILE_STORAGE_KEY}:${selectedId}`); const parsed = saved ? JSON.parse(saved) as Record<string, unknown> : {}; localStorage.setItem(`${PROFILE_STORAGE_KEY}:${selectedId}`, JSON.stringify({ ...parsed, encoding: value })); } catch { /* Keep the selection for this session. */ } } }}>\n          {Object.entries(ENCODING_OPTIONS).map(([value, option]) => <option key={value} value={value}>{option.label}</option>)}\n        </select>\n        <label htmlFor="superquina-printer-select">Impressora pareada</label>
+        <label htmlFor="superquina-printer-encoding">Codificação de caracteres</label>\n        <select id="superquina-printer-encoding" value={encoding} onChange={(event) => { const value = event.target.value as PrinterEncoding; setEncoding(value); if (selectedId) { try { const saved = localStorage.getItem(`${PROFILE_STORAGE_KEY}:${selectedId}`); const parsed = saved ? JSON.parse(saved) as Record<string, unknown> : {}; localStorage.setItem(`${PROFILE_STORAGE_KEY}:${selectedId}`, JSON.stringify({ ...parsed, encoding: value })); } catch { /* Keep the selection for this session. */ } } }}>\n          {Object.entries(ENCODING_OPTIONS).map(([value, option]) => <option key={value} value={value}>{option.label}</option>)}\n        </select>\n        <label htmlFor="superquina-printer-select">Impressora configurada no caixa</label>
         <select
           id="superquina-printer-select"
           value={selectedId}
