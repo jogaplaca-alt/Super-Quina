@@ -19,7 +19,7 @@ function request(method = "GET", body?: unknown, origin = "https://example.test"
   });
 }
 const profile = { fullName: "Cashier Test", username: "Cashier.One", password: "secret123", whatsapp: "+55 (77) 99123-4567", suppliesMaterial: true };
-const created = { id: "cashier-123456", username: "cashier.one", fullName: "Cashier Test", whatsapp: "5577991234567", suppliesMaterial: true, suppliesMaterial: false, commissionRateBasisPoints: 1000, status: "ACTIVE", createdAt: new Date("2026-01-01T00:00:00Z") };
+const created = { id: "cashier-123456", username: "cashier.one", fullName: "Cashier Test", whatsapp: "5577991234567", suppliesMaterial: true, commissionRateBasisPoints: 1000, status: "ACTIVE", createdAt: new Date("2026-01-01T00:00:00Z") };
 
 describe("admin cashiers collection API", () => {
   beforeEach(() => {
