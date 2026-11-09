@@ -11,12 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function CashierPage() {
   const user = await requireRole("CASHIER");
   return (
-    <AreaShell title="Área do cambista" username={user.username} compact logoutRedirectTo="/cashier-app-login" footerContent={
-      <details className="cashier-printer-settings">
-        <summary>Configurar impressora Bluetooth</summary>
-        <ThermalBluetoothPrinter />
-      </details>
-    }>
+    <AreaShell title="Área do cambista" username={user.username} compact logoutRedirectTo="/cashier-app-login">
       <CashierSaleForm />
       <section className="cashier-info-card" aria-label="Informações do cambista">
         <CashierPrizePayout />
@@ -28,6 +23,13 @@ export default async function CashierPage() {
           <PlayerRecentResults />
         </details>
         <CashierSalesSummary />
+        <details className="player-collapsible-section cashier-printer-settings">
+          <summary>
+            <span className="player-collapsible-label">IMPRESSÃO</span>
+            <span className="player-collapsible-title">Configurar impressora Bluetooth</span>
+          </summary>
+          <ThermalBluetoothPrinter />
+        </details>
       </section>
     </AreaShell>
   );
