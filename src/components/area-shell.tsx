@@ -3,16 +3,11 @@ import { LogoutButton } from "@/components/auth/logout-button";
 import { SiteHeader } from "@/components/site-header";
 
 type Props = {
-  title: string;
-  username: string;
-  description?: string;
   compact?: boolean;
-  logoOnlyHeader?: boolean;
-  logoutAtBottom?: boolean;
+  headerHomeLink?: boolean;
   logoutRedirectTo?: string;
   children: ReactNode;
   footerContent?: ReactNode;
-  headerHomeLink?: boolean;
 };
 
 export function AreaShell({ children, compact = false, footerContent, logoutRedirectTo, headerHomeLink = true }: Props) {
