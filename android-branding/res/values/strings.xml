@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Super Quina</string>
+    <string name="title_activity_main">Super Quina</string>
+    <string name="package_name">com.superquina.app</string>
+    <string name="custom_url_scheme">com.superquina.app</string>
+</resources>
