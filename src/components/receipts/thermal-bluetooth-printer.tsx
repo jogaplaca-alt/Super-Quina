@@ -126,6 +126,7 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
         purchaseId,
         deviceId: device.id,
         deviceName: device.name,
+        profile: selectedProfile,
       });
       setNotice(`Dados enviados à impressora (${result.bytesWritten} bytes). Confira se o recibo saiu corretamente. O Android não confirma a saída física do papel.`);
     } catch (reason) {
