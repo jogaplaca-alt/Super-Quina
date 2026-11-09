@@ -6,7 +6,7 @@ const config = {
   webDir: "www",
   server: {
     // The Next.js application and its API routes remain hosted on the server.
-    url: "https://superquina.com",
+    url: "https://superquina.com/cashier-app-login",
     cleartext: false,
   },
   android: {
