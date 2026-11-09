@@ -5,7 +5,7 @@ type UserRole = "PLAYER" | "CASHIER" | "ADMIN";
 type SessionResponse = { authenticated: true; user: { role: UserRole; mustChangePassword: boolean } };
 const destinationByRole = { PLAYER: "/player", CASHIER: "/cashier", ADMIN: "/admin" } as const;
 
-export function LoginForm({ allowedRole }: { allowedRole?: UserRole } = {}) {
+export function LoginForm({ allowedRole, endpoint = "/api/auth/login" }: { allowedRole?: UserRole; endpoint?: string } = {}) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -17,7 +17,7 @@ export function LoginForm({ allowedRole }: { allowedRole?: UserRole } = {}) {
     setError("");
     setIsSubmitting(true);
     try {
-      const login = await fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, password }) });
+      const login = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, password }) });
       if (!login.ok) {
         setError(login.status === 401 ? "Usuário ou senha inválidos." : "Não foi possível entrar agora. Tente novamente.");
         return;
