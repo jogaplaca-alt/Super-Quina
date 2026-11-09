@@ -64,20 +64,25 @@ describe("encodeThermalReceipt", () => {
     expect(Array.from(bytes)).toContain(0xe3);
   });
 
-  it("encodes Portuguese accents using the configured CP860 character map", () => {
-    const sample = "á à â ã Á À Â Ã é ê É Ê í Í ó ô õ Ó Ô Õ ú Ú ç Ç ñ Ñ º ª";
-    const bytes = encodeThermalReceipt({ ...receipt, customerLabel: sample }, {
-      ...profile,
-      codePageCommand: 3,
-      characterMap: PRINTER_CHARACTER_MAPS.cp860,
-    });
-    const sequence = [0x1b, 0x74, 0x03];
-    expect(Array.from(bytes).some((_, index) =>
-      sequence.every((value, offset) => bytes[index + offset] === value),
-    )).toBe(true);
-    for (const byte of Object.values(PRINTER_CHARACTER_MAPS.cp860)) {
-      expect(Array.from(bytes)).toContain(byte);
+  it("encodes configured CP850 characters to their exact bytes", () => {
+    for (const [character, expectedByte] of Object.entries(PRINTER_CHARACTER_MAPS.cp850)) {
+      const bytes = encodeThermalReceipt({ ...receipt, customerLabel: character }, {
+        ...profile, characterMap: PRINTER_CHARACTER_MAPS.cp850,
+      });
+      const prefix = Array.from("CLIENTE: ", (value) => value.charCodeAt(0));
+      const offset = Array.from(bytes).findIndex((_, index) => prefix.every((value, i) => bytes[index + i] === value));
+      expect(offset).toBeGreaterThanOrEqual(0);
+      expect(bytes[offset + prefix.length]).toBe(expectedByte);
     }
+  });
+
+  it("selects the OY profile WPC1252 code page command", () => {
+    const bytes = encodeThermalReceipt({ ...receipt, customerLabel: "João" }, {
+      ...profile, codePageCommand: 11, characterMap: PRINTER_CHARACTER_MAPS.wpc1252,
+    });
+    const sequence = [0x1b, 0x74, 0x0b];
+    expect(Array.from(bytes).some((_, index) => sequence.every((value, offset) => bytes[index + offset] === value))).toBe(true);
+    expect(Array.from(bytes)).toContain(0xe3);
   });
 
   it("does not send a cutter command unless the profile opts in", () => {
