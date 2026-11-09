@@ -12,12 +12,13 @@ type Props = {
   logoutRedirectTo?: string;
   children: ReactNode;
   footerContent?: ReactNode;
+  headerHomeLink?: boolean;
 };
 
-export function AreaShell({ children, compact = false, footerContent, logoutRedirectTo }: Props) {
+export function AreaShell({ children, compact = false, footerContent, logoutRedirectTo, headerHomeLink = true }: Props) {
   return (
     <main className={`area-page${compact ? " area-page-compact" : ""}`}>
-      <SiteHeader />
+      <SiteHeader homeLink={headerHomeLink} />
       <section className={`area-content${compact ? " area-content-compact" : ""}`}>{children}</section>
       <footer
         className="area-logout-footer"
