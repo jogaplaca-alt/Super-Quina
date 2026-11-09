@@ -79,7 +79,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
           status: parsed.data.status,
           ...(passwordHash ? { passwordHash, mustChangePassword: true } : {}),
         },
-        select: { id: true, username: true, fullName: true, whatsapp: true, city: true, address: true, referencePoint: true, suppliesMaterial: true, suppliesMaterial: true, commissionRateBasisPoints: true, status: true, createdAt: true },
+        select: { id: true, username: true, fullName: true, whatsapp: true, city: true, address: true, referencePoint: true, suppliesMaterial: true, commissionRateBasisPoints: true, status: true, createdAt: true },
       });
       await tx.auditEvent.create({ data: {
         actorId: auth.user.id, action: "CASHIER_UPDATED", entityType: "User", entityId: cashier.id,
