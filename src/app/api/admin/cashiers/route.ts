@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
       });
       await tx.auditEvent.create({ data: {
         actorId: auth.user.id, action: "CASHIER_CREATED", entityType: "User", entityId: created.id,
-        metadata: { username: created.username, fullName: created.fullName, whatsapp: created.whatsapp, city: created.city, address: created.address, referencePoint: created.referencePoint, suppliesMaterial: created.suppliesMaterial, suppliesMaterial: created.suppliesMaterial, commissionRateBasisPoints: created.commissionRateBasisPoints },
+        metadata: { username: created.username, fullName: created.fullName, whatsapp: created.whatsapp, city: created.city, address: created.address, referencePoint: created.referencePoint, suppliesMaterial: created.suppliesMaterial, commissionRateBasisPoints: created.commissionRateBasisPoints },
       } });
       return created;
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
