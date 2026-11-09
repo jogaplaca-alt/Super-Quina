@@ -49,6 +49,130 @@ public class RawBtPrinterPlugin extends Plugin {
 
 
     @PluginMethod
+    public void discoverDevices(PluginCall call) {
+        if (!ensureScanPermission(call)) return;
+        ioExecutor.execute(() -> {
+            BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+            if (adapter == null || !adapter.isEnabled()) {
+                call.reject("Ative o Bluetooth para localizar a impressora.", "BLUETOOTH_DISABLED");
+                return;
+            }
+            try {
+                if (adapter.isDiscovering()) adapter.cancelDiscovery();
+                JSArray found = new JSArray();
+                Set<String> seen = new java.util.HashSet<>();
+                for (BluetoothDevice device : adapter.getBondedDevices()) {
+                    JSObject item = new JSObject();
+                    item.put("id", device.getAddress());
+                    item.put("name", safeDeviceName(device));
+                    item.put("paired", true);
+                    found.put(item);
+                    seen.add(device.getAddress());
+                }
+                final android.content.BroadcastReceiver[] receiver = new android.content.BroadcastReceiver[1];
+                final android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
+                final Runnable finish = () -> {
+                    try { if (adapter.isDiscovering()) adapter.cancelDiscovery(); } catch (SecurityException ignored) { }
+                    if (receiver[0] != null) {
+                        try { getContext().unregisterReceiver(receiver[0]); } catch (Exception ignored) { }
+                    }
+                    JSObject result = new JSObject();
+                    result.put("devices", found);
+                    call.resolve(result);
+                };
+                receiver[0] = new android.content.BroadcastReceiver() {
+                    @Override public void onReceive(android.content.Context context, android.content.Intent intent) {
+                        String action = intent.getAction();
+                        if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                            if (device == null) return;
+                            try {
+                                String id = device.getAddress();
+                                if (seen.add(id)) {
+                                    JSObject item = new JSObject();
+                                    item.put("id", id);
+                                    item.put("name", safeDeviceName(device));
+                                    item.put("paired", device.getBondState() == BluetoothDevice.BOND_BONDED);
+                                    found.put(item);
+                                }
+                            } catch (SecurityException ignored) { }
+                        } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+                            handler.removeCallbacks(finish);
+                            finish.run();
+                        }
+                    }
+                };
+                android.content.IntentFilter filter = new android.content.IntentFilter(BluetoothDevice.ACTION_FOUND);
+                filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+                if (Build.VERSION.SDK_INT >= 33) {
+                    getContext().registerReceiver(receiver[0], filter, android.content.Context.RECEIVER_NOT_EXPORTED);
+                } else {
+                    getContext().registerReceiver(receiver[0], filter);
+                }
+                if (!adapter.startDiscovery()) {
+                    finish.run();
+                    return;
+                }
+                handler.postDelayed(finish, 18000);
+            } catch (SecurityException error) {
+                call.reject("Permissão para localizar dispositivos Bluetooth negada.", "PERMISSION_DENIED");
+            } catch (Exception error) {
+                call.reject("Não foi possível procurar impressoras Bluetooth.", "DISCOVERY_FAILED");
+            }
+        });
+    }
+
+    @PluginMethod
+    public void pairDevice(PluginCall call) {
+        String deviceId = call.getString("deviceId");
+        if (deviceId == null || !deviceId.matches("(?i)[0-9A-F]{2}(:[0-9A-F]{2}){5}")) {
+            call.reject("Identificador da impressora inválido.", "INVALID_DEVICE_ID");
+            return;
+        }
+        if (!ensureConnectPermission(call, "pair")) return;
+        ioExecutor.execute(() -> {
+            try {
+                BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+                if (adapter == null || !adapter.isEnabled()) {
+                    call.reject("Ative o Bluetooth antes de emparelhar.", "BLUETOOTH_DISABLED");
+                    return;
+                }
+                BluetoothDevice device = adapter.getRemoteDevice(deviceId);
+                if (device.getBondState() == BluetoothDevice.BOND_BONDED) {
+                    JSObject result = new JSObject();
+                    result.put("paired", true);
+                    result.put("deviceId", deviceId);
+                    call.resolve(result);
+                    return;
+                }
+                boolean started = device.createBond();
+                if (!started) {
+                    call.reject("O Android não iniciou o emparelhamento. Tente novamente.", "PAIRING_FAILED");
+                    return;
+                }
+                JSObject result = new JSObject();
+                result.put("paired", false);
+                result.put("pairingStarted", true);
+                result.put("deviceId", deviceId);
+                call.resolve(result);
+            } catch (SecurityException error) {
+                call.reject("Permissão Bluetooth não concedida.", "PERMISSION_DENIED");
+            } catch (Exception error) {
+                call.reject("Não foi possível iniciar o emparelhamento.", "PAIRING_FAILED");
+            }
+        });
+    }
+
+    private String safeDeviceName(BluetoothDevice device) {
+        try {
+            String name = device.getName();
+            return name == null || name.trim().isEmpty() ? "Dispositivo Bluetooth" : name;
+        } catch (SecurityException ignored) {
+            return "Dispositivo Bluetooth";
+        }
+    }
+
+    @PluginMethod
     public void openBluetoothSettings(PluginCall call) {
         try {
             android.content.Intent intent = new android.content.Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS);
@@ -261,7 +385,7 @@ public class RawBtPrinterPlugin extends Plugin {
         }
         saveCall(call);
         String callback = "list".equals(operation) ? "listPermissionCallback" :
-            ("connect".equals(operation) ? "connectPermissionCallback" : "sendPermissionCallback");
+            ("connect".equals(operation) ? "connectPermissionCallback" : ("pair".equals(operation) ? "pairPermissionCallback" : "sendPermissionCallback"));
         requestPermissionForAlias("bluetoothConnect", call, callback);
         return false;
     }
@@ -276,6 +400,33 @@ public class RawBtPrinterPlugin extends Plugin {
     private void connectPermissionCallback(PluginCall call) {
         if (hasPermission("bluetoothConnect")) connect(call);
         else call.reject("Permissão para conectar à impressora negada.", "PERMISSION_DENIED");
+    }
+
+    @PermissionCallback
+    private void pairPermissionCallback(PluginCall call) {
+        if (hasPermission("bluetoothConnect")) pairDevice(call);
+        else call.reject("Permissão para emparelhar dispositivos Bluetooth negada.", "PERMISSION_DENIED");
+    }
+
+    private boolean ensureScanPermission(PluginCall call) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (getContext().checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED) return true;
+            saveCall(call);
+            requestPermissionForAlias("bluetoothScan", call, "scanPermissionCallback");
+            return false;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && getContext().checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            saveCall(call);
+            requestPermissionForAlias("location", call, "scanPermissionCallback");
+            return false;
+        }
+        return true;
+    }
+
+    @PermissionCallback
+    private void scanPermissionCallback(PluginCall call) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? hasPermission("bluetoothScan") : hasPermission("location")) discoverDevices(call);
+        else call.reject("Permissão necessária para localizar impressoras Bluetooth não concedida.", "PERMISSION_DENIED");
     }
 
     @PermissionCallback
