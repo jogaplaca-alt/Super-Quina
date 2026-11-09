@@ -1,35 +1,34 @@
-# Implementation plan and acceptance criteria
+# Implementation plan — direct Bluetooth print (no PDF)
 
-## Milestone 1 — System print integration
+## Milestone 1 — Android app and direct handoff
 - [x] Standalone Android Gradle project scaffold.
-- [x] Declare Android PrintService and Bluetooth permissions.
-- [x] Add paired-device discovery entry point.
-- [ ] Add first-run setup activity for Android 12+ runtime permission requests.
-- [ ] Verify service appears in Android Settings > Connected devices/Printing > Print services (menu wording varies by Android vendor).
+- [x] Android Bluetooth permissions declared.
+- [ ] Implement deep-link/intent receiver for website print requests.
+- [ ] Validate and parse receipt payload; reject malformed/oversized requests.
+- [ ] Provide app setup screen to grant runtime permissions and select a paired printer.
 
-## Milestone 2 — Real printer discovery
-- [ ] Publish printer capabilities (58 mm media, supported resolutions, margins, monochrome).
-- [ ] Filter paired devices to supported Bluetooth Classic SPP printers.
-- [ ] Add printer status and reconnect handling.
-- [ ] Test on physical Android device and 58 mm printer.
+## Milestone 2 — Bluetooth
+- [ ] Enumerate paired Bluetooth Classic devices after BLUETOOTH_CONNECT permission.
+- [ ] Let user select and persist the printer.
+- [ ] Connect using BluetoothSocket with the printer's supported SPP UUID.
+- [ ] Handle disabled Bluetooth, disconnects, timeouts and unsupported devices.
 
-## Milestone 3 — PDF spool to ESC/POS
-- [ ] Read Android Print Framework PDF spool from PrintDocument.
-- [ ] Render PDF pages with Android PdfRenderer.
-- [ ] Scale to 58 mm printable width and dither to monochrome.
-- [ ] Encode ESC/POS raster image commands, line feed and optional cut command (only if printer supports it).
+## Milestone 3 — Direct receipt encoding
+- [ ] Define a stable JSON receipt contract shared with the website.
+- [ ] Convert text, alignment, emphasis, QR/barcode and feed/cut options to ESC/POS.
+- [ ] Support 58 mm width and printer-specific printable columns.
+- [ ] Send bytes directly to the Bluetooth socket; no PDF, Android Print Framework or file download.
 
-## Milestone 4 — Job lifecycle and reliability
-- [ ] Process jobs off the main thread.
-- [ ] Support cancellation and disconnect/error reporting.
-- [ ] Never report success before transport write completes.
-- [ ] Avoid silent automatic reprints after uncertain disconnects.
+## Milestone 4 — Website handoff and reliability
+- [ ] Change the website's explicit receipt Print button to launch the Android intent only on Android.
+- [ ] Add fallback/help text if app is not installed; preserve browser printing on other platforms.
+- [ ] Prevent duplicate print requests; use unique job IDs and explicit result acknowledgement.
+- [ ] Never claim a receipt physically printed solely because socket write completed.
+- [ ] Test on physical Android devices and actual 58 mm printers.
 
 ## Acceptance test
-1. Install APK on Android.
-2. Pair the thermal printer in Android Bluetooth settings.
-3. Grant Bluetooth permissions and enable this print service.
-4. Open the site in Chrome and invoke Print.
-5. Confirm the service and printer appear in Android's print UI.
-6. Print a test page and then a real receipt.
-7. Verify text, alignment, QR code, paper width and feed/cut behavior.
+1. Install app and pair printer.
+2. Select printer once in app.
+3. Open site in Chrome, generate receipt and tap its Print button.
+4. App receives receipt data without downloading/opening a PDF.
+5. App sends ESC/POS over Bluetooth and reports connection/send errors clearly.
