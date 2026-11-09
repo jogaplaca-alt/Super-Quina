@@ -50,8 +50,24 @@ public class RawBtPrinterPlugin extends Plugin {
     private String connectedDeviceName;
 
 
+    private boolean ensureTrustedOrigin(PluginCall call) {
+        try {
+            String currentUrl = getBridge().getWebView().getUrl();
+            android.net.Uri uri = android.net.Uri.parse(currentUrl == null ? "" : currentUrl);
+            boolean trusted = "https".equalsIgnoreCase(uri.getScheme())
+                && "superquina.com".equalsIgnoreCase(uri.getHost())
+                && (uri.getPort() == -1 || uri.getPort() == 443);
+            if (!trusted) call.reject("A impressão Bluetooth só pode ser usada dentro do Super Quina.", "UNTRUSTED_ORIGIN");
+            return trusted;
+        } catch (Exception error) {
+            call.reject("Não foi possível validar a origem da página.", "UNTRUSTED_ORIGIN");
+            return false;
+        }
+    }
+
     @PluginMethod
     public void discoverDevices(PluginCall call) {
+        if (!ensureTrustedOrigin(call)) return;
         if (!ensureConnectPermission(call, "discover")) return;
         if (!ensureScanPermission(call)) return;
         ioExecutor.execute(() -> {
@@ -130,6 +146,7 @@ public class RawBtPrinterPlugin extends Plugin {
 
     @PluginMethod
     public void pairDevice(PluginCall call) {
+        if (!ensureTrustedOrigin(call)) return;
         String deviceId = call.getString("deviceId");
         if (deviceId == null || !deviceId.matches("(?i)[0-9A-F]{2}(:[0-9A-F]{2}){5}")) {
             call.reject("Identificador da impressora inválido.", "INVALID_DEVICE_ID");
@@ -180,6 +197,7 @@ public class RawBtPrinterPlugin extends Plugin {
 
     @PluginMethod
     public void openBluetoothSettings(PluginCall call) {
+        if (!ensureTrustedOrigin(call)) return;
         try {
             android.content.Intent intent = new android.content.Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS);
             intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -194,6 +212,7 @@ public class RawBtPrinterPlugin extends Plugin {
 
     @PluginMethod
     public void listPairedDevices(PluginCall call) {
+        if (!ensureTrustedOrigin(call)) return;
         if (!ensureConnectPermission(call, "list")) return;
         ioExecutor.execute(() -> {
             try {
@@ -228,6 +247,7 @@ public class RawBtPrinterPlugin extends Plugin {
 
     @PluginMethod
     public void connect(PluginCall call) {
+        if (!ensureTrustedOrigin(call)) return;
         String deviceId = call.getString("deviceId");
         if (deviceId == null || !deviceId.matches("(?i)[0-9A-F]{2}(:[0-9A-F]{2}){5}")) {
             call.reject("Identificador da impressora inválido.", "INVALID_DEVICE_ID");
@@ -281,6 +301,7 @@ public class RawBtPrinterPlugin extends Plugin {
 
     @PluginMethod
     public void send(PluginCall call) {
+        if (!ensureTrustedOrigin(call)) return;
         String encoded = call.getString("dataBase64");
         if (encoded == null || encoded.isEmpty()) {
             call.reject("Nenhum dado de impressão foi recebido.", "EMPTY_PRINT_DATA");
@@ -335,6 +356,7 @@ public class RawBtPrinterPlugin extends Plugin {
 
     @PluginMethod
     public void disconnect(PluginCall call) {
+        if (!ensureTrustedOrigin(call)) return;
         ioExecutor.execute(() -> {
             closeSocket();
             JSObject result = new JSObject();
@@ -345,6 +367,7 @@ public class RawBtPrinterPlugin extends Plugin {
 
     @PluginMethod
     public void getConnectionState(PluginCall call) {
+        if (!ensureTrustedOrigin(call)) return;
         ioExecutor.execute(() -> {
             JSObject result = new JSObject();
             boolean connected = socket != null && socket.isConnected();
