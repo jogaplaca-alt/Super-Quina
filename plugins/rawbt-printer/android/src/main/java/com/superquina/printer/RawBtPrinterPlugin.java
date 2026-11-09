@@ -74,7 +74,10 @@ public class RawBtPrinterPlugin extends Plugin {
                 }
                 final android.content.BroadcastReceiver[] receiver = new android.content.BroadcastReceiver[1];
                 final android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
+                final AtomicBoolean discoveryFinished = new AtomicBoolean(false);
                 final Runnable finish = () -> {
+                    if (!discoveryFinished.compareAndSet(false, true)) return;
+                    handler.removeCallbacksAndMessages(null);
                     try { if (adapter.isDiscovering()) adapter.cancelDiscovery(); } catch (SecurityException ignored) { }
                     if (receiver[0] != null) {
                         try { getContext().unregisterReceiver(receiver[0]); } catch (Exception ignored) { }
