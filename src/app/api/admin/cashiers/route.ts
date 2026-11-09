@@ -20,6 +20,9 @@ const profileSchema = z.object({
   username: z.string().trim().min(3).max(24).regex(/^[A-Za-z0-9_.-]+$/),
   password: z.string().min(6).max(1024),
   whatsapp: z.string().trim().min(10).max(24),
+  city: z.string().trim().max(120).optional().default(""),
+  address: z.string().trim().max(200).optional().default(""),
+  referencePoint: z.string().trim().max(200).optional().default(""),
   commissionPercent: z.number().finite().min(0).max(100).refine((value) => Number.isInteger(value * 100), "Use até duas casas decimais."),
 }).strict();
 
@@ -48,7 +51,7 @@ export async function GET(request: NextRequest) {
       authPrisma.user.count({ where }),
       authPrisma.user.findMany({
         where,
-        select: { id: true, username: true, fullName: true, whatsapp: true, commissionRateBasisPoints: true, status: true, mustChangePassword: true, createdAt: true },
+        select: { id: true, username: true, fullName: true, whatsapp: true, city: true, address: true, referencePoint: true, commissionRateBasisPoints: true, status: true, mustChangePassword: true, createdAt: true },
         orderBy: [{ status: "asc" }, { username: "asc" }, { id: "asc" }],
         skip: (requestedPage - 1) * requestedLimit,
         take: requestedLimit,
@@ -98,13 +101,14 @@ export async function POST(request: NextRequest) {
         data: {
           username, passwordHash, role: "CASHIER", status: "ACTIVE", mustChangePassword: true,
           fullName: parsed.data.fullName, whatsapp,
+          city: parsed.data.city || null, address: parsed.data.address || null, referencePoint: parsed.data.referencePoint || null,
           commissionRateBasisPoints: Math.round(parsed.data.commissionPercent * 100),
         },
-        select: { id: true, username: true, fullName: true, whatsapp: true, commissionRateBasisPoints: true, status: true, createdAt: true },
+        select: { id: true, username: true, fullName: true, whatsapp: true, city: true, address: true, referencePoint: true, commissionRateBasisPoints: true, status: true, createdAt: true },
       });
       await tx.auditEvent.create({ data: {
         actorId: auth.user.id, action: "CASHIER_CREATED", entityType: "User", entityId: created.id,
-        metadata: { username: created.username, fullName: created.fullName, whatsapp: created.whatsapp, commissionRateBasisPoints: created.commissionRateBasisPoints },
+        metadata: { username: created.username, fullName: created.fullName, whatsapp: created.whatsapp, city: created.city, address: created.address, referencePoint: created.referencePoint, commissionRateBasisPoints: created.commissionRateBasisPoints },
       } });
       return created;
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });

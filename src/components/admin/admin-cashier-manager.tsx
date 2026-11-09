@@ -7,6 +7,9 @@ type Cashier = {
   username: string;
   fullName: string | null;
   whatsapp: string | null;
+  city: string | null;
+  address: string | null;
+  referencePoint: string | null;
   commissionRateBasisPoints: number;
   commissionPercent: number;
   status: "ACTIVE" | "BLOCKED" | "PENDING";
@@ -21,12 +24,15 @@ type FormState = {
   username: string;
   password: string;
   whatsapp: string;
+  city: string;
+  address: string;
+  referencePoint: string;
   commissionPercent: string;
   status: "ACTIVE" | "BLOCKED";
 };
 
 const emptyForm: FormState = {
-  fullName: "", username: "", password: "", whatsapp: "", commissionPercent: "20", status: "ACTIVE",
+  fullName: "", username: "", password: "", whatsapp: "", city: "", address: "", referencePoint: "", commissionPercent: "20", status: "ACTIVE",
 };
 
 const money = (cents: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
@@ -74,6 +80,9 @@ export function AdminCashierManager({ mode }: { mode: "create" | "manage" }) {
       username: cashier.username,
       password: "",
       whatsapp: cashier.whatsapp ?? "",
+      city: cashier.city ?? "",
+      address: cashier.address ?? "",
+      referencePoint: cashier.referencePoint ?? "",
       commissionPercent: String(cashier.commissionPercent),
       status: cashier.status === "BLOCKED" ? "BLOCKED" : "ACTIVE",
     });
@@ -98,6 +107,7 @@ export function AdminCashierManager({ mode }: { mode: "create" | "manage" }) {
     try {
       const payload: Record<string, unknown> = {
         fullName: form.fullName, username: form.username, whatsapp: form.whatsapp,
+        city: form.city, address: form.address, referencePoint: form.referencePoint,
         commissionPercent,
       };
       // The create API uses a strict schema and intentionally does not accept
@@ -139,6 +149,15 @@ export function AdminCashierManager({ mode }: { mode: "create" | "manage" }) {
       <label>WhatsApp
         <input autoComplete="tel" type="tel" value={form.whatsapp} onChange={(event) => setForm({ ...form, whatsapp: event.target.value })} minLength={10} maxLength={24} required />
       </label>
+      <label>Cidade
+        <input autoComplete="address-level2" value={form.city} onChange={(event) => setForm({ ...form, city: event.target.value })} maxLength={120} />
+      </label>
+      <label>Endereço
+        <input autoComplete="street-address" value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} maxLength={200} />
+      </label>
+      <label>Ponto de referência
+        <input value={form.referencePoint} onChange={(event) => setForm({ ...form, referencePoint: event.target.value })} maxLength={200} placeholder="Ex.: próximo à praça, ao lado da farmácia" />
+      </label>
       <label>Comissão individual (%)
         <input type="number" inputMode="decimal" min="0" max="100" step="0.01" value={form.commissionPercent} onChange={(event) => setForm({ ...form, commissionPercent: event.target.value })} required />
       </label>
@@ -167,6 +186,8 @@ export function AdminCashierManager({ mode }: { mode: "create" | "manage" }) {
         <div>
           <a className="admin-cashier-name-link" href={"/admin/cashiers/" + encodeURIComponent(cashier.id)}><strong>{cashier.fullName || cashier.username}</strong> — Ver financeiro e histórico</a>
           <p>Usuário: {cashier.username} · WhatsApp: {cashier.whatsapp || "Não informado"}</p>
+          <p>Cidade: {cashier.city || "Não informada"} · Endereço: {cashier.address || "Não informado"}</p>
+          <p>Ponto de referência: {cashier.referencePoint || "Não informado"}</p>
           <p>Comissão individual: <strong>{cashier.commissionPercent.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%</strong> · Status: {cashier.status === "ACTIVE" ? "Ativo" : cashier.status === "BLOCKED" ? "Bloqueado" : "Pendente"}</p>
           <p>Cadastro: {new Date(cashier.createdAt).toLocaleDateString("pt-BR")}{cashier.mustChangePassword ? " · Troca de senha no primeiro acesso" : ""}</p>
         </div>
