@@ -1,31 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Android 11 and earlier -->
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />
-
-    <!-- Android 12+ -->
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
-
     <uses-feature android:name="android.hardware.bluetooth" android:required="true" />
-
     <application
         android:allowBackup="false"
-        android:label="Super Quina Impressora"
+        android:label="Super Quina Impressora Bluetooth"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
-        <activity
-            android:name=".PrintRequestActivity"
+        <service
+            android:name=".BluetoothPrintService"
             android:exported="true"
-            android:launchMode="singleTop">
+            android:label="Super Quina - Impressora Bluetooth"
+            android:permission="android.permission.BIND_PRINT_SERVICE">
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="superquina-printer" android:host="print" />
+                <action android:name="android.printservice.PrintService" />
             </intent-filter>
-        </activity>
+            <meta-data android:name="android.printservice" android:resource="@xml/print_service" />
+        </service>
     </application>
 </manifest>
