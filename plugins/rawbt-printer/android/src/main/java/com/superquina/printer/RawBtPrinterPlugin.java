@@ -1,10 +1,6 @@
 package com.superquina.printer;
 
 import android.Manifest;
-import android.content.Context;
-import android.print.PrintManager;
-import android.print.PrintAttributes;
-import android.webkit.WebView;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -50,26 +46,6 @@ public class RawBtPrinterPlugin extends Plugin {
     private String connectedDeviceId;
     private String connectedDeviceName;
 
-    @PluginMethod
-    public void printCurrentWebView(PluginCall call) {
-        getActivity().runOnUiThread(() -> {
-            try {
-                WebView webView = getBridge().getWebView();
-                PrintManager printManager = (PrintManager) getActivity().getSystemService(Context.PRINT_SERVICE);
-                if (webView == null || printManager == null) {
-                    call.reject("Serviço de impressão do Android indisponível.", "PRINT_FRAMEWORK_UNAVAILABLE");
-                    return;
-                }
-                String jobName = call.getString("jobName", "Super Quina - Recibo");
-                printManager.print(jobName, webView.createPrintDocumentAdapter(jobName), new PrintAttributes.Builder().build());
-                JSObject result = new JSObject();
-                result.put("submitted", true);
-                call.resolve(result);
-            } catch (Exception error) {
-                call.reject("Não foi possível abrir a impressão do Android.", "PRINT_DIALOG_FAILED", error);
-            }
-        });
-    }
 
     @PluginMethod
     public void listPairedDevices(PluginCall call) {
