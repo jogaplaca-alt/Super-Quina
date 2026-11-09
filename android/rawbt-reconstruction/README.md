@@ -6,8 +6,10 @@ Esta pasta e a area de trabalho para receber e organizar o projeto reconstruido 
 
 - O APK RawBT original foi identificado como referencia tecnica.
 - A decompilacao foi reportada com 2.593 arquivos Java, 955 XML, recursos e estrutura Gradle.
-- O arquivo ZIP reconstruido nao esta disponivel no ambiente desta operacao. Portanto, nenhum fonte decompilado foi inventado ou substituido por arquivos vazios.
-- Assim que `RawBT_reconstruido.zip` for anexado, extrair e inventariar o conteudo nesta area.
+- O ZIP `RawBT_reconstruido_atualizado(1).zip` foi recebido e inventariado em 09/11/2026.
+- O pacote contém duas exportações quase duplicadas: cada uma com 2.593 Java e 955 XML, além dos recursos extraídos e do APK original.
+- A auditoria detalhada está em `AUDIT-ZIP-RAWBT-2026-11-09.md`.
+- O ZIP original foi analisado nesta etapa; a importação integral dos milhares de arquivos binários/textuais para o GitHub ainda não foi realizada. Não confundir a documentação de inventário com o código-fonte já versionado.
 
 ## Organizacao prevista
 
