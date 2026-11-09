@@ -96,6 +96,17 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
     };
   }, []);
 
+  async function openBluetoothPairing() {
+    setError("");
+    setNotice("");
+    try {
+      await getRawBtPrinter().openBluetoothSettings();
+      setNotice("Configurações Bluetooth abertas. Emparelhe a impressora e volte aqui para atualizar a lista.");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Não foi possível abrir o emparelhamento Bluetooth.");
+    }
+  }
+
   async function connectPrinter() {
     if (!selectedId) return;
     setLoading(true);
@@ -182,7 +193,7 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
   return (
     <section className="thermal-bluetooth-printer" aria-label="Configuração da impressora térmica">
       <h3>Impressora térmica Bluetooth</h3>
-      <p>1. Pareie a impressora nas configurações Bluetooth do Android. 2. Selecione-a abaixo e conecte. 3. Envie o recibo oficial.</p>
+      <p>1. Toque em Emparelhar impressora e escolha a impressora nas configurações Bluetooth do Android. 2. Volte ao aplicativo e atualize a lista. 3. Selecione e conecte a impressora antes de imprimir.</p>
       <div className="thermal-printer-controls">
         <label htmlFor="superquina-paper-profile">Largura e perfil do papel</label>
         <select id="superquina-paper-profile" value={paperPreset} onChange={(event) => savePaperProfile(event.target.value as PaperPreset)}>
@@ -223,6 +234,9 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
           ))}
         </select>
         <div className="thermal-printer-actions">
+          <button type="button" onClick={() => void openBluetoothPairing()} disabled={loading || printing}>
+            Emparelhar impressora
+          </button>
           <button type="button" onClick={() => void refreshDevices()} disabled={loading || printing}>
             {loading ? "Aguarde…" : "Atualizar lista"}
           </button>
