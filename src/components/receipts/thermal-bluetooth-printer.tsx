@@ -237,7 +237,11 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
             <option value="A">Fonte A (mais larga)</option><option value="B">Fonte B (mais estreita)</option>
           </select>
         </div>}
-        <label htmlFor="superquina-printer-encoding">Codificação de caracteres</label>\n        <select id="superquina-printer-encoding" value={encoding} onChange={(event) => { const value = event.target.value as PrinterEncoding; setEncoding(value); if (selectedId) { try { const saved = localStorage.getItem(`${PROFILE_STORAGE_KEY}:${selectedId}`); const parsed = saved ? JSON.parse(saved) as Record<string, unknown> : {}; localStorage.setItem(`${PROFILE_STORAGE_KEY}:${selectedId}`, JSON.stringify({ ...parsed, encoding: value })); } catch { /* Keep the selection for this session. */ } } }}>\n          {Object.entries(ENCODING_OPTIONS).map(([value, option]) => <option key={value} value={value}>{option.label}</option>)}\n        </select>\n        <label htmlFor="superquina-printer-select">Impressora configurada no caixa</label>
+        <label htmlFor="superquina-printer-encoding">Codificação de caracteres</label>
+        <select id="superquina-printer-encoding" value={encoding} onChange={(event) => { const value = event.target.value as PrinterEncoding; setEncoding(value); if (selectedId) { try { const saved = localStorage.getItem(`${PROFILE_STORAGE_KEY}:${selectedId}`); const parsed = saved ? JSON.parse(saved) as Record<string, unknown> : {}; localStorage.setItem(`${PROFILE_STORAGE_KEY}:${selectedId}`, JSON.stringify({ ...parsed, encoding: value })); } catch { /* Keep the selection for this session. */ } } }}>
+          {Object.entries(ENCODING_OPTIONS).map(([value, option]) => <option key={value} value={value}>{option.label}</option>)}
+        </select>
+        <label htmlFor="superquina-printer-select">Impressora configurada no caixa</label>
         <select
           id="superquina-printer-select"
           value={selectedId}
