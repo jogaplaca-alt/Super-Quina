@@ -26,7 +26,7 @@ export default function CashierAppLoginPage() {
         <p className="eyebrow">Aplicativo do cambista</p>
         <h1 id="login-title">Acesso exclusivo</h1>
         <p className="auth-description">Entre com sua conta de cambista para acessar vendas, financeiro e impressão de recibos.</p>
-        <LoginForm allowedRole="CASHIER" />
+        <LoginForm allowedRole="CASHIER" endpoint="/api/auth/cashier-login" />
         <p className="security-note">Este aplicativo não permite acesso de jogadores ou administradores.</p>
       </section>
     </main>
