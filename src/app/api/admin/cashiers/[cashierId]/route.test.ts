@@ -13,8 +13,8 @@ vi.mock("@/lib/auth/password", () => ({ hashPassword: mocks.hashPassword }));
 import { PATCH } from "./route";
 
 const profile = { fullName: "Cashier Updated", username: "cashier.updated", password: "", whatsapp: "77991234567", suppliesMaterial: true, status: "ACTIVE" };
-const previous = { id: "cashier-123456", username: "cashier", fullName: "Cashier", whatsapp: "77990000000", suppliesMaterial: false, suppliesMaterial: false, commissionRateBasisPoints: 2000, status: "ACTIVE" };
-const updated = { ...previous, username: "cashier.updated", fullName: "Cashier Updated", whatsapp: "77991234567", commissionRateBasisPoints: 1000, suppliesMaterial: true, suppliesMaterial: false, createdAt: new Date("2026-01-01T00:00:00Z") };
+const previous = { id: "cashier-123456", username: "cashier", fullName: "Cashier", whatsapp: "77990000000", suppliesMaterial: false, commissionRateBasisPoints: 2000, status: "ACTIVE" };
+const updated = { ...previous, username: "cashier.updated", fullName: "Cashier Updated", whatsapp: "77991234567", commissionRateBasisPoints: 1000, suppliesMaterial: true, createdAt: new Date("2026-01-01T00:00:00Z") };
 function request(body: unknown, origin = "https://example.test") {
   return new NextRequest("https://example.test/api/admin/cashiers/cashier-123456", {
     method: "PATCH", headers: { cookie: "superquina_session=session-token", origin, host: "example.test", "content-type": "application/json" },
