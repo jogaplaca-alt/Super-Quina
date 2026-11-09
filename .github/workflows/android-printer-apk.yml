@@ -76,6 +76,14 @@ jobs:
       - name: Sync Capacitor and local printer plugin
         run: npx cap sync android
 
+      - name: Apply approved Super Quina Android branding
+        run: |
+          test -f android-branding/res/mipmap-xxxhdpi/ic_launcher.png
+          test -f android-branding/res/drawable-port-xxxhdpi/splash.png
+          cp -R android-branding/res/. android/app/src/main/res/
+          grep -q '<string name="app_name">Super Quina</string>' android/app/src/main/res/values/strings.xml
+          test -f android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+
       - name: Configure Gradle download timeout
         run: |
           sed -i 's/networkTimeout=10000/networkTimeout=60000/' android/gradle/wrapper/gradle-wrapper.properties
