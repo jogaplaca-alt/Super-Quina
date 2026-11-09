@@ -126,11 +126,14 @@ function wrap(value: string, columns: number): string[] {
 }
 
 function dateTime(value: string): string {
-  return new Intl.DateTimeFormat("pt-BR", {
+  const parts = new Intl.DateTimeFormat("pt-BR", {
     year: "numeric", month: "2-digit", day: "2-digit",
     hour: "2-digit", minute: "2-digit", hourCycle: "h23",
     timeZone: "America/Sao_Paulo",
-  }).format(new Date(value));
+  }).formatToParts(new Date(value));
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((item) => item.type === type)?.value ?? "";
+  return `${part("day")}/${part("month")}/${part("year")} ${part("hour")}:${part("minute")}`;
 }
 
 /** ESC/POS QR sequence (GS ( k), model 2, medium error correction. */
