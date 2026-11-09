@@ -45,9 +45,6 @@ jobs:
         run: npm install --no-audit --no-fund
 
       - name: Generate Prisma client
-        # Prisma 7 loads DATABASE_URL while reading prisma.config.ts, even though
-        # client generation does not connect to a database. Use a local-only
-        # placeholder; never expose production database credentials in this APK job.
         env:
           DATABASE_URL: postgresql://build:build@127.0.0.1:5432/superquina_build
         run: npm run db:generate
@@ -82,20 +79,7 @@ jobs:
       - name: Configure Gradle download timeout
         run: |
           sed -i 's/networkTimeout=10000/networkTimeout=60000/' android/gradle/wrapper/gradle-wrapper.properties
-          grep -q '^networkTimeout=60000
-        working-directory: android
-        run: |
-          chmod +x gradlew
-          ./gradlew --no-daemon --stacktrace assembleDebug
-
-      - name: Upload debug APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: super-quina-android-debug
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
-          retention-days: 14
- android/gradle/wrapper/gradle-wrapper.properties
+          grep -q '^networkTimeout=60000$' android/gradle/wrapper/gradle-wrapper.properties
 
       - name: Setup Gradle cache
         uses: gradle/actions/setup-gradle@v4
@@ -104,7 +88,7 @@ jobs:
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew --no-daemon --stacktrace assembleDebug
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
