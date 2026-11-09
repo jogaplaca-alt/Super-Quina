@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - feature/rawbt-inspired-printer-core
+      - feature/superquina-rawbt-rebuild
   pull_request:
     branches:
       - main
