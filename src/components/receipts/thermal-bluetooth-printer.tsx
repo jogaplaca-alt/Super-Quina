@@ -6,6 +6,12 @@ import { printOfficialPurchaseReceipt } from "@/modules/printing/client/print-of
 import type { EscPosProfile } from "@/modules/printing/escpos/encode-thermal-receipt";
 
 type PaperPreset = "58-a" | "58-b" | "80-a" | "80-b" | "custom";
+type PrinterEncoding = "cp860" | "cp850" | "wpc1252";
+const ENCODING_OPTIONS: Record<PrinterEncoding, { label: string; command: number; map: Readonly<Record<string, number>> }> = {
+  cp860: { label: "CP860 — Português (recomendado)", command: 3, map: { "á": 0xa0, "à": 0x85, "â": 0x83, "ã": 0x84, "Á": 0x86, "À": 0x91, "Â": 0x8f, "Ã": 0x8e, "é": 0x82, "ê": 0x88, "É": 0x90, "Ê": 0x89, "í": 0xa1, "Í": 0x8b, "ó": 0xa2, "ô": 0x93, "õ": 0x94, "Ó": 0x9f, "Ô": 0x8c, "Õ": 0x99, "ú": 0xa3, "Ú": 0x96, "ç": 0x87, "Ç": 0x80, "ñ": 0xa4, "Ñ": 0xa5, "º": 0xa7, "ª": 0xa6 } },
+  cp850: { label: "CP850 — Multilingual", command: 2, map: { "á": 0xa0, "à": 0x85, "â": 0x83, "ã": 0xc6, "Á": 0xb5, "À": 0xb7, "Â": 0xb6, "Ã": 0xc7, "é": 0x82, "ê": 0x88, "É": 0x90, "Ê": 0xd2, "í": 0xa1, "ó": 0xa2, "ô": 0x93, "õ": 0xe4, "ú": 0xa3, "ç": 0x87, "Ç": 0x80, "ñ": 0xa4, "Ñ": 0xa5 } },
+  wpc1252: { label: "WPC1252 — Windows Latin 1", command: 18, map: { "á": 0xe1, "à": 0xe0, "â": 0xe2, "ã": 0xe3, "ä": 0xe4, "Á": 0xc1, "À": 0xc0, "Â": 0xc2, "Ã": 0xc3, "Ä": 0xc4, "é": 0xe9, "è": 0xe8, "ê": 0xea, "É": 0xc9, "È": 0xc8, "Ê": 0xca, "í": 0xed, "Í": 0xcd, "ó": 0xf3, "ô": 0xf4, "õ": 0xf5, "Ó": 0xd3, "Ô": 0xd4, "Õ": 0xd5, "ú": 0xfa, "Ú": 0xda, "ç": 0xe7, "Ç": 0xc7, "ñ": 0xf1, "Ñ": 0xd1, "º": 0xba, "ª": 0xaa } },
+};
 const PROFILE_PRESETS: Record<Exclude<PaperPreset, "custom">, EscPosProfile> = {
   "58-a": { paperWidthMm: 58, columns: 32, fontMode: "A", copies: 1, feedLines: 3, qrCode: true, unsupportedCharacter: "transliterate" },
   "58-b": { paperWidthMm: 58, columns: 42, fontMode: "B", copies: 1, feedLines: 3, qrCode: true, unsupportedCharacter: "transliterate" },
@@ -27,9 +33,10 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
   const [customWidth, setCustomWidth] = useState<58 | 80>(58);
   const [customColumns, setCustomColumns] = useState(32);
   const [customFontMode, setCustomFontMode] = useState<"A" | "B">("A");
+  const [encoding, setEncoding] = useState<PrinterEncoding>("cp860");
 
   function loadPaperProfile(printerId: string) {
-    let parsed: { preset?: PaperPreset; width?: 58 | 80; columns?: number; fontMode?: "A" | "B" } = {};
+    let parsed: { preset?: PaperPreset; width?: 58 | 80; columns?: number; fontMode?: "A" | "B"; encoding?: PrinterEncoding } = {};
     try {
       const saved = localStorage.getItem(PROFILE_STORAGE_KEY + ":" + printerId);
       if (saved) parsed = JSON.parse(saved) as typeof parsed;
@@ -40,6 +47,7 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
     setCustomWidth(parsed.width === 80 ? 80 : 58);
     setCustomColumns(Number.isInteger(parsed.columns) && parsed.columns! >= 16 && parsed.columns! <= 96 ? parsed.columns! : 32);
     setCustomFontMode(parsed.fontMode === "B" ? "B" : "A");
+    setEncoding(parsed.encoding && parsed.encoding in ENCODING_OPTIONS ? parsed.encoding : "cp860");
   }
 
   const selectedProfile: EscPosProfile = paperPreset === "custom"
@@ -50,7 +58,7 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
     setPaperPreset(preset);
     if (!selectedId) return;
     try {
-      localStorage.setItem(`${PROFILE_STORAGE_KEY}:${selectedId}`, JSON.stringify({ preset, width, columns, fontMode }));
+      localStorage.setItem(`${PROFILE_STORAGE_KEY}:${selectedId}`, JSON.stringify({ preset, width, columns, fontMode, encoding }));
     } catch { /* Settings remain usable for this session. */ }
   }
 
@@ -193,7 +201,7 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
   return (
     <section className="thermal-bluetooth-printer" aria-label="Configuração da impressora térmica">
       <h3>Impressora térmica Bluetooth</h3>
-      <p>1. Toque em Emparelhar impressora e escolha a impressora nas configurações Bluetooth do Android. 2. Volte ao aplicativo e atualize a lista. 3. Selecione e conecte a impressora antes de imprimir.</p>
+      <p>1. Emparelhe a impressora nas configurações Bluetooth do Android. 2. Atualize a lista e selecione explicitamente a impressora. 3. Conecte antes de imprimir.</p>
       <div className="thermal-printer-controls">
         <label htmlFor="superquina-paper-profile">Largura e perfil do papel</label>
         <select id="superquina-paper-profile" value={paperPreset} onChange={(event) => savePaperProfile(event.target.value as PaperPreset)}>
@@ -215,7 +223,7 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
             <option value="A">Fonte A (mais larga)</option><option value="B">Fonte B (mais estreita)</option>
           </select>
         </div>}
-        <label htmlFor="superquina-printer-select">Impressora pareada</label>
+        <label htmlFor="superquina-printer-encoding">Codificação de caracteres</label>\n        <select id="superquina-printer-encoding" value={encoding} onChange={(event) => { const value = event.target.value as PrinterEncoding; setEncoding(value); if (selectedId) { try { const saved = localStorage.getItem(`${PROFILE_STORAGE_KEY}:${selectedId}`); const parsed = saved ? JSON.parse(saved) as Record<string, unknown> : {}; localStorage.setItem(`${PROFILE_STORAGE_KEY}:${selectedId}`, JSON.stringify({ ...parsed, encoding: value })); } catch { /* Keep the selection for this session. */ } } }}>\n          {Object.entries(ENCODING_OPTIONS).map(([value, option]) => <option key={value} value={value}>{option.label}</option>)}\n        </select>\n        <label htmlFor="superquina-printer-select">Impressora pareada</label>
         <select
           id="superquina-printer-select"
           value={selectedId}
