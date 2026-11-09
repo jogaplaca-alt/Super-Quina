@@ -12,7 +12,7 @@ const PROFILE_PRESETS: Record<Exclude<PaperPreset, "custom">, EscPosProfile> = {
   "80-a": { paperWidthMm: 80, columns: 48, copies: 1, feedLines: 3, qrCode: true, unsupportedCharacter: "transliterate" },
   "80-b": { paperWidthMm: 80, columns: 64, copies: 1, feedLines: 3, qrCode: true, unsupportedCharacter: "transliterate" },
 };
-const PROFILE_STORAGE_KEY = "superquina-printer-profile-v1";
+const PROFILE_STORAGE_KEY = "superquina-printer-profile-v2";
 
 export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) {
   const [devices, setDevices] = useState<PairedPrinter[]>([]);
@@ -28,15 +28,25 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
   const [customColumns, setCustomColumns] = useState(32);
 
   useEffect(() => {
+    if (!selectedId) return;
     try {
-      const saved = localStorage.getItem(PROFILE_STORAGE_KEY);
-      if (!saved) return;
+      const saved = localStorage.getItem(`${PROFILE_STORAGE_KEY}:${selectedId}`);
+      if (!saved) {
+        setPaperPreset("58-a");
+        setCustomWidth(58);
+        setCustomColumns(32);
+        return;
+      }
       const parsed = JSON.parse(saved) as { preset?: PaperPreset; width?: 58 | 80; columns?: number };
-      if (parsed.preset && ["58-a", "58-b", "80-a", "80-b", "custom"].includes(parsed.preset)) setPaperPreset(parsed.preset);
-      if (parsed.width === 58 || parsed.width === 80) setCustomWidth(parsed.width);
-      if (Number.isInteger(parsed.columns) && parsed.columns! >= 16 && parsed.columns! <= 96) setCustomColumns(parsed.columns!);
-    } catch { /* Ignore invalid local printer settings. */ }
-  }, []);
+      setPaperPreset(parsed.preset && ["58-a", "58-b", "80-a", "80-b", "custom"].includes(parsed.preset) ? parsed.preset : "58-a");
+      setCustomWidth(parsed.width === 80 ? 80 : 58);
+      setCustomColumns(Number.isInteger(parsed.columns) && parsed.columns! >= 16 && parsed.columns! <= 96 ? parsed.columns! : 32);
+    } catch {
+      setPaperPreset("58-a");
+      setCustomWidth(58);
+      setCustomColumns(32);
+    }
+  }, [selectedId]);
 
   const selectedProfile: EscPosProfile = paperPreset === "custom"
     ? { paperWidthMm: customWidth, columns: customColumns, copies: 1, feedLines: 3, qrCode: true, unsupportedCharacter: "transliterate" }
@@ -44,7 +54,10 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
 
   function savePaperProfile(preset: PaperPreset, width = customWidth, columns = customColumns) {
     setPaperPreset(preset);
-    try { localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify({ preset, width, columns })); } catch { /* Settings remain usable for this session. */ }
+    if (!selectedId) return;
+    try {
+      localStorage.setItem(`${PROFILE_STORAGE_KEY}:${selectedId}`, JSON.stringify({ preset, width, columns }));
+    } catch { /* Settings remain usable for this session. */ }
   }
 
   async function refreshDevices() {
@@ -115,6 +128,32 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
     }
   }
 
+  async function printTestPage() {
+    if (!connectedId || connectedId !== selectedId || printing) return;
+    setPrinting(true);
+    setError("");
+    setNotice("");
+    try {
+      const testBytes = new Uint8Array([
+        0x1b, 0x40, 0x1b, 0x61, 0x01, 0x1b, 0x45, 0x01,
+        ...Array.from("SUPER QUINA", (char) => char.charCodeAt(0)), 0x0a,
+        0x1b, 0x45, 0x00,
+        ...Array.from("TESTE DE IMPRESSAO", (char) => char.charCodeAt(0)), 0x0a,
+        ...Array.from(`PAPEL ${selectedProfile.paperWidthMm} MM - ${selectedProfile.columns} COLUNAS`, (char) => char.charCodeAt(0)), 0x0a,
+        ...Array.from("ESTE TESTE NAO E UM RECIBO", (char) => char.charCodeAt(0)), 0x0a,
+        0x0a, 0x0a, 0x0a,
+      ]);
+      let binary = "";
+      for (const byte of testBytes) binary += String.fromCharCode(byte);
+      const result = await getRawBtPrinter().send({ dataBase64: btoa(binary) });
+      setNotice(`Teste enviado (${result.bytesWritten} bytes). Confira a largura e a legibilidade no papel. O Android não confirma a saída física.`);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Não foi possível enviar a página de teste.");
+    } finally {
+      setPrinting(false);
+    }
+  }
+
   async function printReceipt() {
     const device = devices.find((item) => item.id === connectedId);
     if (!device || printing) return;
@@ -182,8 +221,11 @@ export function ThermalBluetoothPrinter({ purchaseId }: { purchaseId: string }) 
           ) : (
             <button type="button" onClick={() => void connectPrinter()} disabled={loading || !selectedId || printing}>Conectar</button>
           )}
+          <button type="button" onClick={() => void printTestPage()} disabled={!connectedId || connectedId !== selectedId || printing || loading}>
+            {printing ? "Enviando…" : "Imprimir teste"}
+          </button>
           <button type="button" onClick={() => void printReceipt()} disabled={!connectedId || connectedId !== selectedId || printing || loading}>
-            {printing ? "Enviando recibo…" : "Imprimir recibo"}
+            {printing ? "Enviando…" : "Imprimir recibo"}
           </button>
         </div>
       </div>
