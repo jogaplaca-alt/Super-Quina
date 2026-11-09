@@ -1,34 +1,34 @@
-# Implementation plan — direct Bluetooth print (no PDF)
+# Plano — serviço de impressão Bluetooth Android
 
-## Milestone 1 — Android app and direct handoff
-- [x] Standalone Android Gradle project scaffold.
-- [x] Android Bluetooth permissions declared.
-- [ ] Implement deep-link/intent receiver for website print requests.
-- [ ] Validate and parse receipt payload; reject malformed/oversized requests.
-- [ ] Provide app setup screen to grant runtime permissions and select a paired printer.
+## Etapa 1 — Integração com a interface do Android
+- [x] Projeto Android independente.
+- [x] Registrar PrintService no manifesto.
+- [x] Anunciar impressoras Bluetooth Classic pareadas.
+- [x] Declarar capacidade inicial de bobina 58 mm, monocromática.
+- [ ] Tela de configuração e orientação para ativar o serviço.
+- [ ] Solicitar BLUETOOTH_CONNECT em tempo de execução no Android 12+.
 
-## Milestone 2 — Bluetooth
-- [ ] Enumerate paired Bluetooth Classic devices after BLUETOOTH_CONNECT permission.
-- [ ] Let user select and persist the printer.
-- [ ] Connect using BluetoothSocket with the printer's supported SPP UUID.
-- [ ] Handle disabled Bluetooth, disconnects, timeouts and unsupported devices.
+## Etapa 2 — Receber e renderizar o trabalho
+- [ ] Receber PrintJob enfileirado pelo Android.
+- [ ] Ler o documento de impressão sem salvá-lo como arquivo do usuário.
+- [ ] Renderizar páginas em memória com PdfRenderer.
+- [ ] Converter para bitmap monocromático na largura imprimível.
+- [ ] Ajustar escala, margens, densidade e comprimento da bobina.
+- [ ] Tratar múltiplas páginas e cancelamento.
 
-## Milestone 3 — Direct receipt encoding
-- [ ] Define a stable JSON receipt contract shared with the website.
-- [ ] Convert text, alignment, emphasis, QR/barcode and feed/cut options to ESC/POS.
-- [ ] Support 58 mm width and printer-specific printable columns.
-- [ ] Send bytes directly to the Bluetooth socket; no PDF, Android Print Framework or file download.
+## Etapa 3 — Bluetooth e ESC/POS
+- [ ] Selecionar e persistir a impressora pareada.
+- [ ] Conectar via BluetoothSocket/SPP RFCOMM.
+- [ ] Converter bitmaps em comandos ESC/POS raster.
+- [ ] Transmitir em blocos e tratar timeout/desconexão.
+- [ ] Fechar socket e reportar estados corretamente.
 
-## Milestone 4 — Website handoff and reliability
-- [ ] Change the website's explicit receipt Print button to launch the Android intent only on Android.
-- [ ] Add fallback/help text if app is not installed; preserve browser printing on other platforms.
-- [ ] Prevent duplicate print requests; use unique job IDs and explicit result acknowledgement.
-- [ ] Never claim a receipt physically printed solely because socket write completed.
-- [ ] Test on physical Android devices and actual 58 mm printers.
+## Etapa 4 — Testes
+- [ ] Testar seletor padrão do Android a partir do Chrome.
+- [ ] Testar recibo real em impressora térmica de 58 mm.
+- [ ] Verificar legibilidade, largura, margens e alimentação/corte.
+- [ ] Confirmar que não há download nem abertura manual de PDF.
+- [ ] Não confundir envio dos dados com confirmação física da impressão.
 
-## Acceptance test
-1. Install app and pair printer.
-2. Select printer once in app.
-3. Open site in Chrome, generate receipt and tap its Print button.
-4. App receives receipt data without downloading/opening a PDF.
-5. App sends ESC/POS over Bluetooth and reports connection/send errors clearly.
+## Critério de aceite
+Chrome → Imprimir recibo → interface padrão Android → selecionar impressora Bluetooth → Imprimir → recibo sai na térmica. Sem etapa manual de baixar/abrir arquivo.
