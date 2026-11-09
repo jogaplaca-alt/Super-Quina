@@ -23,7 +23,7 @@ A largura não será fixa em 58 mm. A configuração será feita por impressora.
 O primeiro driver funcional será ESC/POS geral. Outros drivers (GS v 0 only, Peripage, Paperang, CPCL, EPL, TSPL, ZPL etc.) só aparecerão como disponíveis após implementação e teste reais. Não oferecer seletor que prometa compatibilidade inexistente.
 
 ## Arquitetura escolhida
-Um único fluxo: site autentica e fornece os dados oficiais do recibo confirmado; encoder ESC/POS do Super Quina cria os bytes; APK conecta à impressora selecionada por Bluetooth Classic SPP; APK transmite e devolve resultado de transporte; site registra o resultado no fluxo de impressão existente. Android Print Framework/PrintService e impressão da WebView não serão usados neste fluxo.
+Um único fluxo: site autentica e fornece os dados oficiais do recibo confirmado; encoder ESC/POS do Super Quina cria os bytes; APK conecta à impressora selecionada por Bluetooth Classic SPP; APK transmite e devolve resultado de transporte; site registra o resultado no fluxo de impressão existente. Android Print Framework/PrintService e impressão da WebView não serão usados neste fluxo. O manifesto e o plugin Capacitor já não registram nem oferecem o método de impressão do sistema; arquivos antigos da classe PrintService ainda precisam ser removidos.
 
 ## Limites
 - Bluetooth Classic SPP é o primeiro transporte.
