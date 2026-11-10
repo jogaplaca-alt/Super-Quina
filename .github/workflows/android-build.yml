@@ -1,0 +1,33 @@
+name: Build Printer Super Sena
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'source.zip'
+      - '.github/workflows/android-build.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Extract Android source
+        run: |
+          test -f source.zip || { echo "source.zip not found"; exit 1; }
+          unzip -q source.zip
+          test -f Printer_Super_Sena/settings.gradle
+      - name: Build debug APK
+        run: gradle --no-daemon -p Printer_Super_Sena :app:assembleDebug --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Printer-Super-Sena-debug
+          path: Printer_Super_Sena/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
