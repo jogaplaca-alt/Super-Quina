@@ -85,7 +85,7 @@
         <item name="android:layout_width">32dp</item>
         <item name="android:layout_height">32dp</item>
         <item name="android:src">@null</item>
-        <item name="android:scaleType">3</item>
+        <item name="android:scaleType">fitCenter</item>
         <item name="android:contentDescription">@null</item>
         <item name="android:importantForAccessibility">2</item>
     </style>
@@ -93,15 +93,15 @@
         <item name="android:paddingLeft">?attr/dialogPreferredPadding</item>
         <item name="android:paddingTop">@dimen/abc_dialog_padding_top_material</item>
         <item name="android:paddingRight">?attr/dialogPreferredPadding</item>
-        <item name="android:layout_width">-1</item>
-        <item name="android:layout_height">-2</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
     </style>
     <style name="Base.MaterialAlertDialog.MaterialComponents.Title.Text" parent="@style/RtlOverlay.DialogWindowTitle.AppCompat">
         <item name="android:textAppearance">?attr/textAppearanceSubtitle1</item>
         <item name="android:textColor">@color/material_on_surface_emphasis_high_type</item>
-        <item name="android:ellipsize">3</item>
-        <item name="android:layout_width">-2</item>
-        <item name="android:layout_height">-2</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
         <item name="android:singleLine">true</item>
     </style>
     <style name="Base.TextAppearance.AppCompat" parent="@android:style/TextAppearance">
@@ -179,7 +179,7 @@
         <item name="android:textColor">?android:attr/textColorPrimary</item>
     </style>
     <style name="Base.TextAppearance.AppCompat.SearchResult" parent="">
-        <item name="android:textStyle">0x0</item>
+        <item name="android:textStyle">normal</item>
         <item name="android:textColor">?android:attr/textColorPrimary</item>
         <item name="android:textColorHint">?android:attr/textColorHint</item>
     </style>
@@ -278,7 +278,7 @@
     </style>
     <style name="Base.TextAppearance.MaterialComponents.Badge" parent="@style/TextAppearance.AppCompat">
         <item name="android:textSize">@dimen/mtrl_badge_text_size</item>
-        <item name="android:textStyle">0x1</item>
+        <item name="android:textStyle">bold</item>
         <item name="android:textColor">?attr/colorOnError</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:fontFamily">sans-serif-medium</item>
@@ -286,21 +286,21 @@
     </style>
     <style name="Base.TextAppearance.MaterialComponents.Button" parent="@style/TextAppearance.AppCompat.Button">
         <item name="android:textSize">14sp</item>
-        <item name="android:textStyle">0x1</item>
+        <item name="android:textStyle">bold</item>
         <item name="android:textAllCaps">true</item>
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="fontFamily">sans-serif-medium</item>
     </style>
     <style name="Base.TextAppearance.MaterialComponents.Headline6" parent="@style/TextAppearance.AppCompat.Title">
         <item name="android:textSize">20sp</item>
-        <item name="android:textStyle">0x1</item>
+        <item name="android:textStyle">bold</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="fontFamily">sans-serif-medium</item>
     </style>
     <style name="Base.TextAppearance.MaterialComponents.Subtitle2" parent="@style/TextAppearance.AppCompat.Subhead">
         <item name="android:textSize">14sp</item>
-        <item name="android:textStyle">0x1</item>
+        <item name="android:textStyle">bold</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="fontFamily">sans-serif-medium</item>
@@ -773,7 +773,7 @@
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowIsFloating">false</item>
         <item name="android:windowAnimationStyle">@style/Animation.Material3.BottomSheetDialog</item>
-        <item name="android:windowSoftInputMode">0x10</item>
+        <item name="android:windowSoftInputMode">adjustPan</item>
         <item name="bottomSheetStyle">@style/Widget.Material3.BottomSheet.Modal</item>
     </style>
     <style name="Base.V14.Theme.Material3.Dark.Dialog" parent="@style/Theme.MaterialComponents.Dialog">
@@ -1233,7 +1233,7 @@
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowIsFloating">false</item>
         <item name="android:windowAnimationStyle">@style/Animation.Material3.BottomSheetDialog</item>
-        <item name="android:windowSoftInputMode">0x10</item>
+        <item name="android:windowSoftInputMode">adjustPan</item>
         <item name="bottomSheetStyle">@style/Widget.Material3.BottomSheet.Modal</item>
     </style>
     <style name="Base.V14.Theme.Material3.Light.Dialog" parent="@style/Theme.MaterialComponents.Light.Dialog">
@@ -1934,7 +1934,7 @@
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowIsFloating">false</item>
         <item name="android:windowAnimationStyle">@style/Animation.Material3.BottomSheetDialog</item>
-        <item name="android:windowSoftInputMode">0x10</item>
+        <item name="android:windowSoftInputMode">adjustPan</item>
         <item name="bottomSheetStyle">@style/Widget.Material3.BottomSheet.Modal</item>
         <item name="enableEdgeToEdge">true</item>
     </style>
@@ -2121,7 +2121,7 @@
         <item name="android:windowAnimationStyle">@style/Animation.AppCompat.Dialog</item>
         <item name="android:listDivider">@null</item>
         <item name="android:backgroundDimEnabled">true</item>
-        <item name="android:windowSoftInputMode">0x20</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
         <item name="android:colorBackgroundCacheHint">@null</item>
         <item name="android:borderlessButtonStyle">@style/Widget.AppCompat.Button.Borderless</item>
         <item name="android:buttonBarStyle">@style/Widget.AppCompat.ButtonBar.AlertDialog</item>
@@ -2266,7 +2266,7 @@
         <item name="android:windowAnimationStyle">@style/Animation.AppCompat.Dialog</item>
         <item name="android:listDivider">@null</item>
         <item name="android:backgroundDimEnabled">true</item>
-        <item name="android:windowSoftInputMode">0x20</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
         <item name="android:colorBackgroundCacheHint">@null</item>
         <item name="android:borderlessButtonStyle">@style/Widget.AppCompat.Button.Borderless</item>
         <item name="android:buttonBarStyle">@style/Widget.AppCompat.ButtonBar.AlertDialog</item>
@@ -2287,7 +2287,7 @@
         <item name="android:windowAnimationStyle">@style/Animation.AppCompat.Dialog</item>
         <item name="android:listDivider">@null</item>
         <item name="android:backgroundDimEnabled">true</item>
-        <item name="android:windowSoftInputMode">0x20</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
         <item name="android:colorBackgroundCacheHint">@null</item>
         <item name="android:borderlessButtonStyle">@style/Widget.AppCompat.Button.Borderless</item>
         <item name="android:buttonBarStyle">@style/Widget.AppCompat.ButtonBar.AlertDialog</item>
@@ -2332,7 +2332,7 @@
         <item name="titleTextAppearance">@style/TextAppearance.Widget.AppCompat.Toolbar.Title</item>
     </style>
     <style name="Base.Widget.AppCompat.ActionBar" parent="">
-        <item name="android:gravity">0x10</item>
+        <item name="android:gravity">center_vertical</item>
         <item name="actionButtonStyle">@style/Widget.AppCompat.ActionButton</item>
         <item name="actionOverflowButtonStyle">@style/Widget.AppCompat.ActionButton.Overflow</item>
         <item name="background">@null</item>
@@ -2362,9 +2362,9 @@
     <style name="Base.Widget.AppCompat.ActionBar.TabText" parent="">
         <item name="android:textAppearance">@style/TextAppearance.AppCompat.Medium</item>
         <item name="android:textSize">12sp</item>
-        <item name="android:textStyle">0x1</item>
+        <item name="android:textStyle">bold</item>
         <item name="android:textColor">?android:attr/textColorPrimary</item>
-        <item name="android:ellipsize">4</item>
+        <item name="android:ellipsize">marquee</item>
         <item name="android:maxWidth">180dp</item>
         <item name="android:maxLines">2</item>
         <item name="textAllCaps">true</item>
@@ -2379,9 +2379,9 @@
         <item name="android:layout_weight">1</item>
     </style>
     <style name="Base.Widget.AppCompat.ActionButton" parent="@style/RtlUnderlay.Widget.AppCompat.ActionButton">
-        <item name="android:gravity">0x11</item>
+        <item name="android:gravity">center</item>
         <item name="android:background">?attr/actionBarItemBackground</item>
-        <item name="android:scaleType">5</item>
+        <item name="android:scaleType">center</item>
         <item name="android:minWidth">@dimen/abc_action_button_min_width_material</item>
         <item name="android:minHeight">@dimen/abc_action_button_min_height_material</item>
         <item name="android:maxLines">2</item>
@@ -2417,7 +2417,7 @@
         <item name="titleTextStyle">@style/TextAppearance.AppCompat.Widget.ActionMode.Title</item>
     </style>
     <style name="Base.Widget.AppCompat.ActivityChooserView" parent="">
-        <item name="android:gravity">0x11</item>
+        <item name="android:gravity">center</item>
         <item name="android:background">@drawable/abc_ab_share_pack_mtrl_alpha</item>
         <item name="divider">?attr/dividerVertical</item>
         <item name="dividerPadding">6dp</item>
@@ -2427,7 +2427,7 @@
     </style>
     <style name="Base.Widget.AppCompat.Button" parent="@android:style/Widget">
         <item name="android:textAppearance">?android:attr/textAppearanceButton</item>
-        <item name="android:gravity">0x11</item>
+        <item name="android:gravity">center</item>
         <item name="android:background">@drawable/abc_btn_default_mtrl_shape</item>
         <item name="android:focusable">true</item>
         <item name="android:clickable">true</item>
@@ -2491,7 +2491,7 @@
     </style>
     <style name="Base.Widget.AppCompat.DropDownItem.Spinner" parent="">
         <item name="android:textAppearance">@style/TextAppearance.AppCompat.Widget.DropDownItem</item>
-        <item name="android:gravity">0x10</item>
+        <item name="android:gravity">center_vertical</item>
         <item name="android:paddingLeft">8dp</item>
         <item name="android:paddingRight">8dp</item>
     </style>
@@ -2608,7 +2608,7 @@
         <item name="tickMark">@drawable/abc_seekbar_tick_mark_material</item>
     </style>
     <style name="Base.Widget.AppCompat.Spinner" parent="@style/Platform.Widget.AppCompat.Spinner">
-        <item name="android:gravity">0x800013</item>
+        <item name="android:gravity">start|top</item>
         <item name="android:background">@drawable/abc_spinner_mtrl_am_alpha</item>
         <item name="android:clickable">true</item>
         <item name="android:dropDownSelector">?attr/listChoiceBackgroundIndicator</item>
@@ -2632,7 +2632,7 @@
     </style>
     <style name="Base.Widget.AppCompat.Toolbar.Button.Navigation" parent="@android:style/Widget">
         <item name="android:background">?attr/controlBackground</item>
-        <item name="android:scaleType">5</item>
+        <item name="android:scaleType">center</item>
         <item name="android:minWidth">56dp</item>
     </style>
     <style name="Base.Widget.Design.TabLayout" parent="@android:style/Widget">
@@ -3037,7 +3037,7 @@
     </style>
     <style name="MaterialAlertDialog.MaterialComponents.Title.Text" parent="@style/Base.MaterialAlertDialog.MaterialComponents.Title.Text">
         <item name="android:layout_gravity">start|center_vertical</item>
-        <item name="android:textAlignment">5</item>
+        <item name="android:textAlignment">viewStart</item>
     </style>
     <style name="MyDialog" parent="@style/AppTheme">
         <item name="android:windowBackground">@drawable/round_fon</item>
@@ -3185,7 +3185,7 @@
     <style name="Platform.Widget.AppCompat.Spinner" parent="@android:style/Widget.Holo.Spinner">
     </style>
     <style name="RtlOverlay.DialogWindowTitle.AppCompat" parent="@style/Base.DialogWindowTitle.AppCompat">
-        <item name="android:textAlignment">5</item>
+        <item name="android:textAlignment">viewStart</item>
     </style>
     <style name="RtlOverlay.Widget.AppCompat.ActionBar.TitleItem" parent="@android:style/Widget">
         <item name="android:layout_gravity">start|center_vertical</item>
@@ -3198,18 +3198,18 @@
         <item name="android:layout_marginStart">16dp</item>
     </style>
     <style name="RtlOverlay.Widget.AppCompat.PopupMenuItem.Shortcut" parent="@android:style/Widget">
-        <item name="android:textAlignment">6</item>
+        <item name="android:textAlignment">viewEnd</item>
         <item name="android:layout_marginStart">16dp</item>
     </style>
     <style name="RtlOverlay.Widget.AppCompat.PopupMenuItem.SubmenuArrow" parent="@android:style/Widget">
         <item name="android:layout_marginStart">8dp</item>
     </style>
     <style name="RtlOverlay.Widget.AppCompat.PopupMenuItem.Text" parent="@android:style/Widget">
-        <item name="android:textAlignment">5</item>
+        <item name="android:textAlignment">viewStart</item>
         <item name="android:layout_alignParentStart">true</item>
     </style>
     <style name="RtlOverlay.Widget.AppCompat.PopupMenuItem.Title" parent="@android:style/Widget">
-        <item name="android:textAlignment">5</item>
+        <item name="android:textAlignment">viewStart</item>
         <item name="android:layout_marginStart">16dp</item>
     </style>
     <style name="RtlOverlay.Widget.AppCompat.Search.DropDown" parent="@android:style/Widget">
@@ -3578,21 +3578,21 @@
     </style>
     <style name="TextAppearance.M3.Sys.Typescale.LabelLarge" parent="@style/TextAppearance.AppCompat.Body1">
         <item name="android:textSize">14sp</item>
-        <item name="android:textStyle">0x1</item>
+        <item name="android:textStyle">bold</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:fontFamily">@string/m3_ref_typeface_plain_medium</item>
         <item name="fontFamily">@string/m3_ref_typeface_plain_medium</item>
     </style>
     <style name="TextAppearance.M3.Sys.Typescale.LabelMedium" parent="@style/TextAppearance.AppCompat.Caption">
         <item name="android:textSize">12sp</item>
-        <item name="android:textStyle">0x1</item>
+        <item name="android:textStyle">bold</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:fontFamily">@string/m3_ref_typeface_plain_medium</item>
         <item name="fontFamily">@string/m3_ref_typeface_plain_medium</item>
     </style>
     <style name="TextAppearance.M3.Sys.Typescale.LabelSmall" parent="@style/TextAppearance.AppCompat.Caption">
         <item name="android:textSize">11sp</item>
-        <item name="android:textStyle">0x1</item>
+        <item name="android:textStyle">bold</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:fontFamily">@string/m3_ref_typeface_plain_medium</item>
         <item name="fontFamily">@string/m3_ref_typeface_plain_medium</item>
@@ -3605,14 +3605,14 @@
     </style>
     <style name="TextAppearance.M3.Sys.Typescale.TitleMedium" parent="@style/TextAppearance.AppCompat.Subhead">
         <item name="android:textSize">16sp</item>
-        <item name="android:textStyle">0x1</item>
+        <item name="android:textStyle">bold</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:fontFamily">@string/m3_ref_typeface_plain_medium</item>
         <item name="fontFamily">@string/m3_ref_typeface_plain_medium</item>
     </style>
     <style name="TextAppearance.M3.Sys.Typescale.TitleSmall" parent="@style/TextAppearance.AppCompat.Subhead">
         <item name="android:textSize">14sp</item>
-        <item name="android:textStyle">0x1</item>
+        <item name="android:textStyle">bold</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:fontFamily">@string/m3_ref_typeface_plain_medium</item>
         <item name="fontFamily">@string/m3_ref_typeface_plain_medium</item>
@@ -3674,14 +3674,14 @@
     </style>
     <style name="TextAppearance.MaterialComponents.Body1" parent="@style/TextAppearance.AppCompat.Body2">
         <item name="android:textSize">16sp</item>
-        <item name="android:textStyle">0x0</item>
+        <item name="android:textStyle">normal</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:fontFamily">sans-serif</item>
         <item name="fontFamily">sans-serif</item>
     </style>
     <style name="TextAppearance.MaterialComponents.Body2" parent="@style/TextAppearance.AppCompat.Body1">
         <item name="android:textSize">14sp</item>
-        <item name="android:textStyle">0x0</item>
+        <item name="android:textStyle">normal</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:fontFamily">sans-serif</item>
         <item name="fontFamily">sans-serif</item>
@@ -3690,7 +3690,7 @@
     </style>
     <style name="TextAppearance.MaterialComponents.Caption" parent="@style/TextAppearance.AppCompat.Caption">
         <item name="android:textSize">12sp</item>
-        <item name="android:textStyle">0x0</item>
+        <item name="android:textStyle">normal</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:fontFamily">sans-serif</item>
         <item name="fontFamily">sans-serif</item>
@@ -3701,35 +3701,35 @@
     </style>
     <style name="TextAppearance.MaterialComponents.Headline1" parent="@style/TextAppearance.AppCompat.Display4">
         <item name="android:textSize">96sp</item>
-        <item name="android:textStyle">0x0</item>
+        <item name="android:textStyle">normal</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:fontFamily">sans-serif-light</item>
         <item name="fontFamily">sans-serif-light</item>
     </style>
     <style name="TextAppearance.MaterialComponents.Headline2" parent="@style/TextAppearance.AppCompat.Display3">
         <item name="android:textSize">60sp</item>
-        <item name="android:textStyle">0x0</item>
+        <item name="android:textStyle">normal</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:fontFamily">sans-serif-light</item>
         <item name="fontFamily">sans-serif-light</item>
     </style>
     <style name="TextAppearance.MaterialComponents.Headline3" parent="@style/TextAppearance.AppCompat.Display2">
         <item name="android:textSize">48sp</item>
-        <item name="android:textStyle">0x0</item>
+        <item name="android:textStyle">normal</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:fontFamily">sans-serif</item>
         <item name="fontFamily">sans-serif</item>
     </style>
     <style name="TextAppearance.MaterialComponents.Headline4" parent="@style/TextAppearance.AppCompat.Display1">
         <item name="android:textSize">34sp</item>
-        <item name="android:textStyle">0x0</item>
+        <item name="android:textStyle">normal</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:fontFamily">sans-serif</item>
         <item name="fontFamily">sans-serif</item>
     </style>
     <style name="TextAppearance.MaterialComponents.Headline5" parent="@style/TextAppearance.AppCompat.Headline">
         <item name="android:textSize">24sp</item>
-        <item name="android:textStyle">0x0</item>
+        <item name="android:textStyle">normal</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:fontFamily">sans-serif</item>
         <item name="fontFamily">sans-serif</item>
@@ -3738,14 +3738,14 @@
     </style>
     <style name="TextAppearance.MaterialComponents.Overline" parent="@style/TextAppearance.AppCompat">
         <item name="android:textSize">10sp</item>
-        <item name="android:textStyle">0x0</item>
+        <item name="android:textStyle">normal</item>
         <item name="android:textAllCaps">true</item>
         <item name="android:fontFamily">sans-serif</item>
         <item name="fontFamily">sans-serif</item>
     </style>
     <style name="TextAppearance.MaterialComponents.Subtitle1" parent="@style/TextAppearance.AppCompat.Subhead">
         <item name="android:textSize">16sp</item>
-        <item name="android:textStyle">0x0</item>
+        <item name="android:textStyle">normal</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:fontFamily">sans-serif</item>
         <item name="fontFamily">sans-serif</item>
@@ -4627,7 +4627,7 @@
     </style>
     <style name="Widget.Material3.BottomAppBar.Button.Navigation" parent="@style/Widget.AppCompat.Toolbar.Button.Navigation">
         <item name="android:background">?attr/controlBackground</item>
-        <item name="android:scaleType">5</item>
+        <item name="android:scaleType">center</item>
         <item name="android:minWidth">@dimen/mtrl_min_touch_target_size</item>
     </style>
     <style name="Widget.Material3.BottomNavigation.Badge" parent="@style/Widget.Material3.Badge.AdjustToBounds">
@@ -4657,7 +4657,7 @@
     </style>
     <style name="Widget.Material3.BottomSheet.DragHandle" parent="">
         <item name="android:paddingBottom">@dimen/m3_bottom_sheet_drag_handle_bottom_padding</item>
-        <item name="android:scaleType">5</item>
+        <item name="android:scaleType">center</item>
         <item name="android:minWidth">@dimen/mtrl_min_touch_target_size</item>
         <item name="android:minHeight">@dimen/mtrl_min_touch_target_size</item>
         <item name="android:contentDescription">@string/bottomsheet_drag_handle_content_description</item>
@@ -4734,7 +4734,7 @@
         <item name="shapeAppearance">@style/ShapeAppearance.M3.Comp.TextButton.Container.Shape</item>
     </style>
     <style name="Widget.Material3.Button.TextButton.Dialog" parent="@style/Widget.Material3.Button.TextButton">
-        <item name="android:ellipsize">3</item>
+        <item name="android:ellipsize">end</item>
         <item name="android:layout_marginLeft">@dimen/m3_btn_dialog_btn_spacing</item>
         <item name="android:minWidth">@dimen/m3_btn_dialog_btn_min_width</item>
         <item name="android:lines">1</item>
@@ -4971,7 +4971,7 @@
         <item name="materialThemeOverlay">@style/ThemeOverlay.Material3.MaterialCalendar.HeaderCancelButton</item>
     </style>
     <style name="Widget.Material3.MaterialCalendar.HeaderDivider" parent="@style/Widget.MaterialComponents.MaterialCalendar.HeaderDivider">
-        <item name="android:visibility">2</item>
+        <item name="android:visibility">gone</item>
     </style>
     <style name="Widget.Material3.MaterialCalendar.HeaderLayout" parent="@style/Widget.MaterialComponents.MaterialCalendar.HeaderLayout">
         <item name="android:background">@android:color/transparent</item>
@@ -5081,14 +5081,14 @@
         <item name="android:textAppearance">?attr/textAppearanceDisplayLarge</item>
         <item name="android:textSize">56dp</item>
         <item name="android:textColor">?attr/colorOnSurface</item>
-        <item name="android:gravity">0x11</item>
+        <item name="android:gravity">center</item>
         <item name="android:paddingTop">0dp</item>
         <item name="android:paddingBottom">0dp</item>
         <item name="android:minEms">2</item>
         <item name="android:includeFontPadding">false</item>
         <item name="android:maxLength">2</item>
-        <item name="android:inputType">0x2</item>
-        <item name="android:textAlignment">4</item>
+        <item name="android:inputType">number</item>
+        <item name="android:textAlignment">center</item>
         <item name="android:paddingStart">0dp</item>
         <item name="android:paddingEnd">0dp</item>
         <item name="boxStrokeColor">@color/m3_timepicker_time_input_stroke_color</item>
@@ -5224,7 +5224,7 @@
     </style>
     <style name="Widget.Material3.SideSheet.Modal" parent="@style/Widget.Material3.SideSheet">
         <item name="android:layout_width">@dimen/m3_side_sheet_width</item>
-        <item name="android:layout_height">-1</item>
+        <item name="android:layout_height">match_parent</item>
         <item name="backgroundTint">?attr/colorSurfaceContainerLow</item>
         <item name="shapeAppearance">?attr/shapeAppearanceCornerLarge</item>
     </style>
@@ -5498,7 +5498,7 @@
         <item name="rippleColor">@color/mtrl_btn_text_btn_ripple_color</item>
     </style>
     <style name="Widget.MaterialComponents.Button.TextButton.Dialog" parent="@style/Widget.MaterialComponents.Button.TextButton">
-        <item name="android:ellipsize">3</item>
+        <item name="android:ellipsize">end</item>
         <item name="android:layout_marginLeft">@dimen/mtrl_btn_text_btn_padding_left</item>
         <item name="android:minWidth">@dimen/mtrl_btn_dialog_btn_min_width</item>
         <item name="android:lines">1</item>
@@ -5604,7 +5604,7 @@
         <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.MaterialComponents.ExtendedFloatingActionButton</item>
     </style>
     <style name="Widget.MaterialComponents.ExtendedFloatingActionButton.Icon" parent="@style/Widget.MaterialComponents.ExtendedFloatingActionButton">
-        <item name="android:gravity">0x800013</item>
+        <item name="android:gravity">start|top</item>
         <item name="android:paddingLeft">@dimen/mtrl_extended_fab_start_padding_icon</item>
         <item name="android:paddingRight">@dimen/mtrl_extended_fab_end_padding_icon</item>
         <item name="android:paddingStart">@dimen/mtrl_extended_fab_start_padding_icon</item>
@@ -5675,11 +5675,11 @@
     </style>
     <style name="Widget.MaterialComponents.MaterialCalendar.DayOfWeekLabel" parent="">
         <item name="android:textAppearance">?attr/textAppearanceBody2</item>
-        <item name="android:gravity">0x11</item>
+        <item name="android:gravity">center</item>
     </style>
     <style name="Widget.MaterialComponents.MaterialCalendar.DayTextView" parent="@style/Widget.AppCompat.TextView">
         <item name="android:textAppearance">?attr/textAppearanceCaption</item>
-        <item name="android:gravity">0x11</item>
+        <item name="android:gravity">center</item>
     </style>
     <style name="Widget.MaterialComponents.MaterialCalendar.Fullscreen" parent="@style/Widget.MaterialComponents.MaterialCalendar">
         <item name="android:windowFullscreen">true</item>
@@ -5695,11 +5695,11 @@
     </style>
     <style name="Widget.MaterialComponents.MaterialCalendar.HeaderDivider" parent="@android:style/Widget">
         <item name="android:background">?attr/colorOnPrimary</item>
-        <item name="android:visibility">2</item>
+        <item name="android:visibility">gone</item>
     </style>
     <style name="Widget.MaterialComponents.MaterialCalendar.HeaderLayout" parent="@android:style/Widget">
         <item name="android:background">?attr/colorPrimary</item>
-        <item name="android:layout_width">-1</item>
+        <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">@dimen/mtrl_calendar_header_height</item>
     </style>
     <style name="Widget.MaterialComponents.MaterialCalendar.HeaderLayout.Fullscreen" parent="@style/Widget.MaterialComponents.MaterialCalendar.HeaderLayout">
@@ -5708,10 +5708,10 @@
     <style name="Widget.MaterialComponents.MaterialCalendar.HeaderSelection" parent="@style/Widget.AppCompat.TextView">
         <item name="android:textAppearance">?attr/textAppearanceHeadline4</item>
         <item name="android:textColor">?attr/colorOnPrimary</item>
-        <item name="android:ellipsize">3</item>
+        <item name="android:ellipsize">end</item>
         <item name="android:layout_gravity">start|top</item>
-        <item name="android:layout_width">-1</item>
-        <item name="android:layout_height">-2</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
         <item name="android:maxLines">@integer/mtrl_calendar_selection_text_lines</item>
         <item name="autoSizeMaxTextSize">34sp</item>
         <item name="autoSizeMinTextSize">2sp</item>
@@ -5725,7 +5725,7 @@
     <style name="Widget.MaterialComponents.MaterialCalendar.HeaderTitle" parent="@style/Widget.AppCompat.TextView">
         <item name="android:textAppearance">?attr/textAppearanceOverline</item>
         <item name="android:textColor">?attr/colorOnPrimary</item>
-        <item name="android:ellipsize">3</item>
+        <item name="android:ellipsize">end</item>
         <item name="android:maxLines">1</item>
         <item name="autoSizeMaxTextSize">10sp</item>
         <item name="autoSizeMinTextSize">2sp</item>
@@ -5833,14 +5833,14 @@
     <style name="Widget.MaterialComponents.Snackbar.TextView" parent="@style/Widget.AppCompat.TextView">
         <item name="android:textAppearance">?attr/textAppearanceBody2</item>
         <item name="android:textColor">?attr/colorSurface</item>
-        <item name="android:ellipsize">3</item>
+        <item name="android:ellipsize">end</item>
         <item name="android:paddingTop">@dimen/design_snackbar_padding_vertical</item>
         <item name="android:paddingBottom">@dimen/design_snackbar_padding_vertical</item>
         <item name="android:layout_marginLeft">@dimen/mtrl_snackbar_message_margin_horizontal</item>
         <item name="android:layout_marginRight">@dimen/mtrl_snackbar_message_margin_horizontal</item>
         <item name="android:maxLines">@integer/design_snackbar_text_max_lines</item>
         <item name="android:alpha">@dimen/material_emphasis_high_type</item>
-        <item name="android:textAlignment">5</item>
+        <item name="android:textAlignment">viewStart</item>
     </style>
     <style name="Widget.MaterialComponents.TabLayout" parent="@style/Widget.Design.TabLayout">
         <item name="android:background">?attr/colorSurface</item>
@@ -5911,7 +5911,7 @@
         <item name="android:layout_height">48dp</item>
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>
-        <item name="android:textAlignment">4</item>
+        <item name="android:textAlignment">center</item>
         <item name="backgroundTint">@color/material_timepicker_button_background</item>
         <item name="shapeAppearanceOverlay">?attr/shapeAppearanceMediumComponent</item>
         <item name="strokeColor">@color/material_timepicker_button_stroke</item>
@@ -5925,7 +5925,7 @@
     <style name="Widget.MaterialComponents.TimePicker.Display" parent="@style/Widget.MaterialComponents.Chip.Choice">
         <item name="android:textAppearance">?attr/textAppearanceHeadline3</item>
         <item name="android:textSize">56dp</item>
-        <item name="android:textAlignment">4</item>
+        <item name="android:textAlignment">center</item>
         <item name="ensureMinTouchTargetSize">false</item>
         <item name="materialThemeOverlay">@style/ThemeOverlay.MaterialComponents.TimePicker.Display</item>
         <item name="shapeAppearanceOverlay">?attr/shapeAppearanceMediumComponent</item>
@@ -5945,14 +5945,14 @@
     <style name="Widget.MaterialComponents.TimePicker.Display.TextInputEditText" parent="@style/Widget.MaterialComponents.TextInputEditText.OutlinedBox">
         <item name="android:textAppearance">?attr/textAppearanceHeadline3</item>
         <item name="android:textSize">56dp</item>
-        <item name="android:gravity">0x11</item>
+        <item name="android:gravity">center</item>
         <item name="android:paddingTop">0dp</item>
         <item name="android:paddingBottom">0dp</item>
         <item name="android:minEms">2</item>
         <item name="android:includeFontPadding">false</item>
         <item name="android:maxLength">2</item>
-        <item name="android:inputType">0x2</item>
-        <item name="android:textAlignment">4</item>
+        <item name="android:inputType">number</item>
+        <item name="android:textAlignment">center</item>
         <item name="android:paddingStart">0dp</item>
         <item name="android:paddingEnd">0dp</item>
     </style>
