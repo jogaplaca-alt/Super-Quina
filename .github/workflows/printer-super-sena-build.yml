@@ -23,6 +23,20 @@ jobs:
           test -f "Printer-Super-Sena/Printer_Super_Sena/build.gradle"
           test -f "Printer-Super-Sena/Printer_Super_Sena/app/build.gradle"
 
+      - name: Normalize decompiled Nine-Patch resources
+        shell: bash
+        run: |
+          RES="Printer-Super-Sena/Printer_Super_Sena/app/src/main/res"
+          find "$RES" -type f -name '*.9.png' -print0 | while IFS= read -r -d '' file; do
+            target="${file%.9.png}.png"
+            if [ -e "$target" ]; then
+              echo "Cannot normalize $file because $target already exists"
+              exit 1
+            fi
+            mv "$file" "$target"
+            echo "Normalized invalid Nine-Patch: $file"
+          done
+
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
