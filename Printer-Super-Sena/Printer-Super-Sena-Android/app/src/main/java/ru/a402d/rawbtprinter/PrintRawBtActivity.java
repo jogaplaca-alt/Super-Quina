@@ -3,6 +3,7 @@ package ru.a402d.rawbtprinter;
 import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -24,21 +25,24 @@ public class PrintRawBtActivity extends Activity {
             return;
         }
         new Thread(() -> {
+            BluetoothConnection connection = null;
             try {
                 byte[] payload = decodePayload(getIntent());
                 String mac = getSharedPreferences("printer_settings", MODE_PRIVATE).getString("printer_mac", "");
-                if (mac.isEmpty()) mac = getSharedPreferences("printer_settings", MODE_PRIVATE).getString("printer_mac", "");
                 if (mac.isEmpty()) throw new IllegalStateException("Nenhuma impressora salva. Abra o aplicativo e selecione uma impressora.");
                 BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
                 if (adapter == null) throw new IllegalStateException("Bluetooth indisponível neste aparelho.");
-                BluetoothConnection connection = new BluetoothConnection(mac);
+                BluetoothDevice device = adapter.getRemoteDevice(mac);
+                connection = new BluetoothConnection(device);
                 connection.connect();
                 connection.write(payload);
                 connection.send();
                 connection.disconnect();
                 runOnUiThread(() -> message.setText("Comprovante enviado para a impressora."));
             } catch (Exception e) {
-                runOnUiThread(() -> message.setText("Não foi possível imprimir: " + e.getMessage()));
+                if (connection != null) connection.disconnect();
+                String error = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
+                runOnUiThread(() -> message.setText("Não foi possível imprimir: " + error));
             }
         }).start();
     }
