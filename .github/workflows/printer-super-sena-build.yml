@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'Printer-Super-Sena/Printer_Super_Sena_corrigido_GitHub_Actions.zip'
+      - 'Printer-Super-Sena/Printer_Super_Sena/**'
       - '.github/workflows/printer-super-sena-build.yml'
 
 permissions:
@@ -17,13 +17,11 @@ jobs:
       - name: Checkout isolated branch
         uses: actions/checkout@v4
 
-      - name: Extract corrected ZIP and prepare project
+      - name: Verify extracted Android project
         run: |
-          mkdir -p /tmp/printer-super-sena
-          unzip -q "Printer-Super-Sena/Printer_Super_Sena_corrigido_GitHub_Actions.zip" -d /tmp/printer-super-sena
-          test -f "/tmp/printer-super-sena/Printer_Super_Sena/settings.gradle"
-          mkdir -p Printer_Super_Sena
-          cp -a /tmp/printer-super-sena/Printer_Super_Sena/. Printer_Super_Sena/
+          test -f "Printer-Super-Sena/Printer_Super_Sena/settings.gradle"
+          test -f "Printer-Super-Sena/Printer_Super_Sena/build.gradle"
+          test -f "Printer-Super-Sena/Printer_Super_Sena/app/build.gradle"
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -36,13 +34,13 @@ jobs:
         with:
           gradle-version: '8.11.1'
 
-      - name: Compile debug APK from extracted ZIP
-        run: gradle --no-daemon -p Printer_Super_Sena :app:assembleDebug --stacktrace
+      - name: Compile debug APK
+        run: gradle --no-daemon -p Printer-Super-Sena/Printer_Super_Sena :app:assembleDebug --stacktrace
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: Printer-Super-Sena-debug
-          path: Printer_Super_Sena/app/build/outputs/apk/debug/*.apk
+          path: Printer-Super-Sena/Printer_Super_Sena/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 14
