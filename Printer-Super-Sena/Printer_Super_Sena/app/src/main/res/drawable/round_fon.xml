@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:top="20dp">
+        <shape>
+            <size android:width="300dp"/>
+            <corners
+                android:topLeftRadius="32dp"
+                android:topRightRadius="64dp"/>
+            <solid android:color="@color/activity_background"/>
+        </shape>
+    </item>
+    <item
+        android:left="28dp"
+        android:top="0dp"
+        android:right="148dp">
+        <shape>
+            <corners android:radius="64dp"/>
+            <solid android:color="@color/activity_background"/>
+        </shape>
+    </item>
+    <item
+        android:left="16dp"
+        android:top="4dp"
+        android:right="16dp">
+        <bitmap
+            android:gravity="top"
+            android:src="@drawable/navlogo"/>
+    </item>
+</layer-list>

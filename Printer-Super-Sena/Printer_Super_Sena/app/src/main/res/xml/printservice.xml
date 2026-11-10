@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<print-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:settingsActivity="ru.a402d.rawbtprinter.printservice.SettingsActivity"
+    android:addPrintersActivity="ru.a402d.rawbtprinter.activity.Magic"
+    android:vendor="RawBT"/>

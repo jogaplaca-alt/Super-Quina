@@ -1,0 +1,6 @@
+[
+  ["DRIVER_AIDL_COM_IPOS","com.iposprinter"],
+  ["DRIVER_AIDL_WOYOU_IPOS","woyou.iposprinter"],
+  ["DRIVER_AIDL_WOYOU_JIUIV5","woyou..jiuiv5"],
+  ["DRIVER_AIDL_ATOL10","ru.atol v10"]
+]

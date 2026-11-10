@@ -1,0 +1,117 @@
+Label printer compatible with TSPL\EPL\DPL\ZPL emulation.
+Поддержка TSPL-EZ™ (эмуляции EPL2 и ZPL) ESC-POS, эмуляция CPCL.
+Язык программирования	TSPL, ZPL, EPL, DPL, CPCL (АТОЛ XP-323) TSPL; ZPL (АТОЛ ВР41)
+honeywell:
+Control Language Compatibility: Line Printer Mode, Easy Print, DPL, ZPL II, CPCL,IPL, XML (limited)
+Control Language Compatibility: Ez-Print,DPL, ZPL II, CPCL, IPL, XML (limited)
+
+--------------
+ZPL,IPL,TSPL,DPL,SBPL
+Zebra: ZPL,EPL,CPCL
+Datamax: DPL
+
+TSC: TPLE, TPLZ и TPLD
+
+TSPL
+-----------------------------------------------------------------------------------
+<ESC>  |ASCII 27, control code of status polling command returns/runs the printer
+       |status immediately.
+       |
+~      |ASCII 126, control code of status polling command returns the printer status
+       |only when the printer is ready.
+       |
+Space  |ASCII 32, characters will be ignored in the command line.
+       |
+"      |ASCII 34, beginning and ending of expression.
+       |
+CR, LF |ASCII 13, ASCII 10, denotes end of command line.
+       |
+NULL   |ASCII 0, supported in the expression.
+-----------------------------------------------------------------------------------
+200 DPI : 1 mm = 8 dots
+300 DPI : 1 mm = 12 dots
+-----------------------------------------------------------------------------------
+
+потребуется буфер изображения.
+SIZE задает размер, CLS очищает,
+
+нужна очередь команд. будут еще переменные для подпрограммы
+
+PRINT - запускает исполнение команд. Первый параметр сколько раз выполнять подпрограмму,
+второй сколько копий.
+
+EOJ - ждать пока отработают команды выше
+
+INITIALPRINTER
+
+-----------------
+тут еще могут быть переходы на метки как в BASIC.
+
+----------------------------------
+BITMAP X,Y,width,height,mode,bitmap data…
+Parameter Description
+X Specify the x-coordinate
+Y Specify the y-coordinate
+width Image width (in bytes)
+height Image height (in dots)
+mode Graphic modes listed below:
+0: OVERWRITE
+1: OR
+2: XOR
+bitmap data Bitmap data
+
+ERASE x,y,x_width,y_height - очищает прямоугольную область. параметры в точках
+
+--------------------------------- стр 89 --------
+TEXT x,y, " font ",rotation,x-multiplication,y-multiplication,[alignment,] " content "
+
+--------------- типовое начало ----------
+SIZE 4,3
+GAP 0,0
+DIRECTION 1
+CLS
+
+
+-----------------------стр 96 ---
+Status Polling and Immediate Commands
+These commands support RS-232, USB and Ethernet.
+<ESC>!?   - This command obtains the printer status at any time, even in the event of printer error.
+похожа на однобайтовый статус esc/pos
+<ESC>!S - похожа на 4х байтовый статус esc/pos
+
+<ESC>!C - This command restarts the printer and omits to run AUTO.BAS.
+<ESC>!Q - This command restarts the printer and omits to run AUTO.BAS
+
+============================================================
+------------ ZPL -------------
+^XA
+^F0,0,0^GFA
+^XZ
+
+~HS - статус принтера
+
+----------- Zebra series: ----------
+384,576,832
+Характеристики
+ZQ600 series : 203 dpi . width: 48,72,104 mm
+zq500: 203dpi. width 72,104
+zq300: 203dpi. width 48,72
+zq200: CPCL,ESC/POS 203 dpi. (?? 48,72 ??)
+zq110: ESC/POS printer !!!! 203dpi width 48mm GSv0 support
+------------------
+! U1 getvar "device.languages"\r\n
+
+
+----------- CPCL --------------
+ mPrintData.append("! 0 " + mDPI + " " + mDPI + " " + mLabelHeight + " 1\r\n");
+ mPrintData.append("EG " + iWidth + " " + iHeight + " 0 0 ");
+ mPrintData.append(ZebraPrintService.createBitmapCPC(bitmap));
+ mPrintData.append("\r\n");
+ mPrintData.append("PRINT\r\n");
+! 0 200 200 210 1
+EG 2 16 90 45 F0F0F0F0F0F0F0F00F0F0F0F0F0F0F0F
+F0F0F0F0F0F0F0F00F0F0F0F0F0F0F0F
+FORM
+PRINT
+
+-------------------- DPL -------

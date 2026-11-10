@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <group>
+        <item
+            android:icon="@drawable/ic_share_white_24dp"
+            android:id="@+id/action_share"
+            android:title="@string/share"
+            app:showAsAction="ifRoom"/>
+        <item
+            android:icon="@drawable/ic_save_white"
+            android:id="@+id/action_save_into_gallery"
+            android:title="@string/save_into_gallery"
+            app:showAsAction="ifRoom"/>
+        <item
+            android:id="@+id/action_prn_open"
+            android:title="@string/open_prn"
+            app:showAsAction="never"/>
+    </group>
+    <group>
+        <item
+            android:id="@+id/menu_scale_fit_center"
+            android:title="@string/menu_scale_fit_center"/>
+        <item
+            android:id="@+id/menu_scale_scale_center"
+            android:title="@string/menu_scale_center"/>
+        <item
+            android:id="@+id/menu_scale_scale_center_crop"
+            android:title="@string/menu_scale_center_crop"/>
+        <item
+            android:id="@+id/menu_scale_scale_center_inside"
+            android:title="@string/menu_scale_center_inside"/>
+    </group>
+    <group>
+        <item
+            android:id="@+id/action_settings"
+            android:title="@string/mitem_settings"
+            app:showAsAction="never"/>
+    </group>
+</menu>

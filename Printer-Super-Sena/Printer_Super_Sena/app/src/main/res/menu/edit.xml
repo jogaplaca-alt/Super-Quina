@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:icon="@drawable/ic_stat_print"
+        android:id="@+id/texttoprint"
+        android:title="@string/btnTxtPrint"
+        app:showAsAction="ifRoom"/>
+    <item
+        android:icon="@drawable/speak_action"
+        android:id="@+id/speechrequest"
+        android:title="@string/speech_input"
+        app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/texttoprintapp"
+        android:title="@string/print_in_graphics_mode"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/opentext"
+        android:title="@string/meny_sub_1"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/saveText"
+        android:title="@string/btnLanSave_desc"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/shareText"
+        android:title="@string/share"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/cleartext"
+        android:title="@string/clear_text"
+        app:showAsAction="never"/>
+</menu>

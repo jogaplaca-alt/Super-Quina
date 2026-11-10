@@ -1,0 +1,674 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    android:versionCode="184"
+    android:versionName="7.0.2"
+    android:installLocation="auto"
+    android:compileSdkVersion="34"
+    android:compileSdkVersionCodename="14"
+    package="ru.a402d.rawbtprinter"
+    platformBuildVersionCode="34"
+    platformBuildVersionName="14">
+    <uses-sdk
+        android:minSdkVersion="19"
+        android:targetSdkVersion="34"/>
+    <supports-screens
+        android:anyDensity="true"
+        android:smallScreens="true"
+        android:normalScreens="true"
+        android:largeScreens="true"
+        android:resizeable="true"
+        android:xlargeScreens="true"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="29"/>
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="29"/>
+    <uses-permission
+        android:name="android.permission.ACCESS_COARSE_LOCATION"
+        android:maxSdkVersion="25"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="http"/>
+        </intent>
+        <package android:name="ru.a402d.rawbtprinter"/>
+        <intent>
+            <action android:name="com.android.vending.billing.InAppBillingService.BIND"/>
+        </intent>
+    </queries>
+    <permission
+        android:label="@string/custom_permission_label"
+        android:icon="@drawable/ic_stat_print"
+        android:name="ru.a402d.rawbtprinter.PERMISSION"
+        android:protectionLevel="dangerous"
+        android:description="@string/custom_permission_description"/>
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false"/>
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <uses-feature
+        android:name="android.hardware.bluetooth"
+        android:required="false"/>
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="false"/>
+    <uses-feature
+        android:name="android.software.companion_device_setup"
+        android:required="false"/>
+    <uses-permission android:name="android.permission.USB_PERMISSION"/>
+    <uses-feature
+        android:name="android.hardware.usb"
+        android:required="false"/>
+    <uses-feature
+        android:name="android.hardware.wifi"
+        android:required="false"/>
+    <uses-feature
+        android:name="android.hardware.ethernet"
+        android:required="false"/>
+    <uses-permission android:name="ru.a402d.rawbtprinter.PERMISSION"/>
+    <uses-permission android:name="com.android.vending.BILLING"/>
+    <permission
+        android:name="ru.a402d.rawbtprinter.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        android:protectionLevel="signature"/>
+    <uses-permission android:name="ru.a402d.rawbtprinter.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <application
+        android:theme="@style/AppTheme"
+        android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
+        android:name="ru.a402d.rawbtprinter.RawPrinterApp"
+        android:allowBackup="false"
+        android:hardwareAccelerated="false"
+        android:largeHeap="true"
+        android:supportsRtl="true"
+        android:banner="@drawable/beanlogo"
+        android:extractNativeLibs="true"
+        android:usesCleartextTraffic="true"
+        android:resizeableActivity="false"
+        android:appComponentFactory="androidx.core.app.CoreComponentFactory">
+        <activity
+            android:theme="@style/SplashTheme"
+            android:name="ru.a402d.rawbtprinter.activity.MainActivity"
+            android:exported="true"
+            android:configChanges="screenSize|orientation"
+            android:keepScreenOn="true"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="rawbtprinter.a402d.ru.PDF_DEBUG"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="com.google.android.voicesearch.SELF_NOTE"/>
+                <data android:mimeType="*/*"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.google.android.gm.action.AUTO_SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="rawbtprinter.a402d.ru.PREVIEW_IMAGE"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data
+                    android:scheme="app402d"
+                    android:host="ru.a402d.rawbtprinter"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/MyDialog"
+            android:name="ru.a402d.rawbtprinter.activity.PrintRawBtActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:configChanges="screenSize|screenLayout|orientation|keyboardHidden"
+            android:keepScreenOn="true"
+            android:noHistory="true">
+            <intent-filter android:priority="1">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:scheme="rawbt"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="rawbt.action.PRINT"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="ru.a402d.rawbtprinter.action.PRINT_RAWBT"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/MyDialog"
+            android:name="ru.a402d.rawbtprinter.activity.PrintDownloadActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:configChanges="screenSize|orientation"
+            android:keepScreenOn="true"
+            android:noHistory="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data
+                    android:scheme="http"
+                    android:host="*"
+                    android:pathPattern=".*.txt"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data
+                    android:scheme="https"
+                    android:host="*"
+                    android:pathPattern=".*.txt"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data
+                    android:scheme="http"
+                    android:host="*"
+                    android:pathPattern=".*.prn"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data
+                    android:scheme="https"
+                    android:host="*"
+                    android:pathPattern=".*.prn"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data
+                    android:scheme="http"
+                    android:host="*"
+                    android:pathPattern=".*.pdf"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data
+                    android:scheme="https"
+                    android:host="*"
+                    android:pathPattern=".*.pdf"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data
+                    android:scheme="http"
+                    android:host="*"
+                    android:pathPattern=".*.png"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data
+                    android:scheme="https"
+                    android:host="*"
+                    android:pathPattern=".*.png"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data
+                    android:scheme="http"
+                    android:host="*"
+                    android:pathPattern=".*.jpg"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data
+                    android:scheme="https"
+                    android:host="*"
+                    android:pathPattern=".*.jpg"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data
+                    android:scheme="http"
+                    android:host="*"
+                    android:pathPattern=".*.jpeg"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data
+                    android:scheme="https"
+                    android:host="*"
+                    android:pathPattern=".*.jpeg"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data
+                    android:scheme="http"
+                    android:host="*"
+                    android:pathPattern=".*.webp"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data
+                    android:scheme="https"
+                    android:host="*"
+                    android:pathPattern=".*.webp"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data
+                    android:scheme="http"
+                    android:host="*"
+                    android:pathPattern=".*.bmp"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data
+                    android:scheme="https"
+                    android:host="*"
+                    android:pathPattern=".*.bmp"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/MyDialog"
+            android:label="@string/btnTxtPrint"
+            android:name="ru.a402d.rawbtprinter.activity.PrintContentActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:configChanges="screenSize|screenLayout|orientation|keyboardHidden"
+            android:keepScreenOn="true"
+            android:noHistory="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:scheme="file"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="*/*"/>
+                <data android:scheme="file"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/*"/>
+                <data android:scheme="file"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
+                <data android:scheme="file"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:scheme="content"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="*/*"/>
+                <data android:scheme="content"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/*"/>
+                <data android:scheme="content"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
+                <data android:scheme="content"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="android.resource"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="*/*"/>
+                <data android:scheme="android.resource"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/MyDialog"
+            android:label="@string/btnTxtPrint"
+            android:name="ru.a402d.rawbtprinter.activity.PrintExtraActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:configChanges="screenSize|screenLayout|orientation|keyboardHidden"
+            android:keepScreenOn="true"
+            android:noHistory="true">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="image/*"/>
+                <data android:mimeType="text/plain"/>
+                <data android:mimeType="text/html"/>
+                <data android:mimeType="application/pdf"/>
+                <data android:mimeType="*/*"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SENDTO"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="image/*"/>
+                <data android:mimeType="text/plain"/>
+                <data android:mimeType="text/html"/>
+                <data android:mimeType="application/pdf"/>
+                <data android:mimeType="*/*"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
+                <data android:mimeType="application/pdf"/>
+                <data android:mimeType="image/*"/>
+                <data android:mimeType="*/*"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.PROCESS_TEXT"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="ru.a402d.rawbtprinter.activity.ErrorActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:configChanges="screenSize|orientation"
+            android:noHistory="true">
+            <intent-filter>
+                <action android:name="ru.a402d.rawbtprinter.ERROR"/>
+            </intent-filter>
+        </activity>
+        <activity android:name="ru.a402d.rawbtprinter.activity.SettingExtActivity"/>
+        <activity
+            android:name="ru.a402d.rawbtprinter.printservice.SettingsActivity"
+            android:permission="android.permission.BIND_PRINT_SERVICE"
+            android:exported="true"
+            android:configChanges="screenSize|orientation"/>
+        <activity android:name="ru.a402d.rawbtprinter.activity.PermissionsActivity"/>
+        <activity android:name="ru.a402d.rawbtprinter.activity.TemplatesActivity"/>
+        <activity
+            android:theme="@style/Theme.AppCompat.Dialog"
+            android:name="ru.a402d.rawbtprinter.activity.BtPrinterDetectActivity"
+            android:exported="false"/>
+        <activity
+            android:name="ru.a402d.rawbtprinter.activity.DebugActivity"
+            android:configChanges="screenSize|orientation"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity android:name="com.theartofdev.edmodo.cropper.CropImageActivity"/>
+        <activity
+            android:label="@string/prn_viewer"
+            android:name="ru.a402d.prnviewer.ViewActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:configChanges="screenSize|orientation">
+            <intent-filter>
+                <action android:name="rawbt.sdk.PRN_VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:host="*"/>
+                <data android:pathPattern=".*\\.prn"/>
+                <data android:pathPattern=".*\\..*\\.prn"/>
+                <data android:pathPattern=".*\\..*\\..*\\.prn"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.prn"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.prn"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.prn"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.prn"/>
+                <data android:scheme="content"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:host="*"/>
+                <data android:pathPattern=".*\\.prn"/>
+                <data android:pathPattern=".*\\..*\\.prn"/>
+                <data android:pathPattern=".*\\..*\\..*\\.prn"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.prn"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.prn"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.prn"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\..*\\.prn"/>
+                <data android:scheme="file"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:theme="@style/Theme.AppCompat.Dialog"
+            android:name="rawbt.sdk.btpair.BtScanActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"/>
+        <activity
+            android:label=""
+            android:name="ru.a402d.rawbtprinter.activity.DeviceListActivity"
+            android:excludeFromRecents="true"
+            android:configChanges="screenSize|orientation"/>
+        <activity
+            android:label="USB"
+            android:name="ru.a402d.rawbtprinter.activity.UsbListActivity"
+            android:configChanges="screenSize|orientation"/>
+        <activity
+            android:theme="@style/Theme.AppCompat.Dialog"
+            android:name="ru.a402d.rawbtprinter.activity.UsbKnownActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:configChanges="screenSize|orientation"
+            android:noHistory="true">
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/device_filter"/>
+        </activity>
+        <activity
+            android:name="ru.a402d.rawbtprinter.activity.Magic"
+            android:exported="true"
+            android:configChanges="screenSize|orientation"/>
+        <activity
+            android:label="@string/edit_printer"
+            android:name="ru.a402d.rawbtprinter.activity.EditPrinterActivity"
+            android:exported="true"/>
+        <activity
+            android:label="Dots Calculator"
+            android:name="ru.a402d.rawbtprinter.activity.CalcDotsActivity"
+            android:exported="false"/>
+        <activity
+            android:name="ru.a402d.rawbtprinter.activity.ProfileMinimalActivity"
+            android:configChanges="screenSize|orientation"/>
+        <activity
+            android:name="ru.a402d.rawbtprinter.activity.ProfileMediumActivity"
+            android:configChanges="screenSize|orientation"/>
+        <activity
+            android:name="ru.a402d.rawbtprinter.activity.ProfilePaperangActivity"
+            android:configChanges="screenSize|orientation"/>
+        <activity
+            android:name="ru.a402d.rawbtprinter.activity.ProfilePeripageActivity"
+            android:configChanges="screenSize|orientation"/>
+        <activity
+            android:name="ru.a402d.rawbtprinter.activity.ProfileZplActivity"
+            android:configChanges="screenSize|orientation"/>
+        <activity
+            android:name="ru.a402d.rawbtprinter.activity.ProfileCatActivity"
+            android:configChanges="screenSize|orientation"/>
+        <activity
+            android:name="ru.a402d.rawbtprinter.activity.ProfileEscActivity"
+            android:configChanges="screenSize|orientation"/>
+        <service
+            android:icon="@drawable/ic_stat_print"
+            android:name="ru.a402d.rawbtprinter.RawBtPrintService"
+            android:permission="ru.a402d.rawbtprinter.PERMISSION"
+            android:exported="true"
+            android:description="@string/app_name">
+            <intent-filter>
+                <action android:name="rawbt.action.SERVICE"/>
+            </intent-filter>
+        </service>
+        <service
+            android:label="@string/app_name"
+            android:name="ru.a402d.rawbtprinter.printservice.RawBtService"
+            android:permission="android.permission.BIND_PRINT_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.printservice.PrintService"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.printservice"
+                android:resource="@xml/printservice"/>
+        </service>
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:exported="false"
+            android:authorities="ru.a402d.rawbtprinter.fileprovider"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_path"/>
+        </provider>
+        <meta-data
+            android:name="com.google.android.play.billingclient.version"
+            android:value="6.2.1"/>
+        <activity
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:name="com.android.billingclient.api.ProxyBillingActivity"
+            android:exported="false"
+            android:configChanges="screenSize|screenLayout|orientation|keyboardHidden|keyboard"/>
+        <activity
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:name="com.android.billingclient.api.ProxyBillingActivityV2"
+            android:exported="false"
+            android:configChanges="screenSize|screenLayout|orientation|keyboardHidden|keyboard"/>
+        <activity
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+            android:exported="false"/>
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version"/>
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:exported="false"
+            android:authorities="ru.a402d.rawbtprinter.androidx-startup">
+            <meta-data
+                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+                android:value="androidx.startup"/>
+            <meta-data
+                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+                android:value="androidx.startup"/>
+            <meta-data
+                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+                android:value="androidx.startup"/>
+        </provider>
+        <service
+            android:name="androidx.room.MultiInstanceInvalidationService"
+            android:exported="false"
+            android:directBootAware="true"/>
+        <service
+            android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+            android:exported="false">
+            <meta-data
+                android:name="backend:com.google.android.datatransport.cct.CctBackendFactory"
+                android:value="cct"/>
+        </service>
+        <service
+            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false"/>
+        <receiver
+            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
+            android:exported="false"/>
+        <receiver
+            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+            android:permission="android.permission.DUMP"
+            android:enabled="true"
+            android:exported="true"
+            android:directBootAware="false">
+            <intent-filter>
+                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="androidx.profileinstaller.action.SKIP_FILE"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION"/>
+            </intent-filter>
+        </receiver>
+        <activity
+            android:theme="@style/Theme.PlayCore.Transparent"
+            android:name="com.google.android.play.core.common.PlayCoreDialogWrapperActivity"
+            android:exported="false"
+            android:stateNotNeeded="true"/>
+        <meta-data
+            android:name="com.android.dynamic.apk.fused.modules"
+            android:value="base"/>
+        <meta-data
+            android:name="com.android.stamp.source"
+            android:value="https://play.google.com/store"/>
+        <meta-data
+            android:name="com.android.stamp.type"
+            android:value="STAMP_TYPE_STANDALONE_APK"/>
+        <meta-data
+            android:name="com.android.vending.splits"
+            android:resource="@xml/splits0"/>
+        <meta-data
+            android:name="com.android.vending.derived.apk.id"
+            android:value="3"/>
+    </application>
+</manifest>

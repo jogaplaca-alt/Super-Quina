@@ -1,0 +1,29 @@
+<html>
+<head>
+    <title>How input commands ?</title>
+</head>
+<body>
+<h3 class="question"><i class="fas fa-question-circle"></i> How input  commands ?
+</h3>
+<div class="answer">
+    <p>Commands are entered as a sequence of bytes separated by semicolons.</p>
+    <p>Example</p>
+    <p><b>ESC;@</b> or <b>1b;40</b></p>
+    <p>Bytes can be written in the following formats:</p>
+    <ul>
+        <li>The semicolon is used as a separator. To enter a character, specify <b>3B;</b></li>
+        <li><b>00-FF</b> - Two hexadecimal digits. Allowed 0-9,A-F or a-f.</li>
+        <li>ASCII control characters (character code 0-31, 0x00-0x1f) can be
+            specified as a mnemonic (ESC,STX). See image below.
+        </li>
+        <li>Other printed ASCII characters (character code 33-126), in addition to a
+            space, can be entered as is.
+        </li>
+    </ul>
+    <p><img src="ascii-codes-table.jpg" width="236" height="551"></p>
+    <br/><br/><br/>
+</div>
+
+
+</body>
+</html>

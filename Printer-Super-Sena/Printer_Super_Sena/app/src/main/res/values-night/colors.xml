@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="activity_background">#444444</color>
+    <color name="background_color">#272727</color>
+    <color name="background_edit">#000000</color>
+    <color name="border_blue_btn">#a0a0a0</color>
+    <color name="colorAccent">#81befd</color>
+    <color name="colorPrimary">#1b4384</color>
+    <color name="colorPrimaryDark">#030d15</color>
+    <color name="color_icon">#5394fc</color>
+    <color name="color_important">#ffffff</color>
+    <color name="color_menu">#5394fc</color>
+    <color name="darker_gray">#666666</color>
+    <color name="deep_background">#121212</color>
+    <color name="gray_very_light">#222222</color>
+    <color name="red">#ffc107</color>
+    <color name="screen_white">#a0a0a0</color>
+    <color name="text_color">#eeeeee</color>
+</resources>

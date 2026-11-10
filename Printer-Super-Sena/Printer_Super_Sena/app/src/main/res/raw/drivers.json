@@ -1,0 +1,14 @@
+[
+  ["esc_general","ESC/POS general"],
+  ["esc_gs_v_0","support GSv0 only"],
+  ["peripage","Peripage"],
+  ["paperang","Paperang (0x02…0x03)"],
+  ["paperang2","Paperang (0xA5…0x5A)"],
+  ["cat_printer","Meow or Cats"],
+  ["dothan_printer","DothanTech"],
+  ["cpcl_general","CPCL"],
+  ["epl_general","EPL"],
+  ["tspl_general","TSPL"],
+  ["zpl_general","ZPL"],
+  ["raw_transfer","raw transfer"]
+]

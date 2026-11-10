@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="LanguageKey">
+        <item>sq</item>
+        <item>ar</item>
+        <item>bn</item>
+        <item>bg</item>
+        <item>ca</item>
+        <item>zh</item>
+        <item>hr</item>
+        <item>cs</item>
+        <item>da</item>
+        <item>de</item>
+        <item>nl</item>
+        <item>en</item>
+        <item>et</item>
+        <item>fi</item>
+        <item>fr</item>
+        <item>el</item>
+        <item>hi</item>
+        <item>hu</item>
+        <item>it</item>
+        <item>id</item>
+        <item>ja</item>
+        <item>ko</item>
+        <item>lt</item>
+        <item>ms</item>
+        <item>no</item>
+        <item>pl</item>
+        <item>pt</item>
+        <item>ru</item>
+        <item>sk</item>
+        <item>sl</item>
+        <item>es</item>
+        <item>sv</item>
+        <item>th</item>
+        <item>tr</item>
+        <item>uk</item>
+    </array>
+    <array name="LanguageName">
+        <item>sq: Albanian - Shqiptar</item>
+        <item>ar: Arabic - عربى</item>
+        <item>bn: Bengali - বাঙালি</item>
+        <item>bg: Bulgarian - български</item>
+        <item>ca: Catalan - Català</item>
+        <item>zh: Chinese - 中文</item>
+        <item>hr: Croatian - Hrvatski</item>
+        <item>cs: Czech - čeština</item>
+        <item>da: Danish - Dansk</item>
+        <item>de: Deutsch</item>
+        <item>nl: Dutch - Nederlands</item>
+        <item>en: English</item>
+        <item>et: Estonian - Eesti keel</item>
+        <item>fi: Finnish (Suomi)</item>
+        <item>fr: French - Français</item>
+        <item>el: Greek - Ελληνικά</item>
+        <item>hi: Hindi - हिंदी</item>
+        <item>hu: Hungarian - Magyar</item>
+        <item>it: Italian - Italiano</item>
+        <item>id: Indonesian - bahasa Indonesia</item>
+        <item>ja: Japanese - 日本人</item>
+        <item>ko: Korean - 한국어</item>
+        <item>lt: Lithuanian - Lietuvių</item>
+        <item>ms: Malay - Melayu</item>
+        <item>no: Norwegian - Norsk</item>
+        <item>pl: Polish - Polskie</item>
+        <item>pt: Portuguese - Português</item>
+        <item>ru: Russian - Русский</item>
+        <item>sk: Slovak - Slovenský</item>
+        <item>sl: Slovenian - Slovenščina</item>
+        <item>es: Spanish - Español</item>
+        <item>sv: Swedish - Svenska</item>
+        <item>th: Thai - ภาษาไทย</item>
+        <item>tr: Turkish - Türk</item>
+        <item>uk: Ukrainian - Українська</item>
+    </array>
+    <array name="WidthTruncateModeNames">
+        <item>not cut</item>
+        <item>cut 1/2 inch fields</item>
+        <item>cut max empty space</item>
+    </array>
+    <array name="baud_rates">
+        <item>9600</item>
+        <item>19200</item>
+        <item>48400</item>
+        <item>57600</item>
+        <item>115200</item>
+        <item>230400</item>
+        <item>460800</item>
+        <item>921600</item>
+    </array>
+    <array name="cutTypes">
+        <item>not supported</item>
+        <item>fullCut1 - GS;V;0</item>
+        <item>fullCut2 - GS;V;41;0</item>
+        <item>fullCut3 - ESC;i</item>
+        <item>fullCut4 - ESC;d;0</item>
+        <item>partialCut1 - GS;V;1</item>
+        <item>partialCut2 - GS;V;42;0</item>
+        <item>partialCut3 - ESC;m</item>
+        <item>partialCut4 - ESC;d;1</item>
+    </array>
+    <array name="cutTypesLabel">
+        <item>not supported</item>
+    </array>
+    <array name="lanDelayAfter">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>15</item>
+        <item>20</item>
+        <item>25</item>
+        <item>30</item>
+    </array>
+    <array name="lanDelayMS">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
+        <item>15</item>
+        <item>16</item>
+        <item>17</item>
+        <item>18</item>
+        <item>19</item>
+        <item>20</item>
+        <item>25</item>
+        <item>30</item>
+        <item>35</item>
+        <item>40</item>
+        <item>45</item>
+        <item>50</item>
+        <item>60</item>
+        <item>70</item>
+        <item>80</item>
+        <item>90</item>
+        <item>100</item>
+        <item>125</item>
+        <item>150</item>
+        <item>175</item>
+        <item>200</item>
+        <item>225</item>
+        <item>250</item>
+        <item>275</item>
+        <item>300</item>
+        <item>325</item>
+        <item>350</item>
+        <item>375</item>
+        <item>400</item>
+        <item>425</item>
+        <item>450</item>
+        <item>475</item>
+        <item>500</item>
+        <item>525</item>
+        <item>550</item>
+        <item>575</item>
+        <item>600</item>
+        <item>625</item>
+        <item>650</item>
+        <item>675</item>
+        <item>700</item>
+        <item>725</item>
+        <item>750</item>
+        <item>775</item>
+        <item>800</item>
+        <item>825</item>
+        <item>850</item>
+        <item>875</item>
+        <item>900</item>
+        <item>925</item>
+        <item>950</item>
+        <item>975</item>
+        <item>1000</item>
+    </array>
+    <array name="skipLines">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+    </array>
+</resources>

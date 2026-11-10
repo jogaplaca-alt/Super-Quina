@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/terminal_mode"
+        android:title="@string/hex"
+        app:showAsAction="always"/>
+    <item
+        android:icon="@drawable/connect"
+        android:id="@+id/terminal_connect"
+        android:title="@string/connect"
+        app:showAsAction="never"/>
+    <item
+        android:icon="@drawable/disconnect"
+        android:id="@+id/terminal_disconnect"
+        android:visible="false"
+        android:title="@string/disconnect"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/terminal_clear"
+        android:title="@string/clear_console"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/terminal_send_file"
+        android:title="@string/send_file"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/terminal_share"
+        android:title="@string/share_log"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/terminal_help"
+        android:title="@string/meny_sub_2"
+        app:showAsAction="never"/>
+</menu>
