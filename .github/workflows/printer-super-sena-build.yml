@@ -21,6 +21,17 @@ jobs:
           unzip -q "/tmp/printer-package/source.zip" -d .
           test -f "Printer_Super_Sena/settings.gradle"
 
+      - name: Normalize decompiled nine-patch images
+        run: |
+          # The decompiled archive contains malformed .9.png files (invalid nine-patch metadata).
+          # Keep their image data and resource names, but treat them as ordinary PNG assets.
+          find Printer_Super_Sena/app/src/main/res -type f \\
+            \( -name 'abc_list_divider_mtrl_alpha.9.png' \\
+            -o -name 'abc_textfield_search_activated_mtrl_alpha.9.png' \\
+            -o -name 'abc_textfield_default_mtrl_alpha.9.png' \) \\
+            -print -exec sh -c 'mv "$1" "NaN.png"' _ {} \\
+          
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
