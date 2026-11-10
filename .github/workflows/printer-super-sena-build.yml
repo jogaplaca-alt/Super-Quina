@@ -1,0 +1,42 @@
+name: Build Printer Super Sena
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'Printer-Super-Sena/Printer-Super-Sena-pacote.zip'
+      - '.github/workflows/printer-super-sena-build.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Extract uploaded package
+        run: |
+          mkdir -p /tmp/printer-package
+          unzip -q "Printer-Super-Sena/Printer-Super-Sena-pacote.zip" -d /tmp/printer-package
+          unzip -q "/tmp/printer-package/source.zip" -d .
+          test -f "Printer_Super_Sena/settings.gradle"
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      - name: Build debug APK
+        run: gradle --no-daemon -p Printer_Super_Sena :app:assembleDebug --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: printer-super-sena-debug
+          path: Printer_Super_Sena/app/build/outputs/apk/debug/*.apk
