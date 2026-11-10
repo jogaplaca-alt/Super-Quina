@@ -10,7 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.widget.TextView;
 import com.dantsu.escposprinter.connection.bluetooth.BluetoothConnection;
-import java.util.Base64;
+import android.util.Base64;
 
 public class PrintRawBtActivity extends Activity {
     @Override public void onCreate(Bundle state) {
@@ -26,8 +26,8 @@ public class PrintRawBtActivity extends Activity {
         new Thread(() -> {
             try {
                 byte[] payload = decodePayload(getIntent());
-                String mac = getSharedPreferences("Printer Super Sena", MODE_PRIVATE).getString("printer_mac", "");
-                if (mac.isEmpty()) mac = getPreferences(MODE_PRIVATE).getString("printer_mac", "");
+                String mac = getSharedPreferences("printer_settings", MODE_PRIVATE).getString("printer_mac", "");
+                if (mac.isEmpty()) mac = getSharedPreferences("printer_settings", MODE_PRIVATE).getString("printer_mac", "");
                 if (mac.isEmpty()) throw new IllegalStateException("Nenhuma impressora salva. Abra o aplicativo e selecione uma impressora.");
                 BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
                 if (adapter == null) throw new IllegalStateException("Bluetooth indisponível neste aparelho.");
@@ -51,6 +51,6 @@ public class PrintRawBtActivity extends Activity {
             throw new IllegalArgumentException("Formato recebido não reconhecido. Esperado: rawbt:base64,...");
         }
         String encoded = value.substring("base64,".length());
-        return Base64.getDecoder().decode(encoded);
+        return Base64.decode(encoded, Base64.DEFAULT);
     }
 }
