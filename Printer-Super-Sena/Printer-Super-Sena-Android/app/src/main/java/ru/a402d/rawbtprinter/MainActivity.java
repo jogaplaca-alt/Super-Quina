@@ -77,7 +77,7 @@ public class MainActivity extends Activity {
             }
             if (labels.isEmpty()) labels.add("Nenhuma impressora pareada");
             printers.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, labels));
-            String saved = getPreferences(MODE_PRIVATE).getString("printer_mac", "");
+            String saved = getSharedPreferences("printer_settings", MODE_PRIVATE).getString("printer_mac", "");
             int index = addresses.indexOf(saved);
             if (index >= 0) printers.setSelection(index);
             status.setText(labels.size() + " dispositivo(s) encontrado(s).");
@@ -89,7 +89,7 @@ public class MainActivity extends Activity {
     private void savePrinter() {
         int index = printers.getSelectedItemPosition();
         if (index < 0 || index >= addresses.size()) { status.setText("Pareie uma impressora Bluetooth primeiro."); return; }
-        getPreferences(MODE_PRIVATE).edit().putString("printer_mac", addresses.get(index)).apply();
+        getSharedPreferences("printer_settings", MODE_PRIVATE).edit().putString("printer_mac", addresses.get(index)).apply();
         status.setText("Impressora salva. O aplicativo está pronto para receber trabalhos rawbt:.");
     }
 
