@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'Printer-Super-Sena/Printer_Super_Sena/**'
+      - 'Printer-Super-Sena/Printer-Super-Sena-Android/**'
       - '.github/workflows/printer-super-sena-build.yml'
 
 permissions:
@@ -17,25 +17,11 @@ jobs:
       - name: Checkout isolated branch
         uses: actions/checkout@v4
 
-      - name: Verify extracted Android project
+      - name: Verify clean Android project
         run: |
-          test -f "Printer-Super-Sena/Printer_Super_Sena/settings.gradle"
-          test -f "Printer-Super-Sena/Printer_Super_Sena/build.gradle"
-          test -f "Printer-Super-Sena/Printer_Super_Sena/app/build.gradle"
-
-      - name: Normalize decompiled Nine-Patch resources
-        shell: bash
-        run: |
-          RES="Printer-Super-Sena/Printer_Super_Sena/app/src/main/res"
-          find "$RES" -type f -name '*.9.png' -print0 | while IFS= read -r -d '' file; do
-            target="${file%.9.png}.png"
-            if [ -e "$target" ]; then
-              echo "Cannot normalize $file because $target already exists"
-              exit 1
-            fi
-            mv "$file" "$target"
-            echo "Normalized invalid Nine-Patch: $file"
-          done
+          test -f "Printer-Super-Sena/Printer-Super-Sena-Android/settings.gradle"
+          test -f "Printer-Super-Sena/Printer-Super-Sena-Android/build.gradle"
+          test -f "Printer-Super-Sena/Printer-Super-Sena-Android/app/build.gradle"
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -49,12 +35,12 @@ jobs:
           gradle-version: '8.11.1'
 
       - name: Compile debug APK
-        run: gradle --no-daemon -p Printer-Super-Sena/Printer_Super_Sena :app:assembleDebug --stacktrace
+        run: gradle --no-daemon -p Printer-Super-Sena/Printer-Super-Sena-Android :app:assembleDebug --stacktrace
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: Printer-Super-Sena-debug
-          path: Printer-Super-Sena/Printer_Super_Sena/app/build/outputs/apk/debug/*.apk
+          path: Printer-Super-Sena/Printer-Super-Sena-Android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 14
