@@ -1,0 +1,4 @@
+<resources><style name="Theme.ThermalPrinter" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+ <item name="colorPrimary">#174EA6</item><item name="colorPrimaryVariant">#123B7A</item><item name="colorSecondary">#008577</item>
+ <item name="android:fontFamily">sans</item><item name="android:statusBarColor">#123B7A</item><item name="android:navigationBarColor">#101820</item>
+</style></resources>
