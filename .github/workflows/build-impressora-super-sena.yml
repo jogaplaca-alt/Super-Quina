@@ -1,7 +1,7 @@
 name: Build Impressora Super Sena APK
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'impressora-super-sena/**'
       - '.github/workflows/build-impressora-super-sena.yml'
@@ -20,9 +20,11 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
-      - name: Install Android SDK
-        run: sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+      - name: Configure Android SDK
+        run: |
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-34" "build-tools;34.0.0"
       - name: Make gradlew executable
         run: chmod +x ./gradlew
       - name: Build APK
