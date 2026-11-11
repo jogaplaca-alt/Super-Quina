@@ -1,0 +1,10 @@
+<resources>
+ <string name="app_name">Impressora Super Sena</string>
+ <string name="title">Impressora Super Sena</string>
+ <string name="disconnected">Desconectado</string>
+ <string name="list_printers">Solicitar Permissoes / Listar Impressoras</string>
+ <string name="test_text_label">Texto para impressao</string>
+ <string name="test_hint">Digite o texto de teste</string>
+ <string name="default_test_text">Impressao de teste realizada com sucesso!\nPortugues: acao, coracao, impressao, voce.</string>
+ <string name="print_test">Imprimir Teste</string>
+</resources>
