@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
+ <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="24dp">
+  <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/title" android:textAppearance="?attr/textAppearanceHeadline5" android:textStyle="bold" android:paddingBottom="8dp"/>
+  <TextView android:id="@+id/connectionStatus" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/disconnected" android:textAppearance="?attr/textAppearanceSubtitle1" android:padding="16dp" android:background="@drawable/status_background" android:layout_marginBottom="20dp"/>
+  <com.google.android.material.button.MaterialButton android:id="@+id/listPrintersButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/list_printers" app:cornerRadius="12dp"/>
+  <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/test_text_label" android:textStyle="bold" android:layout_marginTop="24dp" android:layout_marginBottom="8dp"/>
+  <com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/test_hint" app:boxBackgroundMode="outline">
+   <com.google.android.material.textfield.TextInputEditText android:id="@+id/testText" android:layout_width="match_parent" android:layout_height="180dp" android:gravity="top|start" android:inputType="textMultiLine|textCapSentences" android:padding="12dp" android:text="@string/default_test_text"/>
+  </com.google.android.material.textfield.TextInputLayout>
+  <com.google.android.material.button.MaterialButton android:id="@+id/printTestButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/print_test" android:layout_marginTop="16dp" app:cornerRadius="12dp"/>
+ </LinearLayout>
+</ScrollView>
