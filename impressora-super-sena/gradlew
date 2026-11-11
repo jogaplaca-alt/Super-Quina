@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+set -eu
+V=8.7
+B="${GRADLE_USER_HOME:-$HOME/.gradle}/manual-wrapper"
+H="$B/gradle-$V"
+if [ ! -x "$H/bin/gradle" ]; then
+ mkdir -p "$B"; A="$B/gradle-$V-bin.zip"
+ if [ ! -f "$A" ]; then
+  if command -v curl >/dev/null 2>&1; then curl -fL "https://services.gradle.org/distributions/gradle-$V-bin.zip" -o "$A"; else wget -O "$A" "https://services.gradle.org/distributions/gradle-$V-bin.zip"; fi
+ fi
+ unzip -q -o "$A" -d "$B"
+fi
+exec "$H/bin/gradle" "$@"
